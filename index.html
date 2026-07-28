@@ -3,237 +3,156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crispy — Creator Tools by Darkness</title>
-<meta name="description" content="Crispy builds Adobe extensions, After Effects project files, Premiere presets and plugins for creators who ship fast.">
+<title>Crispy — Creator Tools</title>
+<meta name="description" content="Adobe extensions, project files and pro tools for creators who ship fast.">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="assets/css/crispy-pizza.css">
+<link rel="stylesheet" href="assets/css/store.css">
 </head>
-<body class="cp-body">
+<body>
 
-<div class="cp-starfield" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
 
-<!-- ============ TOP BAR ============ -->
-<header class="cp-topbar">
-  <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html" class="cp-logo">
-    <span class="cp-logo__mark">🔥</span>
-    Crispy <span class="dim">· by Darkness</span>
-  </a>
-  <div class="cp-topbar__right">
-    <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html" class="cp-back-link">← Darkness</a>
-    <span data-dc-account></span>
+<!-- Announcement -->
+<div class="announce">
+  <span class="announce__tag">New</span>
+  <span>Free assets just dropped — start building today</span>
+  <span class="announce__timer" data-countdown>Ends in 60:00</span>
+</div>
+
+<!-- Nav -->
+<header class="nav">
+  <div class="nav__pill">
+    <a href="index.html" class="nav__logo" aria-label="Crispy home">🔥</a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="index.html" class="is-active">Home</a>
+      <a href="catalog.html">Catalog</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="nav__account"><span data-dc-account></span></div>
+    <a href="cart.html" class="nav__cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="nav__cart-count" data-cart-count style="display:none;">0</span>
+    </a>
   </div>
 </header>
 
 <main>
-  <!-- ============ HERO ============ -->
-  <section class="cp-hero">
-    <h1 class="cp-hero__title">Welcome to Crispy,<br><span class="cp-name" data-cp-username>Creator</span></h1>
-    <p class="cp-hero__sub">Adobe extensions, After Effects files and Premiere presets built for creators who ship fast.</p>
-    <div class="cp-hero__cta">
-      <a href="#shelf" class="cp-btn">🔥 Start now</a>
-      <button class="cp-btn cp-btn--ghost-cp" data-cp-login-prompt style="margin-left:.7rem; display:none;">Log in for your files</button>
+  <!-- Hero -->
+  <section class="hero">
+    <span class="hero__badge"><span class="dot"></span> Trusted by 2,400+ editors</span>
+    <h1 class="hero__title">Make work that<br><span class="accent">gets noticed.</span></h1>
+    <div class="hero__stars"><span class="stars">★★★★★</span> 4.9 average rating</div>
+    <p class="hero__sub">Adobe extensions, project files and pro tools — built in-house, tested on real client work, sold directly.</p>
+    <div class="hero__cta">
+      <a href="catalog.html" class="btn">Shop all tools</a>
+      <a href="#featured" class="btn btn--ghost">See what's hot</a>
+    </div>
+    <p class="hero__note">One-time payment · Instant download · Lifetime updates</p>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <span>One-time payment</span><span>Mac &amp; Windows</span><span>Trusted by 2,400+ editors</span><span>Drag, drop, done</span><span>Lifetime updates</span><span>After Effects 2022+</span>
+      <span>One-time payment</span><span>Mac &amp; Windows</span><span>Trusted by 2,400+ editors</span><span>Drag, drop, done</span><span>Lifetime updates</span><span>After Effects 2022+</span>
+    </div>
+  </div>
+
+  <!-- Featured -->
+  <section class="section" id="featured">
+    <div class="section__head reveal">
+      <div class="eyebrow">Most loved</div>
+      <h2 class="section__title">The editor's <span class="accent">essentials.</span></h2>
+      <p class="section__sub">The tools that do the heavy lifting on real timelines. Drag, drop, done.</p>
+    </div>
+    <div class="container">
+      <div class="product-grid" data-home-grid>
+        <p class="state-msg">Loading products…</p>
+      </div>
+      <div style="text-align:center;margin-top:2.4rem;">
+        <a href="catalog.html" class="btn btn--ghost">View all products</a>
+      </div>
     </div>
   </section>
 
-  <!-- ============ PROJECT FILES SHELF ============ -->
-  <section class="cp-section" id="shelf">
-    <div class="cp-section__head reveal">
-      <h2 class="cp-section__title">Project <span class="accent">Files</span></h2>
-      <p class="cp-section__sub">Download. Edit. Go viral.</p>
+  <!-- Testimonials -->
+  <section class="section">
+    <div class="section__head reveal">
+      <div class="eyebrow">★★★★★ 4.9 average</div>
+      <h2 class="section__title">Loved by editors <span class="accent">worldwide.</span></h2>
     </div>
-    <div class="cp-shelf">
-      <article class="cp-card reveal">
-        <div class="cp-card__media">MacBook Apps <span class="cp-card__badge">Free</span></div>
-        <div class="cp-card__body">
-          <h4>Faceless Reels Kit</h4>
-          <span class="cp-card__price">Free</span>
-          <a href="#" class="cp-btn cp-btn--sm">Download</a>
+    <div class="container">
+      <div class="testi-grid">
+        <div class="testi reveal">
+          <div class="testi__stars">★★★★★</div>
+          <p class="testi__body">The split-color pack alone paid for itself on my first client edit. Everything just drops in and works.</p>
+          <div class="testi__who">Marcus L. <span>· YouTube editor</span></div>
         </div>
-      </article>
-      <article class="cp-card cp-card--locked reveal">
-        <div class="cp-card__media">Split Color
-          <div class="cp-card__lock">🔒 Customers only</div>
+        <div class="testi reveal">
+          <div class="testi__stars">★★★★★</div>
+          <p class="testi__body">I stopped rebuilding the same rigs every project. Grabbed the bundle and my turnaround dropped in half.</p>
+          <div class="testi__who">Aisha K. <span>· Freelance motion designer</span></div>
         </div>
-        <div class="cp-card__body">
-          <h4>3 Split Color</h4>
-          <span class="cp-card__price">$14.99</span>
-          <a href="#" class="cp-btn cp-btn--sm">Open Project File</a>
-        </div>
-      </article>
-      <article class="cp-card cp-card--locked reveal">
-        <div class="cp-card__media">Lyric Reveal
-          <div class="cp-card__lock">🔒 Customers only</div>
-        </div>
-        <div class="cp-card__body">
-          <h4>Lyric Reveal Pack</h4>
-          <span class="cp-card__price">$14.99</span>
-          <a href="#" class="cp-btn cp-btn--sm">Open Project File</a>
-        </div>
-      </article>
-      <article class="cp-card cp-card--locked reveal">
-        <div class="cp-card__media">Glitch Transitions
-          <div class="cp-card__lock">🔒 Customers only</div>
-        </div>
-        <div class="cp-card__body">
-          <h4>Glitch Transitions</h4>
-          <span class="cp-card__price">$12.99</span>
-          <a href="#" class="cp-btn cp-btn--sm">Open Project File</a>
-        </div>
-      </article>
-      <article class="cp-card cp-card--locked reveal">
-        <div class="cp-card__media">Podcast Clips
-          <div class="cp-card__lock">🔒 Customers only</div>
-        </div>
-        <div class="cp-card__body">
-          <h4>Podcast Clip Cutter</h4>
-          <span class="cp-card__price">$16.99</span>
-          <a href="#" class="cp-btn cp-btn--sm">Open Project File</a>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <!-- ============ SKILLS / BLUEPRINTS ============ -->
-  <section class="cp-section">
-    <div class="cp-section__head reveal">
-      <h2 class="cp-section__title">Level up your <span class="accent">skills</span></h2>
-      <p class="cp-section__sub">With our step-by-step blueprints</p>
-    </div>
-    <div class="cp-blueprints">
-      <article class="cp-blueprint reveal">
-        <div class="cp-blueprint__cover">Editing Blueprint <span class="popular">Popular</span></div>
-        <h4>Faceless Editor</h4>
-        <a href="#" class="cp-btn cp-btn--red cp-btn--sm">Learn Editing</a>
-      </article>
-      <article class="cp-blueprint reveal">
-        <div class="cp-blueprint__cover">Motion Design</div>
-        <h4>Kinetic Typography</h4>
-        <a href="#" class="cp-btn cp-btn--sm">Learn Motion</a>
-      </article>
-      <article class="cp-blueprint reveal">
-        <div class="cp-blueprint__cover">AI Workflow</div>
-        <h4>AI-Assisted Editing</h4>
-        <a href="#" class="cp-btn cp-btn--ghost-cp cp-btn--sm">Learn AI</a>
-      </article>
-    </div>
-  </section>
-
-  <!-- ============ APPS SUPPORTED ============ -->
-  <section class="cp-section">
-    <div class="cp-section__head reveal">
-      <h2 class="cp-section__title">Built for the apps you <span class="accent">already use</span></h2>
-    </div>
-    <div class="cp-apps reveal">
-      <div class="cp-app-icon">Ae</div>
-      <div class="cp-app-icon">Pr</div>
-      <div class="cp-app-icon">Ps</div>
-      <div class="cp-app-icon">FFX</div>
-      <div class="cp-app-icon">MOGRT</div>
-    </div>
-  </section>
-
-  <!-- ============ EDITOR MOCKUP ============ -->
-  <section class="cp-section">
-    <div class="cp-section__head reveal">
-      <h2 class="cp-section__title">What you can expect in <span class="accent">After Effects</span></h2>
-      <p class="cp-section__sub">Structured, ready-to-edit — customize text, effects and animations in a few clicks.</p>
-    </div>
-    <div class="cp-mockup reveal">
-      <div class="cp-mockup__bar"><span></span><span></span><span></span></div>
-      <div class="cp-mockup__grid">
-        <div class="cp-mockup__panel">
-          <div class="line orange"></div>
-          <div class="line"></div>
-          <div class="line"></div>
-          <div class="line" style="width:70%;"></div>
-        </div>
-        <div class="cp-mockup__panel">
-          <div class="line" style="width:40%;"></div>
-          <div class="line orange" style="width:80%;"></div>
-          <div class="line"></div>
+        <div class="testi reveal">
+          <div class="testi__stars">★★★★★</div>
+          <p class="testi__body">Clean files, no bloat, actually documented. Rare for After Effects packs. Easy recommend.</p>
+          <div class="testi__who">Devon R. <span>· Agency lead</span></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ WHAT WE OFFER ============ -->
-  <section class="cp-section">
-    <div class="cp-section__head reveal">
-      <h2 class="cp-section__title">What we <span class="accent">offer</span></h2>
+  <!-- CTA band -->
+  <section class="section" style="text-align:center;">
+    <div class="container reveal">
+      <h2 class="section__title">Ready to ship <span class="accent">faster?</span></h2>
+      <p class="section__sub">Stop rebuilding from scratch. Grab the tools, keep them forever.</p>
+      <div style="margin-top:1.8rem;"><a href="catalog.html" class="btn">Browse the catalog</a></div>
     </div>
-    <div class="cp-offer-grid reveal">
-      <div class="cp-offer-card">
-        <div class="cp-offer-card__icon">📁</div>
-        <h4>Project Files</h4>
-        <p>After Effects &amp; Premiere files, ready to use.</p>
-      </div>
-      <div class="cp-offer-card">
-        <div class="cp-offer-card__icon">🎓</div>
-        <h4>Learn Skills</h4>
-        <p>Editing, motion design and AI workflows.</p>
-      </div>
-      <div class="cp-offer-card">
-        <div class="cp-offer-card__icon">📱</div>
-        <h4>Internal App</h4>
-        <p>Your own login, your own dashboard.</p>
-      </div>
-      <div class="cp-offer-card">
-        <div class="cp-offer-card__icon">💬</div>
-        <h4>Discord Community</h4>
-        <p>Get support and share your edits.</p>
-        <a href="#" class="cp-btn cp-btn--sm" style="margin-top:.9rem;">Join Discord</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ FINAL CTA ============ -->
-  <section class="cp-final reveal">
-    <h2>Ready to ship faster?</h2>
-    <p>Stop rebuilding from scratch. Grab the files, learn the skills, join the community.</p>
-    <a href="#shelf" class="cp-btn">Get Crispy</a>
   </section>
 </main>
 
-<!-- ============ FOOTER ============ -->
-<footer class="cp-footer">
-  <div class="cp-footer__logo">🔥 Crispy</div>
-  <div class="cp-footer__cols">
-    <div>
-      <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html">Darkness</a>
-      <a href="#shelf">Project Files</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer__grid">
+    <div class="footer__brand">
+      <h4>🔥 Crispy</h4>
+      <p>Professional creator tools by Darkness. Built from real editing experience, sold directly.</p>
     </div>
-    <div>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms &amp; Conditions</a>
-      <a href="#">Cancellation Policy</a>
-      <a href="#">Legal Notice</a>
+    <div class="footer__col">
+      <h5>Shop</h5>
+      <a href="catalog.html">All products</a>
+      <a href="catalog.html">Plugins</a>
+      <a href="catalog.html">Free downloads</a>
+    </div>
+    <div class="footer__col">
+      <h5>Support</h5>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="account.html">My account</a>
+    </div>
+    <div class="footer__col">
+      <h5>Follow</h5>
+      <a href="#">Instagram</a>
+      <a href="#">YouTube</a>
+      <a href="#">TikTok</a>
     </div>
   </div>
-  <div class="cp-footer__socials">
-    <a href="#" aria-label="Discord">D</a>
-    <a href="#" aria-label="Instagram">I</a>
-    <a href="#" aria-label="TikTok">T</a>
-    <a href="#" aria-label="YouTube">Y</a>
+  <div class="footer__bottom">
+    <span>© 2026 Crispy, a Darkness venture.</span>
+    <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html">← Back to Darkness</a>
   </div>
-  <p class="cp-footer__copy">© 2026 Crispy, a Darkness venture.</p>
 </footer>
-
-<!-- ============ BOTTOM NAV ============ -->
-<nav class="cp-bottom-nav" aria-label="Crispy navigation">
-  <a href="#" class="is-active">🏠 Home</a>
-  <a href="#shelf">⬇ Project Files</a>
-</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/auth.js"></script>
-<script src="assets/js/crispy-pizza.js"></script>
+<script src="assets/js/store.js"></script>
 </body>
 </html>
