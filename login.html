@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — Crispy</title>
+<meta name="description" content="Log in or create your Crispy account.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/crispy-pizza.css">
+
+<style>
+.cp-auth-wrap{
+  position:relative; z-index:1;
+  max-width:420px;
+  margin:0 auto;
+  padding:clamp(2.5rem, 7vw, 4.5rem) clamp(1.2rem,4vw,2rem) 5rem;
+}
+.cp-auth-title{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(1.9rem, 4vw, 2.5rem);
+  text-align:center;
+  margin-bottom:1.8rem;
+}
+.cp-auth-title .cp-name{
+  background:linear-gradient(120deg, var(--cp-orange), var(--cp-orange-2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.cp-auth-tabs{
+  display:flex;
+  border:1px solid var(--cp-border);
+  border-radius:999px;
+  padding:4px;
+  margin-bottom:1.6rem;
+}
+.cp-auth-tab{
+  flex:1; text-align:center;
+  padding:.6rem 1rem;
+  border-radius:999px; border:none; background:none;
+  color:var(--cp-text-faint);
+  font-size:.9rem; font-weight:600; cursor:pointer;
+  transition:background .25s var(--ease), color .25s var(--ease);
+  font-family:inherit;
+}
+.cp-auth-tab.is-active{
+  background:linear-gradient(180deg, var(--cp-amber), var(--cp-orange-2));
+  color:#1a0800;
+}
+.cp-auth-field{ margin-bottom:1rem; }
+.cp-auth-field label{ display:block; font-size:.8rem; color:var(--cp-text-faint); margin-bottom:.4rem; }
+.cp-auth-field input{
+  width:100%; padding:.8rem 1rem;
+  border-radius:12px;
+  border:1px solid var(--cp-border);
+  background:var(--cp-surface-2);
+  color:var(--cp-text);
+  font-size:.95rem; font-family:inherit;
+}
+.cp-auth-field input:focus{ outline:2px solid var(--cp-orange); outline-offset:1px; }
+.cp-auth-google{
+  width:100%;
+  display:flex; align-items:center; justify-content:center; gap:.6rem;
+  padding:.85rem 1rem;
+  border-radius:999px;
+  border:1px solid var(--cp-border);
+  background:var(--cp-surface);
+  color:var(--cp-text);
+  font-size:.9rem; font-weight:600; cursor:pointer;
+  font-family:inherit;
+  transition:background .25s var(--ease);
+}
+.cp-auth-google:hover{ background:var(--cp-surface-2); }
+.cp-auth-google svg{ width:18px; height:18px; }
+.cp-auth-divider{
+  display:flex; align-items:center; gap:.8rem;
+  margin:1.5rem 0; color:var(--cp-text-faint); font-size:.8rem;
+}
+.cp-auth-divider::before, .cp-auth-divider::after{
+  content:''; flex:1; height:1px; background:var(--cp-border);
+}
+.cp-auth-msg{ min-height:1.3em; font-size:.85rem; text-align:center; margin-top:1rem; color:var(--cp-text-faint); }
+</style>
+</head>
+<body class="cp-body">
+
+<div class="cp-starfield" aria-hidden="true"></div>
+
+<header class="cp-topbar">
+  <a href="index.html" class="cp-logo">
+    <span class="cp-logo__mark">🔥</span>
+    Crispy <span class="dim">· by Darkness</span>
+  </a>
+  <div class="cp-topbar__right">
+    <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html" class="cp-back-link">← Darkness</a>
+  </div>
+</header>
+
+<main>
+  <div class="cp-auth-wrap">
+    <h1 class="cp-auth-title" id="authTitle">Welcome back, <span class="cp-name">Creator</span></h1>
+
+    <div class="cp-auth-tabs">
+      <button class="cp-auth-tab is-active" data-mode="login">Log in</button>
+      <button class="cp-auth-tab" data-mode="signup">Sign up</button>
+    </div>
+
+    <button class="cp-auth-google" id="googleBtn" type="button">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.85A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.05H2.18a11 11 0 0 0 0 9.9l3.66-2.85z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.99 14.97 1 12 1a11 11 0 0 0-9.82 6.05l3.66 2.85C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="cp-auth-divider">or use email</div>
+
+    <form id="authForm">
+      <div class="cp-auth-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email">
+      </div>
+      <div class="cp-auth-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" minlength="6">
+      </div>
+      <button type="submit" class="cp-btn cp-btn--sm" id="submitBtn" style="margin-top:.4rem;">Log in</button>
+    </form>
+
+    <p class="cp-auth-msg" id="authMsg"></p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+(function () {
+  const tabs      = document.querySelectorAll('.cp-auth-tab');
+  const title     = document.getElementById('authTitle');
+  const form      = document.getElementById('authForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const msg       = document.getElementById('authMsg');
+  const googleBtn = document.getElementById('googleBtn');
+  const passwordInput = document.getElementById('password');
+  let mode = 'login';
+
+  function setMode(next) {
+    mode = next;
+    tabs.forEach((t) => t.classList.toggle('is-active', t.dataset.mode === mode));
+    title.innerHTML = mode === 'login'
+      ? 'Welcome back, <span class="cp-name">Creator</span>'
+      : 'Create your <span class="cp-name">account</span>';
+    submitBtn.textContent = mode === 'login' ? 'Log in' : 'Sign up';
+    passwordInput.setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
+    msg.textContent = '';
+    msg.style.color = 'var(--cp-text-faint)';
+  }
+
+  tabs.forEach((t) => t.addEventListener('click', () => setMode(t.dataset.mode)));
+
+  function showMsg(text, type) {
+    msg.textContent = text;
+    msg.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#4ade80' : 'var(--cp-text-faint)';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) return;
+
+    submitBtn.disabled = true;
+    showMsg('One moment…');
+
+    const result = mode === 'login'
+      ? await DCAuth.signIn(email, password)
+      : await DCAuth.signUp(email, password);
+
+    submitBtn.disabled = false;
+
+    if (result.error) { showMsg(result.error.message, 'error'); return; }
+
+    if (mode === 'signup' && result.data && result.data.user && !result.data.session) {
+      showMsg('Check your email to confirm your account.', 'success');
+      return;
+    }
+
+    window.location.href = 'account.html';
+  });
+
+  googleBtn.addEventListener('click', async () => {
+    const result = await DCAuth.signInWithGoogle();
+    if (result.error) showMsg(result.error.message, 'error');
+  });
+})();
+</script>
+
+</body>
+</html>

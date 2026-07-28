@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — Crispy</title>
+<meta name="description" content="Manage your Crispy account.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/crispy-pizza.css">
+
+<style>
+.cp-acct-wrap{
+  position:relative; z-index:1;
+  max-width:760px; margin:0 auto;
+  padding:clamp(2.5rem, 7vw, 4rem) clamp(1.2rem,4vw,2rem) 6rem;
+}
+.cp-acct-header{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:1rem; margin-bottom:2.2rem; flex-wrap:wrap;
+}
+.cp-acct-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
+.cp-acct-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; }
+.cp-section-box{
+  border:1px solid var(--cp-border);
+  border-radius:16px;
+  background:var(--cp-surface);
+  padding:1.6rem;
+  margin-bottom:1.2rem;
+}
+.cp-section-box h3{ font-size:.95rem; font-weight:600; margin-bottom:.3rem; }
+.cp-section-box p{ color:var(--cp-text-dim); font-size:.9rem; }
+.cp-username-row{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; margin-top:.9rem; }
+.cp-username-row input{
+  flex:1; min-width:220px; padding:.7rem 1rem;
+  border-radius:12px; border:1px solid var(--cp-border);
+  background:var(--cp-surface-2); color:var(--cp-text);
+  font-size:.95rem; font-family:inherit;
+}
+.cp-username-row input:focus{ outline:2px solid var(--cp-orange); outline-offset:1px; }
+.cp-username-msg{ min-height:1.2em; margin-top:.6rem; font-size:.85rem; color:var(--cp-text-faint); }
+</style>
+</head>
+<body class="cp-body">
+
+<div class="cp-starfield" aria-hidden="true"></div>
+
+<header class="cp-topbar">
+  <a href="index.html" class="cp-logo">
+    <span class="cp-logo__mark">🔥</span>
+    Crispy <span class="dim">· by Darkness</span>
+  </a>
+  <div class="cp-topbar__right">
+    <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html" class="cp-back-link">← Darkness</a>
+  </div>
+</header>
+
+<main>
+  <div class="cp-acct-wrap" id="acctContent">
+    <p style="color:var(--cp-text-faint);">Loading…</p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+(function () {
+  const content = document.getElementById('acctContent');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (m) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
+    ));
+  }
+
+  async function load() {
+    const user = await DCAuth.getUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    const profile = await DCAuth.getProfile();
+    const currentUsername = (profile && profile.username) ? profile.username : '';
+    const heading = currentUsername || user.email;
+
+    content.innerHTML = `
+      <div class="cp-acct-header">
+        <div>
+          <div class="cp-acct-eyebrow">Crispy account</div>
+          <h1 class="cp-acct-title">${esc(heading)}</h1>
+        </div>
+        <button class="cp-btn cp-btn--ghost-cp cp-btn--sm" id="logoutBtn" style="width:auto;">Log out</button>
+      </div>
+
+      <div class="cp-section-box">
+        <h3>Username</h3>
+        <p>This is how you'll show up around Crispy and Darkness. 3–20 characters, letters, numbers and underscores. Must be unique.</p>
+        <div class="cp-username-row">
+          <input type="text" id="usernameInput" placeholder="Choose a username"
+            value="${esc(currentUsername)}" autocomplete="off" spellcheck="false">
+          <button class="cp-btn cp-btn--sm" id="saveUsernameBtn" style="width:auto;">Save</button>
+        </div>
+        <p class="cp-username-msg" id="usernameMsg"></p>
+      </div>
+
+      <div class="cp-section-box">
+        <h3>My files</h3>
+        <p>Nothing here yet — once checkout is live, everything you buy on Crispy will show up here with instant downloads.</p>
+      </div>
+    `;
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await DCAuth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    const input   = document.getElementById('usernameInput');
+    const saveBtn = document.getElementById('saveUsernameBtn');
+    const msg     = document.getElementById('usernameMsg');
+    const title   = document.querySelector('.cp-acct-title');
+
+    function showMsg(text, type) {
+      msg.textContent = text;
+      msg.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#4ade80' : 'var(--cp-text-faint)';
+    }
+
+    saveBtn.addEventListener('click', async () => {
+      const val = input.value.trim();
+      if (!val) { showMsg('Enter a username first.', 'error'); return; }
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(val)) {
+        showMsg('3–20 characters — letters, numbers and underscores only.', 'error');
+        return;
+      }
+      saveBtn.disabled = true;
+      showMsg('Saving…');
+      const result = await DCAuth.updateUsername(val);
+      saveBtn.disabled = false;
+      if (result.error) {
+        const taken = result.error.code === '23505' || /duplicate|unique/i.test(result.error.message || '');
+        showMsg(taken ? 'That username is taken — try another.' : (result.error.message || 'Could not save. Try again.'), 'error');
+        return;
+      }
+      showMsg('Saved!', 'success');
+      if (title) title.textContent = val;
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+    });
+  }
+
+  load();
+})();
+</script>
+
+</body>
+</html>
