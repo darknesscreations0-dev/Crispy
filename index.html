@@ -45,6 +45,9 @@
 <main>
   <!-- Hero -->
   <section class="hero">
+    <div class="hero__ghost" aria-hidden="true">
+      <span>Loop Out</span><span>Random Seed</span><span>Sine Wave</span><span>Hover Flat</span>
+    </div>
     <span class="hero__badge"><span class="dot"></span> Trusted by 2,400+ editors</span>
     <h1 class="hero__title">Make work that<br><span class="accent">gets noticed.</span></h1>
     <div class="hero__stars"><span class="stars">★★★★★</span> 4.9 average rating</div>
@@ -77,6 +80,30 @@
       </div>
       <div style="text-align:center;margin-top:2.4rem;">
         <a href="catalog.html" class="btn btn--ghost">View all products</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive demo -->
+  <section class="section">
+    <div class="section__head reveal">
+      <div class="eyebrow">Try before you buy</div>
+      <h2 class="section__title">Play with the <span class="accent">panel.</span></h2>
+      <p class="section__sub">Pick a tab, tap a preset, watch it animate — this is the kind of control you get inside every Crispy tool.</p>
+    </div>
+    <div class="container">
+      <div class="demo reveal reveal--scale" data-demo>
+        <div class="demo__panel">
+          <div class="demo__tabs">
+            <button class="demo__tab is-active" data-tab="easing">Easing</button>
+            <button class="demo__tab" data-tab="text">Text</button>
+            <button class="demo__tab" data-tab="glass">Glass</button>
+          </div>
+          <div data-demo-list></div>
+        </div>
+        <div class="demo__stage">
+          <div class="demo__word">Smooth Bounce</div>
+        </div>
       </div>
     </div>
   </section>
@@ -149,6 +176,14 @@
     <a href="https://darknesscreations0-dev.github.io/Darkness-Creations-site/index.html">← Back to Darkness</a>
   </div>
 </footer>
+
+
+<!-- Floating dock -->
+<nav class="dock" aria-label="Quick navigation">
+  <a href="index.html" class="is-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</a>
+  <a href="catalog.html" class=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Catalog</a>
+  <a href="cart.html" class=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Cart</a>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/supabase-config.js"></script>
