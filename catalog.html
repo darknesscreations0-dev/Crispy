@@ -48,16 +48,34 @@
     </div>
   </section>
 
-  <div class="filters">
-    <button class="chip is-active" data-filter="all">All</button>
-    <button class="chip" data-filter="plugins">Plugins</button>
-    <button class="chip" data-filter="assets">Assets &amp; Packs</button>
-    <button class="chip" data-filter="tools">Free Tools</button>
+  <div class="filterbar">
+    <div class="filterbar__field">
+      <label for="f-category">Category</label>
+      <select id="f-category" data-filter-category>
+        <option value="all">All categories</option>
+      </select>
+    </div>
+    <div class="filterbar__field">
+      <label for="f-price">Price</label>
+      <select id="f-price" data-filter-price>
+        <option value="all">All prices</option>
+        <option value="free">Free</option>
+        <option value="under25">Under $25</option>
+        <option value="25to50">$25 – $50</option>
+        <option value="over50">$50+</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sorttabs">
+    <button class="sorttab is-active" data-sort="featured">Featured</button>
+    <button class="sorttab" data-sort="latest">Latest</button>
+    <button class="sorttab" data-sort="popular">Popular</button>
   </div>
 
   <section class="section" style="padding-top:0;">
     <div class="container">
-      <div class="product-grid" data-catalog-grid>
+      <div class="product-list" data-catalog-grid>
         <p class="state-msg">Loading products…</p>
       </div>
     </div>
