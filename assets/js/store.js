@@ -121,11 +121,76 @@ const CrispyStore = (() => {
       </article>`;
   }
 
+  /* ---------- banner markup (home spotlight) ---------- */
+  function bannerHTML(p){
+    const media = p.image_url
+      ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`
+      : '';
+    const desc = p.description ? esc(p.description).slice(0, 90) : 'Built in-house, tested on real client work.';
+    return `
+      <a class="banner reveal" href="catalog.html">
+        <div class="banner__body">
+          <div class="banner__eyebrow">${esc(p.category || 'Featured')}</div>
+          <h3 class="banner__title">${esc(p.name)}</h3>
+          <p class="banner__sub">${desc}</p>
+          <span class="btn btn--sm">${p.is_free || Number(p.price)===0 ? 'Get it free' : `Shop ${money(p.price)}`}</span>
+        </div>
+        <div class="banner__media">${media}</div>
+      </a>`;
+  }
+
+  /* ---------- row markup (catalog list) ---------- */
+  function rowHTML(p){
+    const free = p.is_free || Number(p.price) === 0;
+    const media = p.image_url
+      ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`
+      : esc(p.name);
+    const desc = p.description ? esc(p.description) : 'No description yet — details coming soon.';
+    return `
+      <article class="row reveal">
+        <div class="row__media">
+          ${p.badge ? `<span class="row__badge">${esc(p.badge)}</span>` : ''}
+          ${media}
+        </div>
+        <div class="row__body">
+          <div class="row__author">${esc(p.author || 'Crispy')}</div>
+          <h4 class="row__title">${esc(p.name)}</h4>
+          <p class="row__desc">${desc}</p>
+          <div class="row__meta"><span class="stars">${stars(p.rating)}</span><span class="rating-num">${Number(p.rating || 5).toFixed(1)}</span></div>
+          <div class="row__footer">
+            <div class="row__price">
+              ${free
+                ? `<span class="now free">Free</span>`
+                : `<span class="now">${money(p.price)}</span>${p.compare_at ? `<span class="was">${money(p.compare_at)}</span>` : ''}`}
+            </div>
+            <div class="row__actions">
+              ${p.video_url ? `<a class="btn btn--ghost" href="${esc(p.video_url)}" target="_blank" rel="noopener">Video</a>` : ''}
+              <button class="btn" data-add="${p.id}">${free ? 'Download' : 'Add to cart'}</button>
+              <button class="btn btn--ghost" data-more="${p.id}">More info</button>
+            </div>
+          </div>
+          <div class="row__extra" data-extra="${p.id}">
+            <span><strong>Category:</strong> ${esc(p.category || 'Uncategorized')}</span>
+            <span><strong>Compatible with:</strong> ${esc(p.compatible_with || 'After Effects')}</span>
+            <span><strong>Rating:</strong> ${Number(p.rating || 5).toFixed(1)} / 5</span>
+          </div>
+        </div>
+      </article>`;
+  }
+
   function wireAddButtons(products){
     document.querySelectorAll('[data-add]').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = products.find(x => String(x.id) === String(btn.dataset.add));
         if (p) addToCart(p);
+      });
+    });
+    document.querySelectorAll('[data-more]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const extra = document.querySelector(`[data-extra="${CSS.escape(btn.dataset.more)}"]`);
+        if (!extra) return;
+        const open = extra.classList.toggle('is-open');
+        btn.textContent = open ? 'Hide info' : 'More info';
       });
     });
   }
@@ -195,12 +260,22 @@ const CrispyStore = (() => {
 
   /* ---------- page renderers ---------- */
   async function renderHome(){
-    const grid = document.querySelector('[data-home-grid]');
-    if (!grid) return;
     const products = await fetchProducts();
-    const featured = products.filter(p => p.is_featured).slice(0, 4);
-    const list = featured.length ? featured : products.slice(0, 4);
-    grid.innerHTML = list.length ? list.map(cardHTML).join('') : `<p class="state-msg">Products coming soon.</p>`;
+
+    const bannerWrap = document.querySelector('[data-home-banners]');
+    if (bannerWrap){
+      const spotlight = products.filter(p => p.is_featured).slice(0, 3);
+      const list = spotlight.length ? spotlight : products.slice(0, 3);
+      bannerWrap.innerHTML = list.length ? list.map(bannerHTML).join('') : `<p class="state-msg">Products coming soon.</p>`;
+    }
+
+    const grid = document.querySelector('[data-home-grid]');
+    if (grid){
+      const featured = products.filter(p => p.is_featured).slice(0, 4);
+      const list = featured.length ? featured : products.slice(0, 4);
+      grid.innerHTML = list.length ? list.map(cardHTML).join('') : `<p class="state-msg">Products coming soon.</p>`;
+    }
+
     wireAddButtons(products);
     observeReveals();
     wireTilt();
@@ -211,22 +286,52 @@ const CrispyStore = (() => {
     if (!grid) return;
     const products = await fetchProducts();
     const countEl = document.querySelector('[data-catalog-count]');
+    const catSelect = document.querySelector('[data-filter-category]');
+    const priceSelect = document.querySelector('[data-filter-price]');
+    const sortTabs = document.querySelectorAll('[data-sort]');
 
-    function paint(cat){
-      const list = cat === 'all' ? products : products.filter(p => p.category === cat);
-      grid.innerHTML = list.length ? list.map(cardHTML).join('') : `<p class="state-msg">Nothing here yet.</p>`;
+    // Populate category options from real data
+    if (catSelect){
+      const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
+      catSelect.innerHTML = `<option value="all">All categories</option>` +
+        cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    }
+
+    let sort = 'featured';
+    function paint(){
+      const cat = catSelect ? catSelect.value : 'all';
+      const price = priceSelect ? priceSelect.value : 'all';
+
+      let list = products.filter(p => {
+        if (cat !== 'all' && p.category !== cat) return false;
+        const n = Number(p.price) || 0;
+        if (price === 'free' && n !== 0) return false;
+        if (price === 'under25' && !(n > 0 && n <= 25)) return false;
+        if (price === '25to50' && !(n > 25 && n <= 50)) return false;
+        if (price === 'over50' && !(n > 50)) return false;
+        return true;
+      });
+
+      if (sort === 'latest') list = [...list].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+      else if (sort === 'popular') list = [...list].sort((a,b) => (Number(b.rating)||0) - (Number(a.rating)||0));
+      else list = [...list].sort((a,b) => (b.is_featured === a.is_featured) ? 0 : (b.is_featured ? 1 : -1));
+
+      grid.innerHTML = list.length ? list.map(rowHTML).join('') : `<p class="state-msg">Nothing here yet.</p>`;
       if (countEl) countEl.textContent = `${list.length} product${list.length===1?'':'s'}`;
       wireAddButtons(products);
-      observeReveals(); wireTilt();
+      observeReveals();
     }
-    document.querySelectorAll('[data-filter]').forEach(chip => {
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('[data-filter]').forEach(c => c.classList.remove('is-active'));
-        chip.classList.add('is-active');
-        paint(chip.dataset.filter);
-      });
-    });
-    paint('all');
+
+    if (catSelect) catSelect.addEventListener('change', paint);
+    if (priceSelect) priceSelect.addEventListener('change', paint);
+    sortTabs.forEach(tab => tab.addEventListener('click', () => {
+      sortTabs.forEach(t => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      sort = tab.dataset.sort;
+      paint();
+    }));
+
+    paint();
   }
 
   function renderCart(){
