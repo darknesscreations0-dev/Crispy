@@ -130,6 +130,69 @@ const CrispyStore = (() => {
     });
   }
 
+  /* ---------- 3D tilt on product cards (follows mouse) ---------- */
+  function wireTilt(){
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia('(hover: none)').matches) return; // skip on touch
+    document.querySelectorAll('.card').forEach((card, i) => {
+      card.style.setProperty('--i', i % 4);
+      if (card.dataset.tilt) return;
+      card.dataset.tilt = '1';
+      card.addEventListener('mousemove', (e) => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = `translateY(-6px) rotateX(${(-py*7).toFixed(2)}deg) rotateY(${(px*9).toFixed(2)}deg)`;
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+  }
+
+  /* ---------- Interactive demo panel ---------- */
+  function wireDemo(){
+    const demo = document.querySelector('[data-demo]');
+    if (!demo) return;
+    const stage = demo.querySelector('.demo__word');
+    const presets = {
+      easing: ['Smooth Bounce', 'Soft Spring', 'Snap In', 'Overshoot'],
+      text:   ['Word Reveal', 'Letter Stagger', 'Typewriter', 'Kinetic Pop'],
+      glass:  ['Frost Blur', 'Light Sweep', 'Glass Shine', 'Depth Fade'],
+    };
+    const list = demo.querySelector('[data-demo-list]');
+    const tabs = demo.querySelectorAll('.demo__tab');
+
+    function animateStage(){
+      stage.style.transform = 'scale(.6) translateY(20px)';
+      stage.style.opacity = '0';
+      requestAnimationFrame(() => {
+        stage.style.transition = 'transform .5s cubic-bezier(.2,.9,.2,1.2), opacity .5s ease';
+        stage.style.transform = 'scale(1) translateY(0)';
+        stage.style.opacity = '1';
+      });
+    }
+    function paintList(key){
+      list.innerHTML = presets[key].map((p, i) =>
+        `<div class="demo__preset${i===0?' is-active':''}" data-p="${p}">${p}<span>▶</span></div>`
+      ).join('');
+      list.querySelectorAll('.demo__preset').forEach(row => {
+        row.addEventListener('click', () => {
+          list.querySelectorAll('.demo__preset').forEach(r => r.classList.remove('is-active'));
+          row.classList.add('is-active');
+          stage.textContent = row.dataset.p;
+          animateStage();
+        });
+      });
+      stage.textContent = presets[key][0];
+      animateStage();
+    }
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('is-active'));
+      t.classList.add('is-active');
+      paintList(t.dataset.tab);
+    }));
+    paintList('easing');
+  }
+
   /* ---------- page renderers ---------- */
   async function renderHome(){
     const grid = document.querySelector('[data-home-grid]');
@@ -140,6 +203,7 @@ const CrispyStore = (() => {
     grid.innerHTML = list.length ? list.map(cardHTML).join('') : `<p class="state-msg">Products coming soon.</p>`;
     wireAddButtons(products);
     observeReveals();
+    wireTilt();
   }
 
   async function renderCatalog(){
@@ -153,7 +217,7 @@ const CrispyStore = (() => {
       grid.innerHTML = list.length ? list.map(cardHTML).join('') : `<p class="state-msg">Nothing here yet.</p>`;
       if (countEl) countEl.textContent = `${list.length} product${list.length===1?'':'s'}`;
       wireAddButtons(products);
-      observeReveals();
+      observeReveals(); wireTilt();
     }
     document.querySelectorAll('[data-filter]').forEach(chip => {
       chip.addEventListener('click', () => {
@@ -260,6 +324,7 @@ const CrispyStore = (() => {
     wireFaq();
     wireCountdown();
     observeReveals();
+    wireDemo();
     renderHome();
     renderCatalog();
     renderCart();
