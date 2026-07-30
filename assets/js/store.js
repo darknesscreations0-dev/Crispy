@@ -13,6 +13,15 @@ const CrispyStore = (() => {
   function money(n){ return CURRENCY + Number(n).toFixed(2); }
   function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function stars(r){ const full = Math.round(Number(r) || 0); return '★'.repeat(Math.max(0,Math.min(5,full))); }
+  // Renders a product's media as <img> or <video> depending on media_type,
+  // set from the admin panel when a file was uploaded there.
+  function mediaTag(p, w, h){
+    if (p.media_type === 'video' && p.image_url){
+      return `<video src="${esc(p.image_url)}" autoplay muted loop playsinline></video>`;
+    }
+    return `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, w, h))}" alt="${esc(p.name)}" loading="lazy">`;
+  }
+
   function discountPct(p){
     if (!p.compare_at || Number(p.compare_at) <= Number(p.price)) return 0;
     return Math.round((1 - Number(p.price) / Number(p.compare_at)) * 100);
@@ -122,7 +131,7 @@ const CrispyStore = (() => {
   function cardHTML(p){
     const off = discountPct(p);
     const free = p.is_free || Number(p.price) === 0;
-    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 500, 500))}" alt="${esc(p.name)}" loading="lazy">`;
+    const media = mediaTag(p, 500, 500);
     return `
       <article class="card reveal">
         <div class="card__media">
@@ -154,7 +163,7 @@ const CrispyStore = (() => {
   };
   function bannerHTML(p){
     const free = p.is_free || Number(p.price) === 0;
-    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 700, 700))}" alt="${esc(p.name)}" loading="lazy">`;
+    const media = mediaTag(p, 700, 700);
     const desc = p.description ? esc(p.description).slice(0, 90) : 'Built in-house, tested on real client work.';
     return `
       <a class="banner reveal" href="catalog.html">
@@ -185,7 +194,7 @@ const CrispyStore = (() => {
   function catalogCardHTML(p){
     const free = p.is_free || Number(p.price) === 0;
     const off = discountPct(p);
-    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 500, 500))}" alt="${esc(p.name)}" loading="lazy">`;
+    const media = mediaTag(p, 500, 500);
     const desc = p.description ? esc(p.description) : 'No description yet — details coming soon.';
     const href = `product.html?id=${encodeURIComponent(p.id)}`;
     return `
@@ -275,7 +284,14 @@ const CrispyStore = (() => {
 
     const bannerWrap = document.querySelector('[data-home-banners]');
     if (bannerWrap){
-      const spotlight = products.filter(p => p.is_featured).slice(0, 5);
+      // banner_position is set from the admin panel — it's the explicit,
+      // ordered list of what shows in the homepage banner carousel and in
+      // what order. Falls back to featured products if nothing's been
+      // configured yet, so the homepage never shows an empty banner.
+      const positioned = products
+        .filter(p => p.banner_position != null)
+        .sort((a, b) => a.banner_position - b.banner_position);
+      const spotlight = positioned.length ? positioned : products.filter(p => p.is_featured).slice(0, 5);
       const list = spotlight.length ? spotlight : products.slice(0, 5);
       if (!list.length){
         bannerWrap.innerHTML = `<p class="state-msg">Products coming soon.</p>`;
