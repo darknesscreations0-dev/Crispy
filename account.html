@@ -43,6 +43,26 @@
 }
 .cp-username-row input:focus{ outline:2px solid var(--cp-orange); outline-offset:1px; }
 .cp-username-msg{ min-height:1.2em; margin-top:.6rem; font-size:.85rem; color:var(--cp-text-faint); }
+.cp-field-label{ display:block; font-size:.78rem; color:var(--cp-text-faint); margin-bottom:.35rem; }
+.cp-field-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.1rem;
+}
+@media (max-width:560px){ .cp-field-grid{ grid-template-columns:1fr; } }
+.cp-field-grid input, .cp-profile-avatar-row input{
+  width:100%; padding:.7rem 1rem;
+  border-radius:0; border:1px solid var(--cp-border);
+  background:var(--cp-surface-2); color:var(--cp-text);
+  font-size:.9rem; font-family:inherit;
+}
+.cp-field-grid input:focus, .cp-profile-avatar-row input:focus{ outline:2px solid var(--cp-orange); outline-offset:1px; }
+.cp-profile-avatar-row{ display:flex; align-items:center; gap:1rem; margin-top:.9rem; flex-wrap:wrap; }
+.cp-avatar-preview{
+  width:56px; height:56px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--cp-orange); color:#1a0800; font-weight:700; font-size:1.2rem;
+  overflow:hidden;
+}
+.cp-avatar-preview img{ width:100%; height:100%; object-fit:cover; }
 </style>
 </head>
 <body class="cp-body">
@@ -83,7 +103,13 @@
 
     const profile = await DCAuth.getProfile();
     const currentUsername = (profile && profile.username) ? profile.username : '';
+    const fullName    = (profile && profile.full_name) ? profile.full_name : '';
+    const phone       = (profile && profile.phone) ? profile.phone : '';
+    const backupEmail = (profile && profile.backup_email) ? profile.backup_email : '';
+    const dob         = (profile && profile.date_of_birth) ? profile.date_of_birth : '';
+    const avatarUrl   = (profile && profile.avatar_url) ? profile.avatar_url : '';
     const heading = currentUsername || user.email;
+    const initial = (heading || '?').trim().charAt(0).toUpperCase();
 
     content.innerHTML = `
       <div class="cp-acct-header">
@@ -103,6 +129,43 @@
           <button class="cp-btn cp-btn--sm" id="saveUsernameBtn" style="width:auto;">Save</button>
         </div>
         <p class="cp-username-msg" id="usernameMsg"></p>
+      </div>
+
+      <div class="cp-section-box">
+        <h3>Personal info</h3>
+        <p>Your name, birthday, and how we reach you if we ever need to.</p>
+
+        <div class="cp-profile-avatar-row">
+          <span class="cp-avatar-preview" id="avatarPreview">${avatarUrl ? `<img src="${esc(avatarUrl)}" alt="">` : esc(initial)}</span>
+          <div style="flex:1;min-width:200px;">
+            <label class="cp-field-label" for="avatarInput">Profile picture URL</label>
+            <input type="url" id="avatarInput" placeholder="https://…" value="${esc(avatarUrl)}" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="cp-field-grid">
+          <div>
+            <label class="cp-field-label" for="fullNameInput">Full name</label>
+            <input type="text" id="fullNameInput" placeholder="Your full name" value="${esc(fullName)}" autocomplete="name">
+          </div>
+          <div>
+            <label class="cp-field-label" for="dobInput">Date of birth</label>
+            <input type="date" id="dobInput" value="${esc(dob)}">
+          </div>
+          <div>
+            <label class="cp-field-label" for="phoneInput">Phone number</label>
+            <input type="tel" id="phoneInput" placeholder="+1 555 000 0000" value="${esc(phone)}" autocomplete="tel">
+          </div>
+          <div>
+            <label class="cp-field-label" for="backupEmailInput">Backup email</label>
+            <input type="email" id="backupEmailInput" placeholder="backup@example.com" value="${esc(backupEmail)}" autocomplete="email">
+          </div>
+        </div>
+
+        <div style="margin-top:1.1rem;">
+          <button class="cp-btn cp-btn--sm" id="saveProfileBtn" style="width:auto;">Save changes</button>
+        </div>
+        <p class="cp-username-msg" id="profileMsg"></p>
       </div>
 
       <div class="cp-section-box">
@@ -148,6 +211,49 @@
 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+    });
+
+    const avatarInput   = document.getElementById('avatarInput');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const fullNameInput = document.getElementById('fullNameInput');
+    const dobInput       = document.getElementById('dobInput');
+    const phoneInput     = document.getElementById('phoneInput');
+    const backupEmailInput = document.getElementById('backupEmailInput');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const profileMsg = document.getElementById('profileMsg');
+
+    function showProfileMsg(text, type) {
+      profileMsg.textContent = text;
+      profileMsg.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#4ade80' : 'var(--cp-text-faint)';
+    }
+
+    avatarInput.addEventListener('input', () => {
+      const url = avatarInput.value.trim();
+      avatarPreview.innerHTML = url ? `<img src="${esc(url)}" alt="">` : esc((heading || '?').trim().charAt(0).toUpperCase());
+    });
+
+    saveProfileBtn.addEventListener('click', async () => {
+      const backupVal = backupEmailInput.value.trim();
+      if (backupVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(backupVal)) {
+        showProfileMsg('That backup email doesn\'t look right.', 'error');
+        return;
+      }
+      saveProfileBtn.disabled = true;
+      showProfileMsg('Saving…');
+      const result = await DCAuth.updateProfile({
+        full_name: fullNameInput.value.trim() || null,
+        date_of_birth: dobInput.value || null,
+        phone: phoneInput.value.trim() || null,
+        backup_email: backupVal || null,
+        avatar_url: avatarInput.value.trim() || null
+      });
+      saveProfileBtn.disabled = false;
+      if (result.error) {
+        showProfileMsg(result.error.message || 'Could not save. Try again.', 'error');
+        return;
+      }
+      showProfileMsg('Saved!', 'success');
+      document.dispatchEvent(new CustomEvent('dc-auth-change'));
     });
   }
 
