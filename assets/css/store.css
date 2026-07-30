@@ -6,8 +6,8 @@
    ============================================================ */
 
 :root{
-  --c-orange:      #FF7A00;
-  --c-orange-2:    #FF4D00;
+  --c-orange:      #f47920;
+  --c-orange-2:    #d9661a;
   --c-red:         #FF3B2F;
   --c-amber:       #FFA500;
   --c-bg:          #171717;
@@ -19,7 +19,7 @@
   --c-text-dim:    #d8cec5;
   --c-text-faint:  #a89e94;
   /* Brand accent is orange/red — no 8bitbrain green. Name kept so nothing breaks. */
-  --c-green:       #FF7A00;
+  --c-green:       #f47920;
 
   --font-display:  'Clash Display', 'Inter', system-ui, sans-serif;
   --font-body:     'Inter', system-ui, sans-serif;
