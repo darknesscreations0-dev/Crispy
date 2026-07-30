@@ -647,6 +647,7 @@ main{ position:relative; z-index:1; }
 }
 .demo__preset:hover{ border-color:var(--c-border-glow); color:var(--c-text); }
 .demo__preset.is-active{ background:rgba(255,122,0,0.1); border-color:var(--c-border-glow); color:var(--c-text); }
+.demo__stage img, .demo__stage video{ width:100%; height:100%; object-fit:contain; }
 .demo__stage{
   display:flex; align-items:center; justify-content:center;
   background:var(--c-surface-2);
