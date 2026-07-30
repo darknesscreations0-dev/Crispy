@@ -78,16 +78,16 @@
     if (!val) return;
 
     addMsg(val, 'user');
-    history.push({ role: 'user', content: val });
     input.value = '';
     input.disabled = true;
 
     const typingEl = addTyping();
 
     try {
-      const reply = await askCrispyAI(val);
+      const reply = await askCrispyAI(val); // history sent here = prior turns only
       typingEl.remove();
       addMsg(reply, 'bot');
+      history.push({ role: 'user', content: val });
       history.push({ role: 'assistant', content: reply });
     } catch (err) {
       console.warn('Crispy AI error:', err);
