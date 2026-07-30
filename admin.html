@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Crispy</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/store.css">
+<style>
+.adm-wrap{ max-width:1100px; margin:0 auto; padding:1.6rem var(--gutter) 4rem; }
+.adm-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.4rem; }
+.adm-table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+.adm-table th{ text-align:left; padding:.6rem .7rem; border-bottom:1px solid var(--c-border); color:var(--c-text-faint); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+.adm-table td{ padding:.6rem .7rem; border-bottom:1px solid var(--c-border); vertical-align:middle; }
+.adm-table img, .adm-table video{ width:36px; height:36px; object-fit:cover; }
+.adm-pill{ font-size:.68rem; font-weight:700; padding:.15rem .5rem; text-transform:uppercase; }
+.adm-pill--on{ background:var(--c-green); color:#0a0a0a; }
+.adm-pill--off{ background:var(--c-surface-2); color:var(--c-text-faint); }
+.adm-row-actions{ display:flex; gap:.4rem; }
+.adm-row-actions .btn{ padding:.35rem .65rem; font-size:.72rem; }
+.adm-form{ display:none; border:1px solid var(--c-border); background:var(--c-surface); padding:1.4rem; margin-bottom:1.6rem; }
+.adm-form.is-open{ display:block; }
+.adm-form h3{ font-family:var(--font-display); margin-bottom:1rem; }
+.adm-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media (max-width:640px){ .adm-form-grid{ grid-template-columns:1fr; } }
+.adm-form-grid label{ display:block; font-size:.75rem; color:var(--c-text-faint); margin-bottom:.3rem; }
+.adm-form-grid input, .adm-form-grid select, .adm-form-grid textarea{
+  width:100%; padding:.6rem .8rem; border:1px solid var(--c-border); background:var(--c-surface);
+  color:var(--c-text); font-size:.85rem; font-family:inherit;
+}
+.adm-form-grid input:focus, .adm-form-grid select:focus, .adm-form-grid textarea:focus{ outline:1px solid var(--c-orange); }
+.adm-checks{ display:flex; gap:1.2rem; flex-wrap:wrap; grid-column:1/-1; }
+.adm-checks label{ display:flex; align-items:center; gap:.4rem; font-size:.82rem; color:var(--c-text); }
+.adm-form-actions{ display:flex; gap:.6rem; margin-top:1.2rem; grid-column:1/-1; }
+.adm-msg{ min-height:1.2em; font-size:.82rem; margin-top:.6rem; grid-column:1/-1; }
+.adm-gate{ text-align:center; padding:4rem 1rem; }
+.adm-avatar-row{ display:flex; align-items:center; gap:1rem; margin-top:.4rem; flex-wrap:wrap; }
+.adm-img-preview{
+  width:64px; height:64px; flex-shrink:0; background:var(--c-surface-2);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+  color:var(--c-text-faint); font-size:.7rem; text-align:center;
+}
+.adm-img-preview img{ width:100%; height:100%; object-fit:cover; }
+.cp-avatar-drop-like{
+  border:1px dashed var(--c-border); background:var(--c-surface);
+  padding:1rem; text-align:center; cursor:pointer;
+  color:var(--c-text-faint); font-size:.82rem; transition:all .2s var(--ease);
+}
+.cp-avatar-drop-like:hover, .cp-avatar-drop-like.is-dragover{ border-color:var(--c-orange); color:var(--c-text); }
+.adm-banner-input{ width:64px; padding:.3rem .4rem; border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-text); font-size:.8rem; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="nav__pill">
+    <a href="index.html" class="nav__logo" aria-label="Crispy home"><img src="assets/logo.png" alt="Crispy"></a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="catalog.html">Catalog</a>
+    </nav>
+    <div class="nav__account"><span data-dc-account></span></div>
+  </div>
+</header>
+
+<main>
+  <div id="admGate" class="adm-gate"><p class="state-msg">Checking access…</p></div>
+
+  <div class="adm-wrap" id="admWrap" style="display:none;">
+    <div class="adm-head">
+      <div>
+        <div class="eyebrow">Admin</div>
+        <h1 class="section__title" style="font-size:1.5rem;">Manage products</h1>
+      </div>
+      <button class="btn" id="admNewBtn">+ New product</button>
+    </div>
+
+    <form class="adm-form" id="admForm">
+      <h3 id="admFormTitle">New product</h3>
+      <input type="hidden" id="f_id">
+      <div class="adm-form-grid">
+        <div><label>Name *</label><input type="text" id="f_name" required></div>
+        <div><label>Author</label><input type="text" id="f_author" placeholder="Crispy"></div>
+        <div><label>Category</label><input type="text" id="f_category" placeholder="Plugins"></div>
+        <div><label>Compatible with</label><input type="text" id="f_compatible_with" placeholder="After Effects"></div>
+        <div><label>Price (USD)</label><input type="number" step="0.01" id="f_price" placeholder="29.99"></div>
+        <div><label>Compare-at price (optional, for sale %)</label><input type="number" step="0.01" id="f_compare_at"></div>
+        <div><label>Rating (1–5)</label><input type="number" step="0.1" min="1" max="5" id="f_rating" placeholder="5"></div>
+        <div><label>Badge (optional, e.g. "New")</label><input type="text" id="f_badge"></div>
+        <div><label>Banner position (blank = not in homepage banner)</label><input type="number" min="1" step="1" id="f_banner_position" placeholder="e.g. 1, 2, 3…"></div>
+        <div style="grid-column:1/-1;">
+          <label>Product image</label>
+          <div class="adm-avatar-row">
+            <span class="adm-img-preview" id="admImgPreview"></span>
+            <div style="flex:1;min-width:200px;">
+              <div class="cp-avatar-drop-like" id="admImgDrop">
+                <input type="file" id="admImgFile" accept="image/*,video/*" hidden>
+                <span id="admImgDropText">Drag &amp; drop an image or video, or click to choose one</span>
+              </div>
+              <p class="adm-msg" id="admImgMsg" style="margin-top:.4rem;"></p>
+            </div>
+          </div>
+          <input type="hidden" id="f_image_url">
+          <input type="hidden" id="f_media_type" value="image">
+        </div>
+        <div><label>Video URL (optional)</label><input type="url" id="f_video_url" placeholder="https://…"></div>
+        <div style="grid-column:1/-1;"><label>Description</label><textarea id="f_description" rows="3"></textarea></div>
+        <div class="adm-checks">
+          <label><input type="checkbox" id="f_is_free"> Free product</label>
+          <label><input type="checkbox" id="f_is_featured"> Featured</label>
+          <label><input type="checkbox" id="f_is_active" checked> Active (visible on site)</label>
+        </div>
+        <div class="adm-form-actions">
+          <button type="submit" class="btn">Save product</button>
+          <button type="button" class="btn btn--ghost" id="admCancelBtn">Cancel</button>
+        </div>
+        <p class="adm-msg" id="admFormMsg"></p>
+      </div>
+    </form>
+
+    <div style="overflow-x:auto;">
+      <table class="adm-table">
+        <thead>
+          <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Banner #</th><th>Active</th><th>Featured</th><th></th></tr>
+        </thead>
+        <tbody id="admTableBody">
+          <tr><td colspan="8"><p class="state-msg">Loading products…</p></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/store.js"></script>
+<script>
+(function(){
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  const gate = document.getElementById('admGate');
+  const wrap = document.getElementById('admWrap');
+  const tbody = document.getElementById('admTableBody');
+  const form = document.getElementById('admForm');
+  const formTitle = document.getElementById('admFormTitle');
+  const formMsg = document.getElementById('admFormMsg');
+  const newBtn = document.getElementById('admNewBtn');
+  const cancelBtn = document.getElementById('admCancelBtn');
+  const admImgPreview = document.getElementById('admImgPreview');
+  const admImgDrop = document.getElementById('admImgDrop');
+  const admImgFile = document.getElementById('admImgFile');
+  const admImgDropText = document.getElementById('admImgDropText');
+  const admImgMsg = document.getElementById('admImgMsg');
+
+  let client = null;
+  let products = [];
+
+  function openForm(product){
+    form.classList.add('is-open');
+    formMsg.textContent = '';
+    admImgMsg.textContent = '';
+    formTitle.textContent = product ? 'Edit product' : 'New product';
+    document.getElementById('f_id').value = product ? product.id : '';
+    document.getElementById('f_name').value = product ? product.name || '' : '';
+    document.getElementById('f_author').value = product ? product.author || '' : '';
+    document.getElementById('f_category').value = product ? product.category || '' : '';
+    document.getElementById('f_compatible_with').value = product ? product.compatible_with || '' : '';
+    document.getElementById('f_price').value = product ? product.price ?? '' : '';
+    document.getElementById('f_compare_at').value = product ? product.compare_at ?? '' : '';
+    document.getElementById('f_rating').value = product ? product.rating ?? '' : '';
+    document.getElementById('f_badge').value = product ? product.badge || '' : '';
+    document.getElementById('f_banner_position').value = product && product.banner_position != null ? product.banner_position : '';
+    document.getElementById('f_image_url').value = product ? product.image_url || '' : '';
+    document.getElementById('f_media_type').value = product ? product.media_type || 'image' : 'image';
+    admImgPreview.innerHTML = product && product.image_url
+      ? (product.media_type === 'video'
+          ? `<video src="${esc(product.image_url)}" muted loop autoplay playsinline></video>`
+          : `<img src="${esc(product.image_url)}" alt="">`)
+      : 'No image';
+    document.getElementById('f_video_url').value = product ? product.video_url || '' : '';
+    document.getElementById('f_description').value = product ? product.description || '' : '';
+    document.getElementById('f_is_free').checked = product ? !!product.is_free : false;
+    document.getElementById('f_is_featured').checked = product ? !!product.is_featured : false;
+    document.getElementById('f_is_active').checked = product ? !!product.is_active : true;
+    form.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function closeForm(){ form.classList.remove('is-open'); }
+
+  function renderTable(){
+    if (!products.length){
+      tbody.innerHTML = '<tr><td colspan="8"><p class="state-msg">No products yet — add your first one.</p></td></tr>';
+      return;
+    }
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td>${p.image_url ? (p.media_type === 'video' ? `<video src="${esc(p.image_url)}" muted></video>` : `<img src="${esc(p.image_url)}" alt="">`) : ''}</td>
+        <td>${esc(p.name)}${p.media_type === 'video' ? ' <span class="adm-pill adm-pill--off" style="margin-left:.3rem;">Video</span>' : ''}</td>
+        <td>${esc(p.category || '—')}</td>
+        <td>${p.is_free ? 'Free' : '$' + Number(p.price || 0).toFixed(2)}</td>
+        <td><input type="number" min="1" step="1" class="adm-banner-input" data-banner-pos="${p.id}" value="${p.banner_position != null ? p.banner_position : ''}" placeholder="—"></td>
+        <td><span class="adm-pill ${p.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${p.is_active ? 'Active' : 'Hidden'}</span></td>
+        <td><span class="adm-pill ${p.is_featured ? 'adm-pill--on' : 'adm-pill--off'}">${p.is_featured ? 'Yes' : 'No'}</span></td>
+        <td>
+          <div class="adm-row-actions">
+            <button class="btn btn--ghost" data-edit="${p.id}">Edit</button>
+            <button class="btn btn--ghost" data-delete="${p.id}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => {
+      const p = products.find(x => String(x.id) === String(btn.dataset.edit));
+      if (p) openForm(p);
+    }));
+    tbody.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this product? This cannot be undone.')) return;
+      const { error } = await client.from('products').delete().eq('id', btn.dataset.delete);
+      if (error){ alert('Could not delete: ' + error.message); return; }
+      await loadProducts();
+    }));
+    tbody.querySelectorAll('[data-banner-pos]').forEach(inp => inp.addEventListener('change', async () => {
+      const val = inp.value.trim();
+      const { error } = await client.from('products')
+        .update({ banner_position: val ? Number(val) : null })
+        .eq('id', inp.dataset.bannerPos);
+      if (error){ alert('Could not update banner position: ' + error.message); return; }
+      const p = products.find(x => String(x.id) === String(inp.dataset.bannerPos));
+      if (p) p.banner_position = val ? Number(val) : null;
+    }));
+  }
+
+  async function loadProducts(){
+    // Admin sees everything, including inactive/draft products —
+    // unlike the storefront, which only shows is_active = true.
+    const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false });
+    if (error){ tbody.innerHTML = `<tr><td colspan="8"><p class="state-msg">Couldn't load products: ${esc(error.message)}</p></td></tr>`; return; }
+    products = data || [];
+    renderTable();
+  }
+
+  newBtn.addEventListener('click', () => openForm(null));
+  cancelBtn.addEventListener('click', closeForm);
+
+  async function uploadProductImage(file){
+    const isVideo = file && file.type.startsWith('video/');
+    const isImage = file && file.type.startsWith('image/');
+    if (!file || (!isVideo && !isImage)){
+      admImgMsg.textContent = 'Please choose an image or video file.'; admImgMsg.style.color = '#ff6b6b';
+      return;
+    }
+    admImgDropText.textContent = 'Uploading…';
+    admImgMsg.textContent = '';
+    const ext = (file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase();
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    admImgDropText.textContent = 'Drag & drop an image or video, or click to choose one';
+    if (upErr){
+      admImgMsg.textContent = upErr.message || 'Upload failed. Try again.'; admImgMsg.style.color = '#ff6b6b';
+      return;
+    }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    const publicUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    document.getElementById('f_image_url').value = publicUrl;
+    document.getElementById('f_media_type').value = isVideo ? 'video' : 'image';
+    admImgPreview.innerHTML = isVideo
+      ? `<video src="${esc(publicUrl)}" muted loop autoplay playsinline></video>`
+      : `<img src="${esc(publicUrl)}" alt="">`;
+    admImgMsg.textContent = 'Ready — click Save product to keep it.'; admImgMsg.style.color = '#4ade80';
+  }
+  admImgDrop.addEventListener('click', () => admImgFile.click());
+  admImgFile.addEventListener('change', () => { if (admImgFile.files[0]) uploadProductImage(admImgFile.files[0]); });
+  ['dragover','dragenter'].forEach(evt => admImgDrop.addEventListener(evt, (e) => { e.preventDefault(); admImgDrop.classList.add('is-dragover'); }));
+  ['dragleave','drop'].forEach(evt => admImgDrop.addEventListener(evt, (e) => { e.preventDefault(); admImgDrop.classList.remove('is-dragover'); }));
+  admImgDrop.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) uploadProductImage(file);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('f_id').value;
+    const payload = {
+      name: document.getElementById('f_name').value.trim(),
+      author: document.getElementById('f_author').value.trim() || null,
+      category: document.getElementById('f_category').value.trim() || null,
+      compatible_with: document.getElementById('f_compatible_with').value.trim() || null,
+      price: document.getElementById('f_price').value ? Number(document.getElementById('f_price').value) : 0,
+      compare_at: document.getElementById('f_compare_at').value ? Number(document.getElementById('f_compare_at').value) : null,
+      rating: document.getElementById('f_rating').value ? Number(document.getElementById('f_rating').value) : null,
+      badge: document.getElementById('f_badge').value.trim() || null,
+      banner_position: document.getElementById('f_banner_position').value ? Number(document.getElementById('f_banner_position').value) : null,
+      image_url: document.getElementById('f_image_url').value.trim() || null,
+      media_type: document.getElementById('f_media_type').value || 'image',
+      video_url: document.getElementById('f_video_url').value.trim() || null,
+      description: document.getElementById('f_description').value.trim() || null,
+      is_free: document.getElementById('f_is_free').checked,
+      is_featured: document.getElementById('f_is_featured').checked,
+      is_active: document.getElementById('f_is_active').checked
+    };
+    if (!payload.name){ formMsg.textContent = 'Name is required.'; formMsg.style.color = '#ff6b6b'; return; }
+
+    formMsg.textContent = 'Saving…'; formMsg.style.color = 'var(--c-text-faint)';
+    const query = id
+      ? client.from('products').update(payload).eq('id', id)
+      : client.from('products').insert(payload);
+    const { error } = await query;
+    if (error){
+      formMsg.textContent = error.message || 'Could not save. Try again.';
+      formMsg.style.color = '#ff6b6b';
+      return;
+    }
+    formMsg.textContent = 'Saved!'; formMsg.style.color = '#4ade80';
+    await loadProducts();
+    setTimeout(closeForm, 500);
+  });
+
+  async function init(){
+    const user = await DCAuth.getUser();
+    if (!user){ window.location.href = 'login.html'; return; }
+
+    client = window.supabaseClient;
+    const { data: profile } = await client.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
+
+    if (!profile || !profile.is_admin){
+      gate.innerHTML = `<p>You don't have access to this page.</p><p style="margin-top:.8rem;"><a class="btn btn--ghost" href="index.html">Back to Crispy</a></p>`;
+      return;
+    }
+
+    gate.style.display = 'none';
+    wrap.style.display = 'block';
+    await loadProducts();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
