@@ -326,13 +326,10 @@ main{ position:relative; z-index:1; }
 .banner__title{ font-family:var(--font-display); font-weight:700; font-size:clamp(1.7rem,3.6vw,2.6rem); line-height:1.05; color:#fff; margin-bottom:.5rem; }
 .banner__sub{ color:rgba(255,255,255,0.8); font-size:.88rem; margin-bottom:1rem; }
 .banner__price{
-  position:absolute; top:0; right:0; z-index:2;
-  width:84px; height:84px; border-radius:50%;
-  background:var(--c-bg); border:2px solid var(--c-orange);
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  text-align:center; padding:.4rem;
+  position:absolute; top:1rem; right:1rem; z-index:2;
+  background:var(--c-bg); border:1px solid var(--c-orange);
+  padding:.4rem .8rem;
 }
-.banner__price small{ font-size:.58rem; color:var(--c-text-faint); text-transform:uppercase; letter-spacing:.04em; }
 .banner__price strong{ font-family:var(--font-display); font-size:.95rem; color:var(--c-orange); line-height:1.1; }
 .banner__features{ display:flex; flex-direction:column; gap:.5rem; margin-bottom:1rem; }
 .banner__features li{ display:flex; align-items:center; gap:.5rem; color:#fff; font-size:.82rem; font-weight:600; }
@@ -343,14 +340,13 @@ main{ position:relative; z-index:1; }
   padding:.35rem .7rem;
 }
 .banner__media{
-  position:relative; z-index:1; aspect-ratio:1/1; border-radius:0; overflow:hidden;
-  background:rgba(0,0,0,0.2); margin-left:1rem;
+  position:relative; z-index:1; aspect-ratio:16/9; border-radius:0; overflow:hidden;
+  background:rgba(0,0,0,0.2); margin-left:1rem; max-height:380px;
 }
 .banner__media img, .banner__media video{ width:100%; height:100%; object-fit:contain; }
 @media (max-width:640px){
   .banner{ grid-template-columns:1fr; padding:1.4rem; min-height:0; }
   .banner__media{ margin-left:0; margin-top:1rem; aspect-ratio:16/9; }
-  .banner__price{ width:72px; height:72px; }
 }
 
 /* ---------- Category quick-browse (home) ---------- */
