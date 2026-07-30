@@ -473,12 +473,27 @@ const CrispyStore = (() => {
   }
 
   /* ---------- init ---------- */
+  function wireMobileNav(){
+    const burger = document.querySelector('[data-nav-burger]');
+    const links = document.querySelector('[data-nav-links]');
+    if (!burger || !links) return;
+    burger.addEventListener('click', () => {
+      const open = links.classList.toggle('is-open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      links.classList.remove('is-open');
+      burger.setAttribute('aria-expanded', 'false');
+    }));
+  }
+
   function init(){
     updateCartBadge();
     wireFaq();
     wireCountdown();
     observeReveals();
     wireDemo();
+    wireMobileNav();
     renderHome();
     renderCatalog();
     renderCart();
