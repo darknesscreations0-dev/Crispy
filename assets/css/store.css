@@ -559,6 +559,28 @@ main{ position:relative; z-index:1; }
 }
 .ai-panel__input button svg{ width:16px; height:16px; }
 
+/* ---------- Cookie / subscribe banner ---------- */
+.cookie-banner{
+  position:fixed; left:0; right:0; bottom:0; z-index:200;
+  background:var(--c-surface); border-top:1px solid var(--c-border);
+  padding:1rem var(--gutter);
+  display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+}
+.cookie-banner__text{ flex:1; min-width:220px; font-size:.82rem; color:var(--c-text-dim); line-height:1.5; }
+.cookie-banner__text strong{ color:var(--c-text); }
+.cookie-banner__form{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+.cookie-banner__form input{
+  padding:.6rem .85rem; border:1px solid var(--c-border); background:var(--c-bg);
+  color:var(--c-text); font-size:.85rem; font-family:inherit; min-width:200px;
+}
+.cookie-banner__form input:focus{ outline:1px solid var(--c-orange); }
+.cookie-banner__msg{ font-size:.76rem; margin-top:.3rem; width:100%; }
+@media (max-width:640px){
+  .cookie-banner{ flex-direction:column; align-items:stretch; }
+  .cookie-banner__form{ flex-direction:column; align-items:stretch; }
+  .cookie-banner__form input{ min-width:0; }
+}
+
 /* ---------- Toast ---------- */
 .toast{
   position:fixed; bottom:1.4rem; left:50%; transform:translateX(-50%) translateY(120%);
