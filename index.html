@@ -39,17 +39,7 @@
 <main>
   <!-- Search -->
   <div class="searchrow" style="padding-top:1.4rem;">
-    <form data-home-search action="catalog.html" method="get">
-      <input type="text" name="q" placeholder="Search by name, author, or description…">
-    </form>
-  </div>
-
-  <!-- Category quick-browse -->
-  <div class="catrow">
-    <a href="catalog.html" class="catrow__chip">All</a>
-    <a href="catalog.html?cat=Plugins" class="catrow__chip">Plugins</a>
-    <a href="catalog.html?cat=Assets%20%26%20Packs" class="catrow__chip">Assets &amp; Packs</a>
-    <a href="catalog.html?cat=Free%20Tools" class="catrow__chip">Free Tools</a>
+    <input type="text" data-search placeholder="Search by name, author, or description…">
   </div>
 
   <!-- Banner spotlight -->
@@ -61,19 +51,43 @@
     </div>
   </section>
 
-  <!-- Featured -->
-  <section class="section" id="featured">
-    <div class="section__head reveal">
-      <div class="eyebrow">Most loved</div>
-      <h2 class="section__title">The editor's <span class="accent">essentials.</span></h2>
-      <p class="section__sub">The tools that do the heavy lifting on real timelines. Drag, drop, done.</p>
+  <!-- Full shelf -->
+  <div class="filterbar">
+    <div class="filterbar__field">
+      <label for="f-category">Category</label>
+      <select id="f-category" data-filter-category>
+        <option value="all">All categories</option>
+      </select>
     </div>
+    <div class="filterbar__field">
+      <label for="f-price">Price</label>
+      <select id="f-price" data-filter-price>
+        <option value="all">All prices</option>
+        <option value="free">Free</option>
+        <option value="under25">Under $25</option>
+        <option value="25to50">$25 – $50</option>
+        <option value="over50">$50+</option>
+      </select>
+    </div>
+    <div class="filterbar__field">
+      <label for="f-compat">Compatible with</label>
+      <select id="f-compat" data-filter-compat>
+        <option value="all">All apps</option>
+      </select>
+    </div>
+    <span class="filterbar__count" data-catalog-count>Loading…</span>
+  </div>
+
+  <div class="sorttabs">
+    <button class="sorttab is-active" data-sort="featured">Featured</button>
+    <button class="sorttab" data-sort="latest">Latest</button>
+    <button class="sorttab" data-sort="popular">Popular</button>
+  </div>
+
+  <section class="section" style="padding-top:0;">
     <div class="container">
-      <div class="product-grid" data-home-grid>
+      <div class="product-grid" data-catalog-grid>
         <p class="state-msg">Loading products…</p>
-      </div>
-      <div style="text-align:center;margin-top:2.4rem;">
-        <a href="catalog.html" class="btn btn--ghost">View all products</a>
       </div>
     </div>
   </section>
@@ -81,9 +95,7 @@
   <!-- Interactive demo -->
   <section class="section">
     <div class="section__head reveal">
-      <div class="eyebrow">Try before you buy</div>
       <h2 class="section__title">Play with the <span class="accent">panel.</span></h2>
-      <p class="section__sub">Pick a tab, tap a preset, watch it animate — this is the kind of control you get inside every Crispy tool.</p>
     </div>
     <div class="container">
       <div class="demo reveal reveal--scale" data-demo>
@@ -99,42 +111,6 @@
           <div class="demo__word">Smooth Bounce</div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Testimonials -->
-  <section class="section">
-    <div class="section__head reveal">
-      <div class="eyebrow">★★★★★ 4.9 average</div>
-      <h2 class="section__title">Loved by editors <span class="accent">worldwide.</span></h2>
-    </div>
-    <div class="container">
-      <div class="testi-grid">
-        <div class="testi reveal">
-          <div class="testi__stars">★★★★★</div>
-          <p class="testi__body">The split-color pack alone paid for itself on my first client edit. Everything just drops in and works.</p>
-          <div class="testi__who">Marcus L. <span>· YouTube editor</span></div>
-        </div>
-        <div class="testi reveal">
-          <div class="testi__stars">★★★★★</div>
-          <p class="testi__body">I stopped rebuilding the same rigs every project. Grabbed the bundle and my turnaround dropped in half.</p>
-          <div class="testi__who">Aisha K. <span>· Freelance motion designer</span></div>
-        </div>
-        <div class="testi reveal">
-          <div class="testi__stars">★★★★★</div>
-          <p class="testi__body">Clean files, no bloat, actually documented. Rare for After Effects packs. Easy recommend.</p>
-          <div class="testi__who">Devon R. <span>· Agency lead</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA band -->
-  <section class="section" style="text-align:center;">
-    <div class="container reveal">
-      <h2 class="section__title">Ready to ship <span class="accent">faster?</span></h2>
-      <p class="section__sub">Stop rebuilding from scratch. Grab the tools, keep them forever.</p>
-      <div style="margin-top:1.8rem;"><a href="catalog.html" class="btn">Browse the catalog</a></div>
     </div>
   </section>
 </main>
