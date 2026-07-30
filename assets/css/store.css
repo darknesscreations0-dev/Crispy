@@ -340,6 +340,19 @@ main{ position:relative; z-index:1; }
 .catrow__chip:hover{ border-color:var(--c-border-glow); color:var(--c-text); }
 .catrow__chip:first-child{ background:var(--c-orange); color:#1a0800; border-color:transparent; }
 
+/* ---------- Category tiles (home) ---------- */
+.cat-tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; }
+@media (max-width:760px){ .cat-tiles{ grid-template-columns:repeat(2,1fr); } }
+.cat-tile{
+  display:flex; align-items:center; justify-content:space-between; gap:.6rem;
+  padding:1.2rem 1.1rem; border:1px solid var(--c-border); background:var(--c-surface);
+  color:var(--c-text); transition:all .2s var(--ease);
+}
+.cat-tile:hover{ border-color:var(--c-orange); background:var(--c-surface-2); }
+.cat-tile__label{ font-weight:600; font-size:.92rem; }
+.cat-tile__arrow{ color:var(--c-orange); font-weight:700; transition:transform .2s var(--ease); }
+.cat-tile:hover .cat-tile__arrow{ transform:translateX(3px); }
+
 /* ---------- Search bar (catalog) ---------- */
 .searchrow{ max-width:1200px; margin:0 auto; padding:0 var(--gutter) .8rem; display:flex; gap:.5rem; }
 .searchrow input{
