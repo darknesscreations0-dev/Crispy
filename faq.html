@@ -161,6 +161,9 @@
   }
   const GREETINGS = /^(hi|hello|hey|yo|sup|hiya|good morning|good afternoon|good evening)[\s!.,]*$/i;
   const THANKS = /^(thanks|thank you|thx|ty|cheers)[\s!.,]*$/i;
+  const CONTACT_WORDS = new Set(['contact','email','mail','reach','support','phone','number','address','discord','instagram','social','site','website','crispy','darkness','who','made','owns','owner','company']);
+
+  const CONTACT_INFO = "You can reach us directly at contactcrispy0@gmail.com — that's the fastest way to get a real person. Crispy is a creator-tools storefront run by Darkness. You can also find us on Instagram (@crispyv0), YouTube (@darknesssx0), and Discord — links are in the footer below.";
 
   function bestMatch(query){
     const trimmed = query.trim();
@@ -169,14 +172,33 @@
 
     const qWords = keywords(query);
     if (!qWords.length) return null;
+
+    // Contact/site-info questions get a direct, accurate answer instead of
+    // being scored against the FAQ — otherwise a word like "contact" that
+    // merely appears inside an unrelated answer (e.g. the refund answer
+    // says "reach out on the contact page") would wrongly match here.
+    if (qWords.some(w => CONTACT_WORDS.has(w))) return { special: CONTACT_INFO };
+
+    // Score mostly on the FAQ question text, not the answer text — matching
+    // against answer bodies is what caused unrelated queries to match.
     let best = null, bestScore = 0;
     bank.forEach(item => {
-      const itemWords = new Set(keywords(item.q + ' ' + item.a));
-      const score = qWords.reduce((n, w) => n + (itemWords.has(w) ? 1 : 0), 0);
+      const qSet = new Set(keywords(item.q));
+      const aSet = new Set(keywords(item.a));
+      const score = qWords.reduce((n, w) => n + (qSet.has(w) ? 3 : aSet.has(w) ? 1 : 0), 0);
       if (score > bestScore){ bestScore = score; best = item; }
     });
-    return bestScore > 0 ? best : null;
+    // Require at least one real question-word match (score >= 3) — pure
+    // answer-text overlap alone is too weak/unreliable to trust.
+    return bestScore >= 3 ? best : null;
   }
+
+  const NO_MATCH_REPLIES = [
+    "I couldn't find a solid match for that in the FAQ — try rephrasing, or email contactcrispy0@gmail.com and a real person will help.",
+    "Hmm, nothing in the FAQ quite matches that. Try asking it a different way, or reach out to contactcrispy0@gmail.com directly.",
+    "That one's outside what I can search here. Best bet: contactcrispy0@gmail.com — someone will get back to you."
+  ];
+  let lastBotReply = '';
 
   function addMsg(text, who){
     const div = document.createElement('div');
@@ -184,6 +206,12 @@
     div.textContent = text;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+    if (who === 'bot') lastBotReply = text;
+  }
+
+  function pickNoMatchReply(){
+    const options = NO_MATCH_REPLIES.filter(r => r !== lastBotReply);
+    return options[Math.floor(Math.random() * options.length)] || NO_MATCH_REPLIES[0];
   }
 
   function open(){ panel.classList.add('is-open'); panel.setAttribute('aria-hidden','false'); input.focus(); }
@@ -200,8 +228,9 @@
     const match = bestMatch(val);
     setTimeout(() => {
       if (match && match.special) addMsg(match.special, 'bot');
+      else if (match && match.a === lastBotReply) addMsg("Same question as before? " + match.a, 'bot');
       else if (match) addMsg(match.a, 'bot');
-      else addMsg("I couldn't find a solid match for that in the FAQ — try rephrasing, or reach out on the Contact page and a real person will help.", 'bot');
+      else addMsg(pickNoMatchReply(), 'bot');
     }, 300);
   });
 })();
