@@ -560,6 +560,57 @@ const CrispyStore = (() => {
     links.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
   }
 
+  /* ---------- Cookie consent + update subscription ---------- */
+  function wireCookieBanner(){
+    if (localStorage.getItem('crispy-cookie-consent')) return;
+    if (document.querySelector('[data-cookie-banner]')) return;
+
+    const el = document.createElement('div');
+    el.className = 'cookie-banner';
+    el.setAttribute('data-cookie-banner', '');
+    el.innerHTML = `
+      <div class="cookie-banner__text">
+        <strong>We use cookies</strong> to keep things like your cart working. Want product updates in your inbox too? Drop your email — no spam, just new releases and sales.
+      </div>
+      <form class="cookie-banner__form" data-cookie-form>
+        <input type="email" placeholder="you@email.com" data-cookie-email autocomplete="email">
+        <button type="submit" class="btn">Accept &amp; subscribe</button>
+        <button type="button" class="btn btn--ghost" data-cookie-dismiss>Just accept</button>
+      </form>
+      <div class="cookie-banner__msg" data-cookie-msg></div>
+    `;
+    document.body.appendChild(el);
+
+    function closeBanner(){
+      localStorage.setItem('crispy-cookie-consent', '1');
+      el.remove();
+    }
+
+    el.querySelector('[data-cookie-dismiss]').addEventListener('click', closeBanner);
+
+    el.querySelector('[data-cookie-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = el.querySelector('[data-cookie-email]');
+      const msg = el.querySelector('[data-cookie-msg]');
+      const email = input.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        msg.textContent = 'Enter a valid email, or tap "Just accept" to skip.';
+        msg.style.color = '#ff6b6b';
+        return;
+      }
+      const c = client();
+      if (!c){ closeBanner(); return; }
+      msg.textContent = 'Saving…'; msg.style.color = 'var(--c-text-faint)';
+      const { error } = await c.from('subscribers').insert({ email });
+      if (error && error.code !== '23505'){ // 23505 = already subscribed, treat as success
+        msg.textContent = 'Could not save — try "Just accept" instead.'; msg.style.color = '#ff6b6b';
+        return;
+      }
+      msg.textContent = "You're in! Closing…"; msg.style.color = '#4ade80';
+      setTimeout(closeBanner, 900);
+    });
+  }
+
   function init(){
     updateCartBadge();
     wireFaq();
@@ -567,6 +618,7 @@ const CrispyStore = (() => {
     observeReveals();
     wireDemo();
     wireMobileNav();
+    wireCookieBanner();
     renderHome();
     renderCatalog();
     renderCart();
