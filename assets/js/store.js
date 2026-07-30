@@ -504,18 +504,56 @@ const CrispyStore = (() => {
   }
 
   /* ---------- init ---------- */
+  const NAV_ICONS = {
+    'index.html': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+    'catalog.html': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+    'faq.html': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><line x1="12" y1="17" x2="12" y2="17"/></svg>',
+    'contact.html': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="1"/><path d="M2 6l10 7 10-7"/></svg>'
+  };
   function wireMobileNav(){
     const burger = document.querySelector('[data-nav-burger]');
     const links = document.querySelector('[data-nav-links]');
     if (!burger || !links) return;
-    burger.addEventListener('click', () => {
-      const open = links.classList.toggle('is-open');
-      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+    // Inject icons per link (once)
+    links.querySelectorAll('a').forEach(a => {
+      if (a.querySelector('svg')) return;
+      const href = (a.getAttribute('href') || '').split('?')[0];
+      const icon = NAV_ICONS[href];
+      if (icon) a.insertAdjacentHTML('afterbegin', icon);
     });
-    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+
+    // Inject close button (once)
+    if (!links.querySelector('[data-nav-close]')) {
+      links.insertAdjacentHTML('afterbegin', `<button type="button" class="nav__close" data-nav-close aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`);
+    }
+
+    // Inject backdrop scrim (once)
+    let scrim = document.querySelector('[data-nav-scrim]');
+    if (!scrim) {
+      scrim = document.createElement('div');
+      scrim.className = 'nav__scrim';
+      scrim.setAttribute('data-nav-scrim', '');
+      document.body.appendChild(scrim);
+    }
+
+    const closeMenu = () => {
       links.classList.remove('is-open');
+      scrim.classList.remove('is-open');
       burger.setAttribute('aria-expanded', 'false');
-    }));
+    };
+    const openMenu = () => {
+      links.classList.add('is-open');
+      scrim.classList.add('is-open');
+      burger.setAttribute('aria-expanded', 'true');
+    };
+
+    burger.addEventListener('click', () => {
+      links.classList.contains('is-open') ? closeMenu() : openMenu();
+    });
+    scrim.addEventListener('click', closeMenu);
+    links.querySelector('[data-nav-close]').addEventListener('click', closeMenu);
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
   }
 
   function init(){
