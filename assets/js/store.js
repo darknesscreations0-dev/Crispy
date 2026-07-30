@@ -14,12 +14,36 @@ const CrispyStore = (() => {
   function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function stars(r){ const full = Math.round(Number(r) || 0); return '★'.repeat(Math.max(0,Math.min(5,full))); }
   // Renders a product's media as <img> or <video> depending on media_type,
-  // set from the admin panel when a file was uploaded there.
-  function mediaTag(p, w, h){
+  // set from the admin panel when a file was uploaded there. When autofit
+  // is true, the tag gets a marker class so autoFitMedia() (below) can
+  // resize its container to the real image/video's aspect ratio once it
+  // loads, instead of the container's fixed square ratio letterboxing it.
+  function mediaTag(p, w, h, autofit){
+    const cls = autofit ? ' class="js-autofit-media"' : '';
     if (p.media_type === 'video' && p.image_url){
-      return `<video src="${esc(p.image_url)}" autoplay muted loop playsinline></video>`;
+      return `<video${cls} src="${esc(p.image_url)}" autoplay muted loop playsinline></video>`;
     }
-    return `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, w, h))}" alt="${esc(p.name)}" loading="lazy">`;
+    return `<img${cls} src="${esc(p.image_url || placeholderImg(p.name || p.id, w, h))}" alt="${esc(p.name)}" loading="lazy">`;
+  }
+
+  // Resizes `container` to match the natural aspect ratio of the
+  // .js-autofit-media element inside it (image or video), once its real
+  // dimensions are known — so a landscape image never gets stuck inside
+  // a square box with empty bars top/bottom.
+  function autoFitMedia(container){
+    if (!container) return;
+    const el = container.querySelector('.js-autofit-media');
+    if (!el) return;
+    const apply = () => {
+      const w = el.tagName === 'VIDEO' ? el.videoWidth : el.naturalWidth;
+      const h = el.tagName === 'VIDEO' ? el.videoHeight : el.naturalHeight;
+      if (w && h) container.style.aspectRatio = `${w} / ${h}`;
+    };
+    if (el.tagName === 'VIDEO'){
+      if (el.readyState >= 1) apply(); else el.addEventListener('loadedmetadata', apply, { once:true });
+    } else {
+      if (el.complete && el.naturalWidth) apply(); else el.addEventListener('load', apply, { once:true });
+    }
   }
 
   function discountPct(p){
@@ -162,30 +186,26 @@ const CrispyStore = (() => {
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>',
     bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>'
   };
-  function bannerHTML(p){
-    const free = p.is_free || Number(p.price) === 0;
-    const media = mediaTag(p, 700, 700);
-    const desc = p.description ? esc(p.description) : 'Built in-house, tested on real client work.';
+  // Renders one custom banner slide from the `banners` table — fully
+  // admin-authored: its own image/video, headline, subtitle, optional
+  // price tag, optional badge, and a link to wherever the admin points it
+  // (a product page, the catalog, an external URL, whatever).
+  function bannerHTML(b){
+    const media = b.image_url
+      ? (b.media_type === 'video'
+          ? `<video src="${esc(b.image_url)}" autoplay muted loop playsinline class="js-autofit-media"></video>`
+          : `<img src="${esc(b.image_url)}" alt="${esc(b.title || '')}" class="js-autofit-media">`)
+      : '';
+    const href = b.link_url || 'catalog.html';
+    const external = /^https?:\/\//i.test(href);
     return `
-      <a class="banner reveal" href="catalog.html">
-        <div class="banner__price">
-          <small>${free ? 'Get it' : 'From'}</small>
-          <strong>${free ? 'Free' : money(p.price)}</strong>
-        </div>
+      <a class="banner reveal" href="${esc(href)}"${external ? ' target="_blank" rel="noopener"' : ''}>
+        ${b.price_label ? `<div class="banner__price"><strong>${esc(b.price_label)}</strong></div>` : ''}
         <div class="banner__body">
-          <div class="banner__eyebrow">${esc(p.category || 'Featured')}</div>
-          <h3 class="banner__title">${esc(p.name)}</h3>
-          <p class="banner__sub">${desc}</p>
-          <ul class="banner__features">
-            <li>${BANNER_ICONS.check} Instant download</li>
-            <li>${BANNER_ICONS.shield} Lifetime updates included</li>
-            <li>${BANNER_ICONS.bolt} Commercial license included</li>
-          </ul>
-          <span class="btn btn--sm">${free ? 'Get it free' : `Shop ${money(p.price)}`}</span>
-          <div class="banner__pills">
-            <span class="banner__pill">Tested &amp; documented</span>
-            <span class="banner__pill">One-time payment</span>
-          </div>
+          ${b.badge ? `<div class="banner__eyebrow">${esc(b.badge)}</div>` : ''}
+          <h3 class="banner__title">${esc(b.title || '')}</h3>
+          ${b.subtitle ? `<p class="banner__sub">${esc(b.subtitle)}</p>` : ''}
+          <span class="btn btn--sm">Learn more</span>
         </div>
         <div class="banner__media">${media}</div>
       </a>`;
@@ -306,6 +326,16 @@ const CrispyStore = (() => {
     return data;
   }
 
+  // The homepage banner slides — fully custom, from the `banners` table,
+  // not derived from any product.
+  async function fetchBanners(){
+    const c = client();
+    if (!c) return [];
+    const { data, error } = await c.from('banners').select('*').eq('is_active', true).order('sort_order', { ascending: true });
+    if (error) return [];
+    return data || [];
+  }
+
   /* ---------- page renderers ---------- */
   async function renderHome(){
     const products = await fetchProducts();
@@ -315,18 +345,9 @@ const CrispyStore = (() => {
       const settings = await fetchBannerSettings();
       const maxSlides = Math.max(1, Number(settings.banner_max_slides) || 6);
       const intervalMs = Math.max(1, Number(settings.banner_interval_seconds) || 5) * 1000;
-      // banner_position is set from the admin panel — it's the explicit,
-      // ordered list of what shows in the homepage banner carousel and in
-      // what order. Falls back to featured products if nothing's been
-      // configured yet, so the homepage never shows an empty banner.
-      const positioned = products
-        .filter(p => p.banner_position != null)
-        .sort((a, b) => a.banner_position - b.banner_position)
-        .slice(0, maxSlides);
-      const spotlight = positioned.length ? positioned : products.filter(p => p.is_featured).slice(0, maxSlides);
-      const list = spotlight.length ? spotlight : products.slice(0, maxSlides);
+      const list = (await fetchBanners()).slice(0, maxSlides);
       if (!list.length){
-        bannerWrap.innerHTML = `<p class="state-msg">Products coming soon.</p>`;
+        bannerWrap.innerHTML = `<p class="state-msg">No banners set up yet — add one in the admin panel.</p>`;
       } else {
         let i = 0;
         const go = (n) => { i = (n + list.length) % list.length; paint(); resetTimer(); };
@@ -349,6 +370,7 @@ const CrispyStore = (() => {
           const next = bannerWrap.querySelector('[data-next]');
           if (prev) prev.addEventListener('click', (e) => { e.preventDefault(); go(i - 1); });
           if (next) next.addEventListener('click', (e) => { e.preventDefault(); go(i + 1); });
+          autoFitMedia(bannerWrap.querySelector('.banner__media'));
         };
         let timer = null;
         const resetTimer = () => {
@@ -658,6 +680,6 @@ const CrispyStore = (() => {
   document.addEventListener('DOMContentLoaded', init);
   document.addEventListener('crispy-cart-change', () => { renderCart(); });
 
-  return { addToCart, buyNow, getCart, cartCount, cartTotal, showToast, money, placeholderImg };
+  return { addToCart, buyNow, getCart, cartCount, cartTotal, showToast, money, placeholderImg, autoFitMedia };
 })();
 window.CrispyStore = CrispyStore;
