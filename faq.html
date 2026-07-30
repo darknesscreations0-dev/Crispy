@@ -159,7 +159,14 @@
   function keywords(str){
     return str.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(w => w && !STOP.has(w));
   }
+  const GREETINGS = /^(hi|hello|hey|yo|sup|hiya|good morning|good afternoon|good evening)[\s!.,]*$/i;
+  const THANKS = /^(thanks|thank you|thx|ty|cheers)[\s!.,]*$/i;
+
   function bestMatch(query){
+    const trimmed = query.trim();
+    if (GREETINGS.test(trimmed)) return { special: "Hey! Ask me about orders, licenses, refunds, or compatibility and I'll pull the answer from the FAQ." };
+    if (THANKS.test(trimmed)) return { special: "Anytime! Anything else I can look up for you?" };
+
     const qWords = keywords(query);
     if (!qWords.length) return null;
     let best = null, bestScore = 0;
@@ -192,7 +199,8 @@
     input.value = '';
     const match = bestMatch(val);
     setTimeout(() => {
-      if (match) addMsg(match.a, 'bot');
+      if (match && match.special) addMsg(match.special, 'bot');
+      else if (match) addMsg(match.a, 'bot');
       else addMsg("I couldn't find a solid match for that in the FAQ — try rephrasing, or reach out on the Contact page and a real person will help.", 'bot');
     }, 300);
   });
