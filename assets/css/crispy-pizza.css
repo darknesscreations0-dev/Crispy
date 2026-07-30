@@ -9,19 +9,19 @@
   --cp-orange:      #FF7A00;
   --cp-orange-2:    #FF4D00;
   --cp-amber:       #FFA500;
-  --cp-bg:          #0a0a0a;
-  --cp-surface:     #111111;
+  --cp-bg:          #171717;
+  --cp-surface:     #212121;
   /* Crispy keeps its own font stack, independent of Darkness
      Creations' shared --font-display (which now points to
      system fonts for the parent site). */
-  --font-display:   'Clash Display', 'Inter', sans-serif;
-  --font-body:      'Inter', sans-serif;
-  --cp-surface-2:   #171310;
-  --cp-border:      rgba(255,255,255,0.08);
-  --cp-border-glow: rgba(255,122,0,0.35);
+  --font-display:   'Clash Display', 'Inter', system-ui, sans-serif;
+  --font-body:      'Inter', system-ui, sans-serif;
+  --cp-surface-2:   #2a221b;
+  --cp-border:      rgba(255,255,255,0.12);
+  --cp-border-glow: rgba(255,255,255,0.20);
   --cp-text:        #ffffff;
-  --cp-text-dim:    #c9beb4;
-  --cp-text-faint:  #8a8078;
+  --cp-text-dim:    #d8cec5;
+  --cp-text-faint:  #a89e94;
 }
 
 body.cp-body{
@@ -32,29 +32,12 @@ body.cp-body{
   position:relative;
 }
 
-/* ---------- Starfield backdrop ---------- */
+/* ---------- Backdrop ---------- */
 .cp-starfield{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  background:
-    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(255,122,0,0.28), transparent 60%),
-    radial-gradient(circle at 15% 30%, rgba(255,77,0,0.12), transparent 40%),
-    var(--cp-bg);
-}
-.cp-starfield::before{
-  content:'';
-  position:absolute; inset:0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 20% 20%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1.5px 1.5px at 70% 40%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.35), transparent),
-    radial-gradient(1.5px 1.5px at 85% 15%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 55% 85%, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1.5px 1.5px at 10% 60%, rgba(255,255,255,0.35), transparent),
-    radial-gradient(1px 1px at 90% 75%, rgba(255,255,255,0.3), transparent);
-  background-size:100% 100%;
-  opacity:.8;
+  background:var(--cp-bg);
 }
 
 /* ---------- Top bar ---------- */
@@ -74,7 +57,7 @@ body.cp-body{
 .cp-logo__mark{
   width:30px; height:30px;
   border-radius:9px;
-  background:linear-gradient(135deg, var(--cp-orange), var(--cp-orange-2));
+  background:var(--cp-orange);
   display:flex; align-items:center; justify-content:center;
   font-size:.95rem;
 }
@@ -120,7 +103,7 @@ body.cp-body{
   letter-spacing:-0.01em;
 }
 .cp-hero__title .cp-name{
-  background:linear-gradient(120deg, var(--cp-orange), var(--cp-orange-2));
+  background:var(--cp-orange);
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
@@ -140,22 +123,20 @@ body.cp-body{
   align-items:center;
   gap:.5rem;
   padding:.95rem 2.2rem;
-  border-radius:999px;
+  border-radius:8px;
   font-weight:700;
   font-size:.95rem;
   color:#1a0800;
-  background:linear-gradient(180deg, var(--cp-amber), var(--cp-orange-2));
-  box-shadow:0 8px 24px rgba(255,122,0,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
-  border:1px solid rgba(255,255,255,0.15);
-  transition:transform .25s var(--ease), box-shadow .25s var(--ease);
+  background:var(--cp-orange);
+  border:1px solid transparent;
+  transition:background .2s var(--ease);
 }
-.cp-btn:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,122,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4); }
-.cp-btn--red{ background:linear-gradient(180deg, #ff5a3c, #d92b12); color:#fff; }
+.cp-btn:hover{ background:var(--cp-orange-2); }
+.cp-btn--red{ background:#d9481f; color:#fff; }
 .cp-btn--ghost-cp{
-  background:rgba(255,255,255,0.04);
+  background:var(--cp-surface-2);
   color:var(--cp-text);
-  box-shadow:none;
-  border:1px solid var(--cp-border-glow);
+  border:1px solid var(--cp-border);
 }
 .cp-btn--sm{ padding:.7rem 1.4rem; font-size:.85rem; width:100%; justify-content:center; }
 
@@ -183,15 +164,15 @@ body.cp-body{
   position:relative;
   border-radius:16px;
   overflow:hidden;
-  background:linear-gradient(160deg, var(--cp-surface-2), var(--cp-surface));
+  background:var(--cp-surface);
   border:1px solid var(--cp-border);
-  transition:transform .35s var(--ease), border-color .35s var(--ease);
+  transition:border-color .2s var(--ease);
 }
-.cp-card:hover{ transform:translateY(-6px) rotate(-0.4deg); border-color:var(--cp-border-glow); }
+.cp-card:hover{ border-color:var(--cp-border-glow); }
 .cp-card__media{
   height:150px;
   position:relative;
-  background:linear-gradient(150deg, rgba(255,122,0,0.22), rgba(0,0,0,0.4));
+  background:var(--cp-surface-2);
   display:flex; align-items:center; justify-content:center;
   font-family:var(--font-display);
   color:rgba(255,255,255,0.25);
@@ -202,7 +183,7 @@ body.cp-body{
   font-size:.68rem; font-weight:700;
   padding:.25rem .55rem;
   border-radius:999px;
-  background:linear-gradient(120deg, var(--cp-orange), var(--cp-orange-2));
+  background:var(--cp-orange);
   color:#1a0800;
 }
 .cp-card__lock{
@@ -240,7 +221,7 @@ body.cp-body{
   height:180px;
   border-radius:12px;
   margin-bottom:1.2rem;
-  background:linear-gradient(160deg, rgba(255,122,0,0.3), rgba(0,0,0,0.6));
+  background:var(--cp-surface);
   position:relative;
   display:flex; align-items:center; justify-content:center;
   font-family:var(--font-display);
@@ -283,14 +264,13 @@ body.cp-body{
   padding:1.4rem;
   max-width:820px;
   margin:0 auto;
-  box-shadow:0 30px 60px rgba(0,0,0,0.5);
 }
 .cp-mockup__bar{ display:flex; gap:.4rem; margin-bottom:1rem; }
 .cp-mockup__bar span{ width:10px; height:10px; border-radius:50%; background:var(--cp-border); }
 .cp-mockup__grid{ display:grid; grid-template-columns:1fr 1.4fr; gap:1rem; }
 .cp-mockup__panel{ background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem; min-height:160px; }
 .cp-mockup__panel .line{ height:8px; border-radius:4px; background:rgba(255,255,255,0.08); margin-bottom:.6rem; }
-.cp-mockup__panel .line.orange{ background:linear-gradient(90deg, var(--cp-orange), var(--cp-orange-2)); width:60%; }
+.cp-mockup__panel .line.orange{ background:var(--cp-orange); width:60%; }
 
 /* ---------- Offer grid ---------- */
 .cp-offer-grid{
@@ -310,7 +290,7 @@ body.cp-body{
   width:44px; height:44px;
   margin:0 auto 1rem;
   border-radius:12px;
-  background:linear-gradient(135deg, var(--cp-orange), var(--cp-orange-2));
+  background:var(--cp-orange);
   display:flex; align-items:center; justify-content:center;
   font-size:1.2rem;
 }
@@ -384,7 +364,7 @@ body.cp-body{
   transition:all .3s var(--ease);
 }
 .cp-bottom-nav a.is-active{
-  background:linear-gradient(120deg, var(--cp-orange), var(--cp-orange-2));
+  background:var(--cp-orange);
   color:#1a0800;
 }
 .cp-bottom-nav a svg{ width:16px; height:16px; }
