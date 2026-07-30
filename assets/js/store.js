@@ -165,7 +165,7 @@ const CrispyStore = (() => {
   function bannerHTML(p){
     const free = p.is_free || Number(p.price) === 0;
     const media = mediaTag(p, 700, 700);
-    const desc = p.description ? esc(p.description).slice(0, 90) : 'Built in-house, tested on real client work.';
+    const desc = p.description ? esc(p.description) : 'Built in-house, tested on real client work.';
     return `
       <a class="banner reveal" href="catalog.html">
         <div class="banner__price">
