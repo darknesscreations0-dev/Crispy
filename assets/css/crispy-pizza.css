@@ -24,6 +24,8 @@
   --cp-text-faint:  #a89e94;
 }
 
+*, *::before, *::after{ box-sizing:border-box; }
+
 body.cp-body{
   background:var(--cp-bg);
   color:var(--cp-text);

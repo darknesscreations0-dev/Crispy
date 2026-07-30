@@ -519,6 +519,46 @@ main{ position:relative; z-index:1; }
 .policy-block h3{ font-size:1.05rem; font-weight:600; margin-bottom:.5rem; }
 .policy-block p{ color:var(--c-text-dim); font-size:.92rem; line-height:1.65; }
 
+/* ---------- Crispy AI widget ---------- */
+.ai-bubble{
+  position:fixed; bottom:1.2rem; right:1.2rem; z-index:150;
+  display:flex; align-items:center; gap:.5rem;
+  padding:.8rem 1.1rem; background:var(--c-orange); color:#1a0800;
+  font-weight:700; font-size:.85rem; border:none;
+}
+.ai-bubble svg{ width:18px; height:18px; }
+.ai-bubble:hover{ background:var(--c-orange-2); }
+.ai-panel{
+  display:none; flex-direction:column;
+  position:fixed; bottom:1.2rem; right:1.2rem; z-index:151;
+  width:min(90vw,340px); height:min(70vh,480px);
+  background:var(--c-surface); border:1px solid var(--c-border);
+}
+.ai-panel.is-open{ display:flex; }
+.ai-panel__head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.9rem 1rem; border-bottom:1px solid var(--c-border);
+  font-weight:700; font-size:.9rem;
+}
+.ai-panel__head small{ color:var(--c-text-faint); font-weight:400; font-size:.75rem; }
+.ai-panel__head button{ background:transparent; border:none; color:var(--c-text-dim); display:flex; }
+.ai-panel__head button svg{ width:16px; height:16px; }
+.ai-panel__body{ flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:.7rem; }
+.ai-msg{ max-width:85%; padding:.6rem .8rem; font-size:.84rem; line-height:1.5; }
+.ai-msg--bot{ background:var(--c-surface-2); align-self:flex-start; }
+.ai-msg--user{ background:var(--c-orange); color:#1a0800; align-self:flex-end; font-weight:600; }
+.ai-panel__input{ display:flex; border-top:1px solid var(--c-border); }
+.ai-panel__input input{
+  flex:1; padding:.8rem 1rem; border:none; background:transparent; color:var(--c-text);
+  font-size:.85rem; font-family:inherit;
+}
+.ai-panel__input input:focus{ outline:none; }
+.ai-panel__input button{
+  width:44px; display:flex; align-items:center; justify-content:center;
+  background:var(--c-orange); color:#1a0800; border:none;
+}
+.ai-panel__input button svg{ width:16px; height:16px; }
+
 /* ---------- Toast ---------- */
 .toast{
   position:fixed; bottom:1.4rem; left:50%; transform:translateX(-50%) translateY(120%);
