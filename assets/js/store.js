@@ -193,22 +193,23 @@ const CrispyStore = (() => {
   function bannerHTML(b){
     const media = b.image_url
       ? (b.media_type === 'video'
-          ? `<video src="${esc(b.image_url)}" autoplay muted loop playsinline class="js-autofit-media"></video>`
-          : `<img src="${esc(b.image_url)}" alt="${esc(b.title || '')}" class="js-autofit-media">`)
+          ? `<video src="${esc(b.image_url)}" autoplay muted loop playsinline></video>`
+          : `<img src="${esc(b.image_url)}" alt="${esc(b.title || '')}">`)
       : '';
-    const href = b.link_url || 'catalog.html';
+    const href = b.link_url || '';
     const external = /^https?:\/\//i.test(href);
+    const ctaText = b.cta_text || 'Learn more';
     return `
-      <a class="banner reveal" href="${esc(href)}"${external ? ' target="_blank" rel="noopener"' : ''}>
+      <div class="banner reveal">
+        <div class="banner__media">${media}</div>
         ${b.price_label ? `<div class="banner__price"><strong>${esc(b.price_label)}</strong></div>` : ''}
-        <div class="banner__body">
+        <div class="banner__overlay">
           ${b.badge ? `<div class="banner__eyebrow">${esc(b.badge)}</div>` : ''}
           <h3 class="banner__title">${esc(b.title || '')}</h3>
           ${b.subtitle ? `<p class="banner__sub">${esc(b.subtitle)}</p>` : ''}
-          <span class="btn btn--sm">Learn more</span>
+          ${href ? `<a class="btn btn--sm banner__cta" href="${esc(href)}"${external ? ' target="_blank" rel="noopener"' : ''}>${esc(ctaText)}</a>` : ''}
         </div>
-        <div class="banner__media">${media}</div>
-      </a>`;
+      </div>`;
   }
 
   /* ---------- catalog card markup (marketplace grid) ---------- */
@@ -370,7 +371,6 @@ const CrispyStore = (() => {
           const next = bannerWrap.querySelector('[data-next]');
           if (prev) prev.addEventListener('click', (e) => { e.preventDefault(); go(i - 1); });
           if (next) next.addEventListener('click', (e) => { e.preventDefault(); go(i + 1); });
-          autoFitMedia(bannerWrap.querySelector('.banner__media'));
         };
         let timer = null;
         const resetTimer = () => {
