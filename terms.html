@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — Crispy</title>
-<meta name="description" content="Get in touch with Crispy.">
+<title>Terms &amp; Policies — Crispy</title>
+<meta name="description" content="Terms of service and usage policies for Crispy tools.">
 <link rel="icon" type="image/png" href="assets/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
       <a href="index.html">Home</a>
       <a href="catalog.html">Catalog</a>
       <a href="faq.html">FAQ</a>
-      <a href="contact.html" class="is-active">Contact</a>
+      <a href="contact.html">Contact</a>
     </nav>
     <div class="nav__account"><span data-dc-account></span></div>
     <a href="cart.html" class="nav__cart" aria-label="Cart">
@@ -37,28 +37,34 @@
 <main>
   <section class="section">
     <div class="section__head">
-      <div class="eyebrow">Say hello</div>
-      <h1 class="section__title">Get in <span class="accent">touch.</span></h1>
-      <p class="section__sub">Questions about a tool, your order, or a custom project? We usually reply within a day.</p>
+      <div class="eyebrow">Legal</div>
+      <h1 class="section__title">Terms &amp; <span class="accent">Policies.</span></h1>
     </div>
 
-    <div class="contact-grid">
-      <div class="contact-card">
-        <h3>About Crispy</h3>
-        <p>Crispy is the creator-tools arm of Darkness — Adobe extensions, project files and pro tools built from real editing experience. We make the assets we use on client work, then sell them directly so you can ship faster.</p>
-        <div style="margin-top:1.4rem;display:flex;flex-direction:column;gap:.6rem;">
-          <a class="btn btn--ghost btn--sm" href="#">💬 Join our Discord</a>
-          <a class="btn btn--ghost btn--sm" href="mailto:hello@crispy.example">✉️ hello@crispy.example</a>
-        </div>
+    <div class="container" style="max-width:800px;">
+      <div class="policy-block">
+        <h3>Using Crispy tools</h3>
+        <p>Every purchase is a one-time payment for a lifetime license to that product, including future updates. You may install and use a purchased tool on your own machines and use it in commercial and client work.</p>
       </div>
-
-      <div class="contact-card">
-        <h3>Send a message</h3>
-        <div class="field"><label for="cname">Name</label><input id="cname" type="text" autocomplete="name"></div>
-        <div class="field"><label for="cemail">Email</label><input id="cemail" type="email" autocomplete="email"></div>
-        <div class="field"><label for="cmsg">Message</label><textarea id="cmsg" rows="4"></textarea></div>
-        <button class="btn btn--block" id="contactSend">Send message</button>
-        <p id="contactMsg" style="min-height:1.2em;margin-top:.7rem;font-size:.85rem;text-align:center;color:var(--c-text-faint);"></p>
+      <div class="policy-block">
+        <h3>What you can't do</h3>
+        <p>You may not resell, redistribute, or share purchase files or license access with anyone outside your own account. Reverse-engineering or reselling any Crispy tool as your own is not permitted.</p>
+      </div>
+      <div class="policy-block">
+        <h3>Free downloads</h3>
+        <p>Free tools and assets are provided as-is for use in personal and commercial projects. They don't include the support or update guarantees that paid products do.</p>
+      </div>
+      <div class="policy-block">
+        <h3>Account &amp; access</h3>
+        <p>You're responsible for keeping your account credentials secure. Purchases are tied to your account and can be re-downloaded any time from My Account.</p>
+      </div>
+      <div class="policy-block">
+        <h3>Changes to these terms</h3>
+        <p>We may update these terms as Crispy grows. Continued use of the site after a change means you accept the updated terms.</p>
+      </div>
+      <div class="policy-block">
+        <h3>Questions</h3>
+        <p>Reach out any time on the <a href="contact.html" style="color:var(--c-orange);">Contact</a> page.</p>
       </div>
     </div>
   </section>
@@ -102,18 +108,5 @@
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/store.js"></script>
-<script>
-  // Lightweight contact form (no backend yet — opens the user's mail client).
-  document.getElementById('contactSend').addEventListener('click', () => {
-    const name = document.getElementById('cname').value.trim();
-    const email = document.getElementById('cemail').value.trim();
-    const msg = document.getElementById('cmsg').value.trim();
-    const out = document.getElementById('contactMsg');
-    if (!name || !email || !msg){ out.textContent = 'Fill in every field first.'; out.style.color = '#ff6b6b'; return; }
-    const body = encodeURIComponent(`From: ${name} (${email})\n\n${msg}`);
-    window.location.href = `mailto:hello@crispy.example?subject=${encodeURIComponent('Crispy enquiry from ' + name)}&body=${body}`;
-    out.textContent = 'Opening your email app…'; out.style.color = 'var(--c-green)';
-  });
-</script>
 </body>
 </html>
