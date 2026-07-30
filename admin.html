@@ -164,6 +164,24 @@
           <input type="hidden" id="f_gallery" value="[]">
         </div>
 
+        <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
+          <label>Full-width story section (optional — a mini landing page for this product, shown below the main info)</label>
+          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
+            Build it as a stack of blocks in whatever order you want — text, then an image, then more text, then a video, etc. Leave it empty and the product page just won't show this section.
+          </p>
+          <div id="admStoryList" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.8rem;"></div>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-start;">
+            <textarea id="admStoryTextInput" rows="3" placeholder="Write a paragraph…" style="flex:1;min-width:220px;"></textarea>
+            <div style="display:flex;flex-direction:column;gap:.4rem;">
+              <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddText">+ Add text block</button>
+              <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddMediaBtn">+ Add image/video block</button>
+              <input type="file" id="admStoryMediaFile" accept="image/*,video/*" hidden>
+            </div>
+          </div>
+          <p class="adm-msg" id="admStoryMsg" style="margin-top:.4rem;"></p>
+          <input type="hidden" id="f_story_blocks" value="[]">
+        </div>
+
         <div class="adm-form-actions">
           <button type="submit" class="btn">Save product</button>
           <button type="button" class="btn btn--ghost" id="admCancelBtn">Cancel</button>
@@ -218,6 +236,13 @@
   const admGalleryMsg = document.getElementById('admGalleryMsg');
   const admGalleryList = document.getElementById('admGalleryList');
   let galleryItems = [];
+  const admStoryList = document.getElementById('admStoryList');
+  const admStoryTextInput = document.getElementById('admStoryTextInput');
+  const admStoryAddText = document.getElementById('admStoryAddText');
+  const admStoryAddMediaBtn = document.getElementById('admStoryAddMediaBtn');
+  const admStoryMediaFile = document.getElementById('admStoryMediaFile');
+  const admStoryMsg = document.getElementById('admStoryMsg');
+  let storyBlocks = [];
 
   let client = null;
   let products = [];
@@ -262,6 +287,9 @@
 
     galleryItems = (product && Array.isArray(product.gallery)) ? product.gallery.slice() : [];
     renderGalleryList();
+
+    storyBlocks = (product && Array.isArray(product.story_blocks)) ? product.story_blocks.slice() : [];
+    renderStoryList();
 
     form.scrollIntoView({ behavior:'smooth', block:'start' });
   }
@@ -448,6 +476,66 @@
   admGalleryDrop.addEventListener('click', () => admGalleryFile.click());
   admGalleryFile.addEventListener('change', () => uploadGalleryFiles(admGalleryFile.files));
 
+  /* ---------- Full-width story section (ordered text/image/video blocks) ---------- */
+  function renderStoryList(){
+    document.getElementById('f_story_blocks').value = JSON.stringify(storyBlocks);
+    if (!storyBlocks.length){
+      admStoryList.innerHTML = '<p style="font-size:.8rem;color:var(--c-text-faint);">No blocks yet — add one below.</p>';
+      return;
+    }
+    admStoryList.innerHTML = storyBlocks.map((b, i) => `
+      <div style="display:flex;gap:.6rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
+        <div style="flex:1;min-width:0;font-size:.8rem;color:var(--c-text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${b.type === 'text' ? esc(b.content) : `[${b.type}] ${esc(b.url)}`}
+        </div>
+        <div style="display:flex;gap:.3rem;flex-shrink:0;">
+          <button type="button" class="btn btn--ghost btn--sm" data-story-up="${i}" ${i===0?'disabled':''}>↑</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-story-down="${i}" ${i===storyBlocks.length-1?'disabled':''}>↓</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-story-remove="${i}">Remove</button>
+        </div>
+      </div>
+    `).join('');
+    admStoryList.querySelectorAll('[data-story-up]').forEach(btn => btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.storyUp);
+      [storyBlocks[i-1], storyBlocks[i]] = [storyBlocks[i], storyBlocks[i-1]];
+      renderStoryList();
+    }));
+    admStoryList.querySelectorAll('[data-story-down]').forEach(btn => btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.storyDown);
+      [storyBlocks[i+1], storyBlocks[i]] = [storyBlocks[i], storyBlocks[i+1]];
+      renderStoryList();
+    }));
+    admStoryList.querySelectorAll('[data-story-remove]').forEach(btn => btn.addEventListener('click', () => {
+      storyBlocks.splice(Number(btn.dataset.storyRemove), 1);
+      renderStoryList();
+    }));
+  }
+  admStoryAddText.addEventListener('click', () => {
+    const text = admStoryTextInput.value.trim();
+    if (!text) return;
+    storyBlocks.push({ type: 'text', content: text });
+    admStoryTextInput.value = '';
+    renderStoryList();
+  });
+  admStoryAddMediaBtn.addEventListener('click', () => admStoryMediaFile.click());
+  admStoryMediaFile.addEventListener('change', async () => {
+    const file = admStoryMediaFile.files[0];
+    if (!file) return;
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    if (!isVideo && !isImage){ admStoryMsg.textContent = 'Please choose an image or video file.'; admStoryMsg.style.color = '#ff6b6b'; return; }
+    admStoryMsg.textContent = 'Uploading…'; admStoryMsg.style.color = 'var(--c-text-faint)';
+    const ext = (file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase();
+    const path = `story/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    if (error){ admStoryMsg.textContent = error.message || 'Upload failed.'; admStoryMsg.style.color = '#ff6b6b'; return; }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    storyBlocks.push({ type: isVideo ? 'video' : 'image', url: pub && pub.publicUrl ? pub.publicUrl : '' });
+    admStoryMediaFile.value = '';
+    admStoryMsg.textContent = 'Added — click Save product to keep it.'; admStoryMsg.style.color = '#4ade80';
+    renderStoryList();
+  });
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('f_id').value;
@@ -469,7 +557,8 @@
       is_featured: document.getElementById('f_is_featured').checked,
       is_active: document.getElementById('f_is_active').checked,
       preview_url: document.getElementById('f_preview_url').value.trim() || null,
-      gallery: galleryItems.length ? galleryItems : null
+      gallery: galleryItems.length ? galleryItems : null,
+      story_blocks: storyBlocks.length ? storyBlocks : null
     };
     if (!payload.name){ formMsg.textContent = 'Name is required.'; formMsg.style.color = '#ff6b6b'; return; }
 

@@ -19,7 +19,7 @@
 .pd-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:2rem; align-items:start; }
 @media (max-width:800px){ .pd-grid{ grid-template-columns:1fr; } }
 .pd-media{
-  position:relative; aspect-ratio:1/1; overflow:hidden;
+  position:relative; max-height:600px; aspect-ratio:4/3; overflow:hidden;
   background:var(--c-surface-2); border:1px solid var(--c-border);
 }
 .pd-media img, .pd-media video{ width:100%; height:100%; object-fit:contain; }
@@ -71,6 +71,12 @@
       <p class="state-msg">Loading product…</p>
     </div>
   </div>
+
+  <!-- Full-width "mini landing page" story section — only shown when the
+       admin built one for this product (product.story_blocks). -->
+  <section class="section" id="pdStorySection" style="display:none;">
+    <div class="container" id="pdStoryContent" style="max-width:900px;"></div>
+  </section>
 
   <!-- Live interactive preview — only rendered when the product has an
        uploaded demo (preview_url). Renders that demo's real index.html
@@ -167,8 +173,8 @@
     const free = product.is_free || Number(product.price) === 0;
     const img = product.image_url || (window.CrispyStore.placeholderImg ? window.CrispyStore.placeholderImg(product.name, 700, 700) : '');
     const mediaHTML = (product.media_type === 'video' && product.image_url)
-      ? `<video src="${esc(img)}" controls playsinline></video>`
-      : (img ? `<img src="${esc(img)}" alt="${esc(product.name)}">` : '');
+      ? `<video class="js-autofit-media" src="${esc(img)}" controls playsinline></video>`
+      : (img ? `<img class="js-autofit-media" src="${esc(img)}" alt="${esc(product.name)}">` : '');
 
     content.innerHTML = `
       <div class="pd-grid">
@@ -209,8 +215,31 @@
     const buyBtn = document.getElementById('pdBuyBtn');
     if (buyBtn) buyBtn.addEventListener('click', () => window.CrispyStore.buyNow(product));
 
+    window.CrispyStore.autoFitMedia(document.querySelector('.pd-media'));
     renderProductPreview(product);
     renderGallery(product);
+    renderStory(product);
+  }
+
+  /* ---------- full-width story section (mini landing page) ---------- */
+  function renderStory(product){
+    const section = document.getElementById('pdStorySection');
+    const content = document.getElementById('pdStoryContent');
+    const blocks = Array.isArray(product.story_blocks) ? product.story_blocks : [];
+    if (!blocks.length){ section.style.display = 'none'; return; }
+    section.style.display = '';
+    content.innerHTML = blocks.map(b => {
+      if (b.type === 'text'){
+        return `<p style="color:var(--c-text-dim);font-size:1rem;line-height:1.75;margin-bottom:1.4rem;white-space:pre-wrap;">${esc(b.content)}</p>`;
+      }
+      if (b.type === 'video'){
+        return `<video src="${esc(b.url)}" controls playsinline style="width:100%;display:block;margin-bottom:1.4rem;border:1px solid var(--c-border);"></video>`;
+      }
+      if (b.type === 'image'){
+        return `<img src="${esc(b.url)}" alt="" style="width:100%;display:block;margin-bottom:1.4rem;border:1px solid var(--c-border);">`;
+      }
+      return '';
+    }).join('');
   }
 
   /* ---------- per-product live preview (uploaded demo) ----------
@@ -228,18 +257,32 @@
     frame.src = product.preview_url;
   }
 
-  /* ---------- extra gallery (images/videos beyond the main product media) ---------- */
+  /* ---------- extra gallery (images/videos beyond the main product media) ----------
+     Clicking any thumbnail — including the original main image, added as
+     the first one — swaps it into the big preview above. */
   function renderGallery(product){
     const wrap = document.getElementById('pdGallery');
-    const items = Array.isArray(product.gallery) ? product.gallery : [];
-    if (!items.length){ wrap.innerHTML = ''; return; }
-    wrap.innerHTML = items.map(g => `
-      <div style="width:140px;height:140px;background:var(--c-surface-2);border:1px solid var(--c-border);overflow:hidden;">
+    const extra = Array.isArray(product.gallery) ? product.gallery : [];
+    const mainItem = product.image_url ? { type: product.media_type === 'video' ? 'video' : 'image', url: product.image_url } : null;
+    const items = mainItem ? [mainItem, ...extra] : extra;
+    if (items.length < 2){ wrap.innerHTML = ''; return; } // nothing extra to browse
+    wrap.innerHTML = items.map((g, i) => `
+      <div class="pd-thumb" data-thumb="${i}" style="width:90px;height:90px;background:var(--c-surface-2);border:1px solid var(--c-border);overflow:hidden;cursor:pointer;">
         ${g.type === 'video'
-          ? `<video src="${esc(g.url)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
+          ? `<video src="${esc(g.url)}" muted style="width:100%;height:100%;object-fit:cover;"></video>`
           : `<img src="${esc(g.url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`}
       </div>
     `).join('');
+    wrap.querySelectorAll('[data-thumb]').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        const g = items[Number(thumb.dataset.thumb)];
+        const media = document.querySelector('.pd-media');
+        media.innerHTML = g.type === 'video'
+          ? `<video class="js-autofit-media" src="${esc(g.url)}" controls playsinline autoplay muted loop></video>`
+          : `<img class="js-autofit-media" src="${esc(g.url)}" alt="">`;
+        window.CrispyStore.autoFitMedia(media);
+      });
+    });
   }
 
   document.addEventListener('DOMContentLoaded', load);
