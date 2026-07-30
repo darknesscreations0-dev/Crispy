@@ -17,6 +17,32 @@ const CrispyStore = (() => {
     if (!p.compare_at || Number(p.compare_at) <= Number(p.price)) return 0;
     return Math.round((1 - Number(p.price) / Number(p.compare_at)) * 100);
   }
+  // Temporary placeholder art until real product images are uploaded —
+  // generated locally as an inline SVG data URI so it always renders,
+  // even with no internet connection (no external image service).
+  function placeholderImg(seed, w, h){
+    w = w || 600; h = h || 400;
+    const str = String(seed || 'crispy');
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+    const hue = hash % 360;
+    const initial = esc(str.trim().charAt(0).toUpperCase() || 'C');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="hsl(${hue},55%,22%)"/>
+        <stop offset="1" stop-color="hsl(${hue},55%,10%)"/>
+      </linearGradient></defs>
+      <rect width="${w}" height="${h}" fill="url(#g)"/>
+      <text x="50%" y="53%" font-family="Inter,sans-serif" font-size="${Math.round(Math.min(w,h)*0.32)}" font-weight="700" fill="rgba(255,255,255,0.18)" text-anchor="middle" dominant-baseline="middle">${initial}</text>
+    </svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  }
+  const APP_ABBR = { 'After Effects':'Ae', 'Premiere Pro':'Pr', 'Photoshop':'Ps', 'Illustrator':'Ai', 'Cinema 4D':'C4', 'DaVinci Resolve':'Dv' };
+  function appChips(compat){
+    const apps = String(compat || 'After Effects').split(',').map(a => a.trim()).filter(Boolean);
+    if (!apps.length) return '';
+    return `<div class="card__apps">${apps.map(a => `<span class="card__app-chip">${esc(APP_ABBR[a] || a.slice(0,2))}</span>`).join('')}</div>`;
+  }
 
   /* ---------- cart storage ---------- */
   function getCart(){
@@ -96,14 +122,13 @@ const CrispyStore = (() => {
   function cardHTML(p){
     const off = discountPct(p);
     const free = p.is_free || Number(p.price) === 0;
-    const media = p.image_url
-      ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`
-      : esc(p.name);
+    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 500, 500))}" alt="${esc(p.name)}" loading="lazy">`;
     return `
       <article class="card reveal">
         <div class="card__media">
           ${p.badge ? `<span class="card__badge">${esc(p.badge)}</span>` : ''}
           ${off ? `<span class="card__off">-${off}%</span>` : ''}
+          ${appChips(p.compatible_with)}
           ${media}
         </div>
         <div class="card__body">
@@ -123,9 +148,7 @@ const CrispyStore = (() => {
 
   /* ---------- banner markup (home spotlight) ---------- */
   function bannerHTML(p){
-    const media = p.image_url
-      ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`
-      : '';
+    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 700, 440))}" alt="${esc(p.name)}" loading="lazy">`;
     const desc = p.description ? esc(p.description).slice(0, 90) : 'Built in-house, tested on real client work.';
     return `
       <a class="banner reveal" href="catalog.html">
@@ -139,37 +162,36 @@ const CrispyStore = (() => {
       </a>`;
   }
 
-  /* ---------- row markup (catalog list) ---------- */
-  function rowHTML(p){
+  /* ---------- catalog card markup (marketplace grid) ---------- */
+  function catalogCardHTML(p){
     const free = p.is_free || Number(p.price) === 0;
-    const media = p.image_url
-      ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`
-      : esc(p.name);
+    const off = discountPct(p);
+    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 500, 500))}" alt="${esc(p.name)}" loading="lazy">`;
     const desc = p.description ? esc(p.description) : 'No description yet — details coming soon.';
     return `
-      <article class="row reveal">
-        <div class="row__media">
-          ${p.badge ? `<span class="row__badge">${esc(p.badge)}</span>` : ''}
+      <article class="card reveal">
+        <div class="card__media">
+          ${p.badge ? `<span class="card__badge">${esc(p.badge)}</span>` : ''}
+          ${off ? `<span class="card__off">-${off}%</span>` : ''}
+          ${appChips(p.compatible_with)}
           ${media}
         </div>
-        <div class="row__body">
-          <div class="row__author">${esc(p.author || 'Crispy')}</div>
-          <h4 class="row__title">${esc(p.name)}</h4>
-          <p class="row__desc">${desc}</p>
-          <div class="row__meta"><span class="stars">${stars(p.rating)}</span><span class="rating-num">${Number(p.rating || 5).toFixed(1)}</span></div>
-          <div class="row__footer">
-            <div class="row__price">
-              ${free
-                ? `<span class="now free">Free</span>`
-                : `<span class="now">${money(p.price)}</span>${p.compare_at ? `<span class="was">${money(p.compare_at)}</span>` : ''}`}
-            </div>
-            <div class="row__actions">
-              ${p.video_url ? `<a class="btn btn--ghost" href="${esc(p.video_url)}" target="_blank" rel="noopener">Video</a>` : ''}
-              <button class="btn" data-add="${p.id}">${free ? 'Download' : 'Add to cart'}</button>
-              <button class="btn btn--ghost" data-more="${p.id}">More info</button>
-            </div>
+        <div class="card__body">
+          <div class="card__author">${esc(p.author || 'Crispy')}</div>
+          <h4 class="card__title">${esc(p.name)}</h4>
+          <p class="card__desc">${desc}</p>
+          <div class="card__rating"><span class="stars">${stars(p.rating)}</span> ${Number(p.rating || 5).toFixed(1)}</div>
+          <div class="card__price">
+            ${free
+              ? `<span class="now free">Free</span>`
+              : `<span class="now">${money(p.price)}</span>${p.compare_at ? `<span class="was">${money(p.compare_at)}</span>` : ''}`}
           </div>
-          <div class="row__extra" data-extra="${p.id}">
+          <div class="card__actions">
+            ${p.video_url ? `<a class="btn btn--ghost" href="${esc(p.video_url)}" target="_blank" rel="noopener">Video</a>` : ''}
+            <button class="btn" data-add="${p.id}">${free ? 'Download' : 'Add to cart'}</button>
+            <button class="btn btn--ghost" data-more="${p.id}">More info</button>
+          </div>
+          <div class="card__extra" data-extra="${p.id}">
             <span><strong>Category:</strong> ${esc(p.category || 'Uncategorized')}</span>
             <span><strong>Compatible with:</strong> ${esc(p.compatible_with || 'After Effects')}</span>
             <span><strong>Rating:</strong> ${Number(p.rating || 5).toFixed(1)} / 5</span>
@@ -192,24 +214,6 @@ const CrispyStore = (() => {
         const open = extra.classList.toggle('is-open');
         btn.textContent = open ? 'Hide info' : 'More info';
       });
-    });
-  }
-
-  /* ---------- 3D tilt on product cards (follows mouse) ---------- */
-  function wireTilt(){
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (window.matchMedia('(hover: none)').matches) return; // skip on touch
-    document.querySelectorAll('.card').forEach((card, i) => {
-      card.style.setProperty('--i', i % 4);
-      if (card.dataset.tilt) return;
-      card.dataset.tilt = '1';
-      card.addEventListener('mousemove', (e) => {
-        const r = card.getBoundingClientRect();
-        const px = (e.clientX - r.left) / r.width - 0.5;
-        const py = (e.clientY - r.top) / r.height - 0.5;
-        card.style.transform = `translateY(-6px) rotateX(${(-py*7).toFixed(2)}deg) rotateY(${(px*9).toFixed(2)}deg)`;
-      });
-      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
     });
   }
 
@@ -278,7 +282,6 @@ const CrispyStore = (() => {
 
     wireAddButtons(products);
     observeReveals();
-    wireTilt();
   }
 
   async function renderCatalog(){
@@ -286,8 +289,10 @@ const CrispyStore = (() => {
     if (!grid) return;
     const products = await fetchProducts();
     const countEl = document.querySelector('[data-catalog-count]');
+    const searchInput = document.querySelector('[data-search]');
     const catSelect = document.querySelector('[data-filter-category]');
     const priceSelect = document.querySelector('[data-filter-price]');
+    const compatSelect = document.querySelector('[data-filter-compat]');
     const sortTabs = document.querySelectorAll('[data-sort]');
 
     // Populate category options from real data
@@ -297,18 +302,40 @@ const CrispyStore = (() => {
         cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
     }
 
+    // Pre-fill from URL (?q=... &cat=...) — lets the homepage search bar and
+    // category links land here already filtered.
+    const params = new URLSearchParams(window.location.search);
+    if (searchInput && params.get('q')) searchInput.value = params.get('q');
+    if (catSelect && params.get('cat')){
+      const wanted = params.get('cat');
+      if ([...catSelect.options].some(o => o.value === wanted)) catSelect.value = wanted;
+    }
+    // Populate compatible-with options from real data (falls back to After Effects)
+    if (compatSelect){
+      const apps = [...new Set(products.map(p => p.compatible_with || 'After Effects').filter(Boolean))];
+      compatSelect.innerHTML = `<option value="all">All apps</option>` +
+        apps.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+    }
+
     let sort = 'featured';
     function paint(){
+      const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
       const cat = catSelect ? catSelect.value : 'all';
       const price = priceSelect ? priceSelect.value : 'all';
+      const compat = compatSelect ? compatSelect.value : 'all';
 
       let list = products.filter(p => {
         if (cat !== 'all' && p.category !== cat) return false;
+        if (compat !== 'all' && (p.compatible_with || 'After Effects') !== compat) return false;
         const n = Number(p.price) || 0;
         if (price === 'free' && n !== 0) return false;
         if (price === 'under25' && !(n > 0 && n <= 25)) return false;
         if (price === '25to50' && !(n > 25 && n <= 50)) return false;
         if (price === 'over50' && !(n > 50)) return false;
+        if (q){
+          const hay = `${p.name||''} ${p.author||'Crispy'} ${p.description||''}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
         return true;
       });
 
@@ -316,14 +343,16 @@ const CrispyStore = (() => {
       else if (sort === 'popular') list = [...list].sort((a,b) => (Number(b.rating)||0) - (Number(a.rating)||0));
       else list = [...list].sort((a,b) => (b.is_featured === a.is_featured) ? 0 : (b.is_featured ? 1 : -1));
 
-      grid.innerHTML = list.length ? list.map(rowHTML).join('') : `<p class="state-msg">Nothing here yet.</p>`;
+      grid.innerHTML = list.length ? list.map(catalogCardHTML).join('') : `<p class="state-msg">Nothing here yet.</p>`;
       if (countEl) countEl.textContent = `${list.length} product${list.length===1?'':'s'}`;
       wireAddButtons(products);
       observeReveals();
     }
 
+    if (searchInput) searchInput.addEventListener('input', paint);
     if (catSelect) catSelect.addEventListener('change', paint);
     if (priceSelect) priceSelect.addEventListener('change', paint);
+    if (compatSelect) compatSelect.addEventListener('change', paint);
     sortTabs.forEach(tab => tab.addEventListener('click', () => {
       sortTabs.forEach(t => t.classList.remove('is-active'));
       tab.classList.add('is-active');
