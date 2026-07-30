@@ -187,17 +187,18 @@ const CrispyStore = (() => {
     const off = discountPct(p);
     const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 500, 500))}" alt="${esc(p.name)}" loading="lazy">`;
     const desc = p.description ? esc(p.description) : 'No description yet — details coming soon.';
+    const href = `product.html?id=${encodeURIComponent(p.id)}`;
     return `
       <article class="card reveal">
-        <div class="card__media">
+        <a class="card__media" href="${href}">
           ${p.badge ? `<span class="card__badge">${esc(p.badge)}</span>` : ''}
           ${off ? `<span class="card__off">-${off}%</span>` : ''}
           ${appChips(p.compatible_with)}
           ${media}
-        </div>
+        </a>
         <div class="card__body">
           <div class="card__author">${esc(p.author || 'Crispy')}</div>
-          <h4 class="card__title">${esc(p.name)}</h4>
+          <h4 class="card__title"><a href="${href}" style="color:inherit;">${esc(p.name)}</a></h4>
           <p class="card__desc">${desc}</p>
           <div class="card__rating"><span class="stars">${stars(p.rating)}</span> ${Number(p.rating || 5).toFixed(1)}</div>
           <div class="card__price">
@@ -208,12 +209,7 @@ const CrispyStore = (() => {
           <div class="card__actions">
             ${p.video_url ? `<a class="btn btn--ghost" href="${esc(p.video_url)}" target="_blank" rel="noopener">Video</a>` : ''}
             <button class="btn" data-add="${p.id}">${free ? 'Download' : 'Add to cart'}</button>
-            <button class="btn btn--ghost" data-more="${p.id}">More info</button>
-          </div>
-          <div class="card__extra" data-extra="${p.id}">
-            <span><strong>Category:</strong> ${esc(p.category || 'Uncategorized')}</span>
-            <span><strong>Compatible with:</strong> ${esc(p.compatible_with || 'After Effects')}</span>
-            <span><strong>Rating:</strong> ${Number(p.rating || 5).toFixed(1)} / 5</span>
+            <a class="btn btn--ghost" href="${href}">More info</a>
           </div>
         </div>
       </article>`;
@@ -224,14 +220,6 @@ const CrispyStore = (() => {
       btn.addEventListener('click', () => {
         const p = products.find(x => String(x.id) === String(btn.dataset.add));
         if (p) addToCart(p);
-      });
-    });
-    document.querySelectorAll('[data-more]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const extra = document.querySelector(`[data-extra="${CSS.escape(btn.dataset.more)}"]`);
-        if (!extra) return;
-        const open = extra.classList.toggle('is-open');
-        btn.textContent = open ? 'Hide info' : 'More info';
       });
     });
   }
@@ -570,5 +558,6 @@ const CrispyStore = (() => {
   document.addEventListener('DOMContentLoaded', init);
   document.addEventListener('crispy-cart-change', () => { renderCart(); });
 
-  return { addToCart, getCart, cartCount, cartTotal, showToast, money };
+  return { addToCart, getCart, cartCount, cartTotal, showToast, money, placeholderImg };
 })();
+window.CrispyStore = CrispyStore;
