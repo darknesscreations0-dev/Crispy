@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product — Crispy</title>
+<meta name="description" content="Product details on Crispy.">
+<link rel="icon" type="image/png" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/store.css">
+<style>
+.pd-wrap{ max-width:1200px; margin:0 auto; padding:1.6rem var(--gutter) 0; }
+.pd-crumb{ font-size:.78rem; color:var(--c-text-faint); margin-bottom:1.2rem; }
+.pd-crumb a{ color:var(--c-text-faint); }
+.pd-crumb a:hover{ color:var(--c-text); }
+.pd-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:2rem; align-items:start; }
+@media (max-width:800px){ .pd-grid{ grid-template-columns:1fr; } }
+.pd-media{
+  position:relative; aspect-ratio:1/1; overflow:hidden;
+  background:var(--c-surface-2); border:1px solid var(--c-border);
+}
+.pd-media img{ width:100%; height:100%; object-fit:cover; }
+.pd-media .card__apps{ position:absolute; }
+.pd-author{ font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--c-text-faint); }
+.pd-title{ font-family:var(--font-display); font-size:clamp(1.5rem,3vw,2.1rem); font-weight:700; margin:.3rem 0 .6rem; }
+.pd-meta{ display:flex; align-items:center; gap:1rem; flex-wrap:wrap; color:var(--c-text-dim); font-size:.85rem; margin-bottom:1rem; }
+.pd-meta .stars{ color:var(--c-amber); }
+.pd-desc{ color:var(--c-text-dim); font-size:.92rem; line-height:1.65; margin-bottom:1.2rem; }
+.pd-facts{ display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.4rem; font-size:.85rem; }
+.pd-facts span strong{ color:var(--c-text); font-weight:600; }
+.pd-price{ display:flex; align-items:baseline; gap:.6rem; margin-bottom:1rem; }
+.pd-price .now{ font-family:var(--font-display); font-weight:700; font-size:1.7rem; }
+.pd-price .now.free{ color:var(--c-green); }
+.pd-price .was{ font-size:1rem; color:var(--c-text-faint); text-decoration:line-through; }
+.pd-actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+.pd-actions .btn{ flex:1; min-width:140px; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="nav__pill">
+    <a href="index.html" class="nav__logo" aria-label="Crispy home"><img src="assets/logo.png" alt="Crispy"></a>
+    <button type="button" class="nav__burger" data-nav-burger aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav__links" aria-label="Primary" data-nav-links>
+      <a href="index.html">Home</a>
+      <a href="catalog.html" class="is-active">Catalog</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a href="cart.html" class="nav__cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="nav__cart-label">Cart</span>
+      <span class="nav__cart-count" data-cart-count style="display:none;">0</span>
+    </a>
+    <div class="nav__account"><span data-dc-account></span></div>
+  </div>
+</header>
+
+<main>
+  <div class="pd-wrap">
+    <div class="pd-crumb"><a href="catalog.html">Catalog</a> / <span id="pdCrumbName">Loading…</span></div>
+    <div id="pdContent">
+      <p class="state-msg">Loading product…</p>
+    </div>
+  </div>
+
+  <!-- Live interactive preview -->
+  <section class="section">
+    <div class="section__head reveal">
+      <div class="eyebrow">Try it yourself</div>
+      <h2 class="section__title">Live interactive <span class="accent">preview.</span></h2>
+      <p class="section__sub">Pick a tab, tap a preset, watch it animate — this is the kind of control you get inside Crispy tools.</p>
+    </div>
+    <div class="container">
+      <div class="demo reveal reveal--scale" data-demo>
+        <div class="demo__panel">
+          <div class="demo__tabs">
+            <button class="demo__tab is-active" data-tab="easing">Easing</button>
+            <button class="demo__tab" data-tab="text">Text</button>
+            <button class="demo__tab" data-tab="glass">Glass</button>
+          </div>
+          <div data-demo-list></div>
+        </div>
+        <div class="demo__stage">
+          <div class="demo__word">Smooth Bounce</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer__grid">
+    <div class="footer__brand">
+      <h4 style="display:flex;align-items:center;gap:.5rem;"><img src="assets/icon.png" alt="" style="height:26px;width:auto;border-radius:0;"> Crispy</h4>
+      <p>Professional creator tools by Darkness. Built from real editing experience, sold directly.</p>
+    </div>
+    <div class="footer__col">
+      <h5>Shop</h5>
+      <a href="catalog.html">All products</a>
+      <a href="catalog.html">Plugins</a>
+      <a href="catalog.html">Free downloads</a>
+    </div>
+    <div class="footer__col">
+      <h5>Support</h5>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="account.html">My account</a>
+      <a href="terms.html">Terms &amp; Policies</a>
+      <a href="returns.html">Return Policy</a>
+      <a href="tutorials.html">Tutorials</a>
+      <a href="made-with-crispy.html">Made with Crispy</a>
+    </div>
+    <div class="footer__col">
+      <h5>Follow</h5>
+      <a href="https://www.instagram.com/crispyv0/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://youtube.com/@darknesssx0" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://www.linkedin.com/in/~abdullah-kazmi-111919369" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://discord.gg/ZJ36YfuST" target="_blank" rel="noopener">Discord</a>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>© 2026 Crispy, a Darkness venture.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/store.js"></script>
+<script>
+(function(){
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function money(n){ return '$' + Number(n || 0).toFixed(2); }
+  function stars(r){ const n = Math.round(Number(r) || 5); return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n); }
+
+  async function load(){
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const content = document.getElementById('pdContent');
+    const crumb = document.getElementById('pdCrumbName');
+    if (!id || !window.CrispyStore){
+      content.innerHTML = '<p class="state-msg">Product not found.</p>';
+      return;
+    }
+    // Reuse the same product fetch the rest of the site uses, so this
+    // page always matches the real catalog data.
+    const client = window.supabaseClient;
+    let product = null;
+    if (client){
+      const { data } = await client.from('products').select('*').eq('id', id).maybeSingle();
+      product = data;
+    }
+    if (!product){
+      content.innerHTML = '<p class="state-msg">Couldn\'t find that product — it may have been removed.</p>';
+      crumb.textContent = 'Not found';
+      return;
+    }
+
+    document.title = product.name + ' — Crispy';
+    crumb.textContent = product.name;
+
+    const free = product.is_free || Number(product.price) === 0;
+    const img = product.image_url || (window.CrispyStore.placeholderImg ? window.CrispyStore.placeholderImg(product.name, 700, 700) : '');
+
+    content.innerHTML = `
+      <div class="pd-grid">
+        <div class="pd-media">${img ? `<img src="${esc(img)}" alt="${esc(product.name)}">` : ''}</div>
+        <div>
+          <div class="pd-author">${esc(product.author || 'Crispy')}</div>
+          <h1 class="pd-title">${esc(product.name)}</h1>
+          <div class="pd-meta">
+            <span class="stars">${stars(product.rating)}</span>
+            <span>${Number(product.rating || 5).toFixed(1)}</span>
+            <span>·</span>
+            <span>${esc(product.category || 'Uncategorized')}</span>
+          </div>
+          <p class="pd-desc">${esc(product.description || 'No description yet — details coming soon.')}</p>
+          <div class="pd-facts">
+            <span><strong>Compatible with:</strong> ${esc(product.compatible_with || 'After Effects')}</span>
+            <span><strong>License:</strong> Commercial use included</span>
+            <span><strong>Updates:</strong> Free lifetime updates</span>
+          </div>
+          <div class="pd-price">
+            ${free
+              ? `<span class="now free">Free</span>`
+              : `<span class="now">${money(product.price)}</span>${product.compare_at ? `<span class="was">${money(product.compare_at)}</span>` : ''}`}
+          </div>
+          <div class="pd-actions">
+            ${product.video_url ? `<a class="btn btn--ghost" href="${esc(product.video_url)}" target="_blank" rel="noopener">Watch video</a>` : ''}
+            <button class="btn" id="pdAddBtn">${free ? 'Download' : 'Add to cart'}</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('pdAddBtn').addEventListener('click', () => {
+      window.CrispyStore.addToCart(product);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
+</body>
+</html>

@@ -36,9 +36,9 @@
 .cp-section-box p{ color:var(--cp-text-dim); font-size:.9rem; }
 .cp-username-row{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; margin-top:.9rem; }
 .cp-username-row input{
-  flex:1; min-width:220px; padding:.7rem 1rem;
+  flex:1; min-width:180px; padding:.7rem 1rem;
   border-radius:0; border:1px solid var(--cp-border);
-  background:var(--cp-surface-2); color:var(--cp-text);
+  background:var(--cp-surface); color:var(--cp-text);
   font-size:.95rem; font-family:inherit;
 }
 .cp-username-row input:focus{ outline:2px solid var(--cp-orange); outline-offset:1px; }
@@ -51,7 +51,7 @@
 .cp-field-grid input, .cp-profile-avatar-row input{
   width:100%; padding:.7rem 1rem;
   border-radius:0; border:1px solid var(--cp-border);
-  background:var(--cp-surface-2); color:var(--cp-text);
+  background:var(--cp-surface); color:var(--cp-text);
   font-size:.9rem; font-family:inherit;
 }
 .cp-field-grid input:focus, .cp-profile-avatar-row input:focus{ outline:2px solid var(--cp-orange); outline-offset:1px; }
@@ -63,6 +63,12 @@
   overflow:hidden;
 }
 .cp-avatar-preview img{ width:100%; height:100%; object-fit:cover; }
+.cp-avatar-drop{
+  border:1px dashed var(--cp-border); background:var(--cp-surface);
+  padding:1rem; text-align:center; cursor:pointer;
+  color:var(--cp-text-faint); font-size:.82rem; transition:all .2s var(--ease);
+}
+.cp-avatar-drop:hover, .cp-avatar-drop.is-dragover{ border-color:var(--cp-orange); color:var(--cp-text); }
 </style>
 </head>
 <body class="cp-body">
@@ -138,10 +144,15 @@
         <div class="cp-profile-avatar-row">
           <span class="cp-avatar-preview" id="avatarPreview">${avatarUrl ? `<img src="${esc(avatarUrl)}" alt="">` : esc(initial)}</span>
           <div style="flex:1;min-width:200px;">
-            <label class="cp-field-label" for="avatarInput">Profile picture URL</label>
-            <input type="url" id="avatarInput" placeholder="https://…" value="${esc(avatarUrl)}" autocomplete="off">
+            <label class="cp-field-label">Profile picture</label>
+            <div class="cp-avatar-drop" id="avatarDrop">
+              <input type="file" id="avatarFile" accept="image/*" hidden>
+              <span id="avatarDropText">Drag &amp; drop an image, or click to choose one</span>
+            </div>
+            <p class="cp-username-msg" id="avatarMsg"></p>
           </div>
         </div>
+        <input type="hidden" id="avatarUrlValue" value="${esc(avatarUrl)}">
 
         <div class="cp-field-grid">
           <div>
@@ -213,8 +224,12 @@
       if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
     });
 
-    const avatarInput   = document.getElementById('avatarInput');
-    const avatarPreview = document.getElementById('avatarPreview');
+    const avatarDrop     = document.getElementById('avatarDrop');
+    const avatarFile     = document.getElementById('avatarFile');
+    const avatarDropText = document.getElementById('avatarDropText');
+    const avatarPreview  = document.getElementById('avatarPreview');
+    const avatarUrlValue = document.getElementById('avatarUrlValue');
+    const avatarMsg      = document.getElementById('avatarMsg');
     const fullNameInput = document.getElementById('fullNameInput');
     const dobInput       = document.getElementById('dobInput');
     const phoneInput     = document.getElementById('phoneInput');
@@ -227,9 +242,45 @@
       profileMsg.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#4ade80' : 'var(--cp-text-faint)';
     }
 
-    avatarInput.addEventListener('input', () => {
-      const url = avatarInput.value.trim();
-      avatarPreview.innerHTML = url ? `<img src="${esc(url)}" alt="">` : esc((heading || '?').trim().charAt(0).toUpperCase());
+    async function uploadAvatar(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        avatarMsg.textContent = 'Please choose an image file.';
+        avatarMsg.style.color = '#ff6b6b';
+        return;
+      }
+      const client = window.supabaseClient;
+      if (!client) { avatarMsg.textContent = 'Store is not configured yet.'; avatarMsg.style.color = '#ff6b6b'; return; }
+      avatarDropText.textContent = 'Uploading…';
+      avatarMsg.textContent = '';
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: upErr } = await client.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' });
+      if (upErr) {
+        avatarDropText.textContent = 'Drag & drop an image, or click to choose one';
+        avatarMsg.textContent = upErr.message || 'Upload failed. Try again.';
+        avatarMsg.style.color = '#ff6b6b';
+        return;
+      }
+      const { data: pub } = client.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = pub && pub.publicUrl ? `${pub.publicUrl}?t=${Date.now()}` : '';
+      avatarUrlValue.value = publicUrl;
+      avatarPreview.innerHTML = `<img src="${esc(publicUrl)}" alt="">`;
+      avatarDropText.textContent = 'Drag & drop an image, or click to choose one';
+      avatarMsg.textContent = 'Photo ready — click Save changes to keep it.';
+      avatarMsg.style.color = '#4ade80';
+    }
+
+    avatarDrop.addEventListener('click', () => avatarFile.click());
+    avatarFile.addEventListener('change', () => { if (avatarFile.files[0]) uploadAvatar(avatarFile.files[0]); });
+    ['dragover','dragenter'].forEach(evt => avatarDrop.addEventListener(evt, (e) => {
+      e.preventDefault(); avatarDrop.classList.add('is-dragover');
+    }));
+    ['dragleave','drop'].forEach(evt => avatarDrop.addEventListener(evt, (e) => {
+      e.preventDefault(); avatarDrop.classList.remove('is-dragover');
+    }));
+    avatarDrop.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) uploadAvatar(file);
     });
 
     saveProfileBtn.addEventListener('click', async () => {
@@ -245,7 +296,7 @@
         date_of_birth: dobInput.value || null,
         phone: phoneInput.value.trim() || null,
         backup_email: backupVal || null,
-        avatar_url: avatarInput.value.trim() || null
+        avatar_url: avatarUrlValue.value.trim() || null
       });
       saveProfileBtn.disabled = false;
       if (result.error) {

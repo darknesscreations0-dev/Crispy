@@ -3,14 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — Crispy</title>
-<meta name="description" content="Get in touch with Crispy.">
+<title>Tutorials — Crispy</title>
+<meta name="description" content="Guides and tutorials for getting the most out of Crispy tools.">
 <link rel="icon" type="image/png" href="assets/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/store.css">
+<style>
+.tut-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+@media (max-width:900px){ .tut-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:640px){ .tut-grid{ grid-template-columns:1fr; } }
+.tut-card{ border:1px solid var(--c-border); background:var(--c-surface); overflow:hidden; display:flex; flex-direction:column; }
+.tut-card__media{ aspect-ratio:16/9; overflow:hidden; background:var(--c-surface-2); }
+.tut-card__media img{ width:100%; height:100%; object-fit:cover; }
+.tut-card__body{ padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.4rem; flex:1; }
+.tut-card__tag{
+  align-self:flex-start; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--c-orange); font-weight:700; border:1px solid var(--c-border); padding:.2rem .5rem;
+}
+.tut-card__title{ font-family:var(--font-display); font-size:1.02rem; font-weight:600; }
+.tut-card__excerpt{ color:var(--c-text-dim); font-size:.85rem; line-height:1.5; flex:1; }
+.tut-card__meta{ display:flex; justify-content:space-between; color:var(--c-text-faint); font-size:.76rem; margin-top:.4rem; }
+.tut-empty{ text-align:center; padding:2.5rem 1rem; color:var(--c-text-dim); border:1px dashed var(--c-border); }
+</style>
 </head>
 <body>
 
@@ -26,7 +43,7 @@
       <a href="index.html">Home</a>
       <a href="catalog.html">Catalog</a>
       <a href="faq.html">FAQ</a>
-      <a href="contact.html" class="is-active">Contact</a>
+      <a href="contact.html">Contact</a>
     </nav>
     <a href="cart.html" class="nav__cart" aria-label="Cart">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -40,29 +57,13 @@
 <main>
   <section class="section">
     <div class="section__head">
-      <div class="eyebrow">Say hello</div>
-      <h1 class="section__title">Get in <span class="accent">touch.</span></h1>
-      <p class="section__sub">Questions about a tool, your order, or a custom project? We usually reply within a day.</p>
+      <div class="eyebrow">Learn</div>
+      <h1 class="section__title">Tutorials &amp; <span class="accent">guides.</span></h1>
+      <p class="section__sub">Short, practical walkthroughs for getting the most out of your Crispy tools.</p>
     </div>
 
-    <div class="contact-grid">
-      <div class="contact-card">
-        <h3>About Crispy</h3>
-        <p>Crispy is the creator-tools arm of Darkness — Adobe extensions, project files and pro tools built from real editing experience. We make the assets we use on client work, then sell them directly so you can ship faster.</p>
-        <div style="margin-top:1.4rem;display:flex;flex-direction:column;gap:.6rem;">
-          <a class="btn btn--ghost btn--sm" href="#">💬 Join our Discord</a>
-          <a class="btn btn--ghost btn--sm" href="mailto:hello@crispy.example">✉️ hello@crispy.example</a>
-        </div>
-      </div>
-
-      <div class="contact-card">
-        <h3>Send a message</h3>
-        <div class="field"><label for="cname">Name</label><input id="cname" type="text" autocomplete="name"></div>
-        <div class="field"><label for="cemail">Email</label><input id="cemail" type="email" autocomplete="email"></div>
-        <div class="field"><label for="cmsg">Message</label><textarea id="cmsg" rows="4"></textarea></div>
-        <button class="btn btn--block" id="contactSend">Send message</button>
-        <p id="contactMsg" style="min-height:1.2em;margin-top:.7rem;font-size:.85rem;text-align:center;color:var(--c-text-faint);"></p>
-      </div>
+    <div class="container">
+      <div class="tut-grid" id="tutGrid"></div>
     </div>
   </section>
 </main>
@@ -102,24 +103,47 @@
   </div>
 </footer>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/store.js"></script>
 <script>
-  // Lightweight contact form (no backend yet — opens the user's mail client).
-  document.getElementById('contactSend').addEventListener('click', () => {
-    const name = document.getElementById('cname').value.trim();
-    const email = document.getElementById('cemail').value.trim();
-    const msg = document.getElementById('cmsg').value.trim();
-    const out = document.getElementById('contactMsg');
-    if (!name || !email || !msg){ out.textContent = 'Fill in every field first.'; out.style.color = '#ff6b6b'; return; }
-    const body = encodeURIComponent(`From: ${name} (${email})\n\n${msg}`);
-    window.location.href = `mailto:hello@crispy.example?subject=${encodeURIComponent('Crispy enquiry from ' + name)}&body=${body}`;
-    out.textContent = 'Opening your email app…'; out.style.color = 'var(--c-green)';
-  });
+(function(){
+  // Add real tutorials here as you write them — each one just needs
+  // a title, short excerpt, which tool it covers, and a date.
+  // This array is empty on purpose: there are no real tutorials
+  // written yet, so nothing fake is shown in their place.
+  const tutorials = [];
+
+  const grid = document.getElementById('tutGrid');
+
+  function hueFor(s){ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))>>>0; return h%360; }
+  function placeholder(seed,w,h){
+    const hue = hueFor(seed);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},55%,22%)"/><stop offset="1" stop-color="hsl(${hue},55%,10%)"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/></svg>`;
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
+
+  if (!tutorials.length){
+    grid.innerHTML = `<div class="tut-empty" style="grid-column:1/-1;">
+      No tutorials published yet — check back soon, or follow
+      <a href="https://youtube.com/@darknesssx0" target="_blank" rel="noopener" style="color:var(--c-orange);">the YouTube channel</a>
+      for walkthroughs in the meantime.
+    </div>`;
+  } else {
+    grid.innerHTML = tutorials.map(t => `
+      <article class="tut-card">
+        <div class="tut-card__media"><img src="${placeholder(t.title,500,281)}" alt="${t.title}"></div>
+        <div class="tut-card__body">
+          <span class="tut-card__tag">${t.tag || 'Tutorial'}</span>
+          <h3 class="tut-card__title">${t.title}</h3>
+          <p class="tut-card__excerpt">${t.excerpt}</p>
+          <div class="tut-card__meta"><span>${t.tool || ''}</span><span>${t.date || ''}</span></div>
+        </div>
+      </article>
+    `).join('');
+  }
+})();
 </script>
 </body>
 </html>

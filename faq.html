@@ -73,6 +73,30 @@
   </section>
 </main>
 
+<!-- Crispy AI assistant -->
+<button type="button" class="ai-bubble" id="aiOpenBtn" aria-label="Open Crispy AI">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M8 21h8M12 17v4"/></svg>
+  <span>Crispy AI</span>
+</button>
+
+<div class="ai-panel" id="aiPanel" aria-hidden="true">
+  <div class="ai-panel__head">
+    <span>Crispy AI <small>· FAQ assistant</small></span>
+    <button type="button" id="aiCloseBtn" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="ai-panel__body" id="aiMessages">
+    <div class="ai-msg ai-msg--bot">Hi! I'm Crispy AI. Ask me anything about orders, licenses, refunds, or compatibility — I'll search the FAQ for you.</div>
+  </div>
+  <form class="ai-panel__input" id="aiForm">
+    <input type="text" id="aiInput" placeholder="Ask a question…" autocomplete="off">
+    <button type="submit" aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </form>
+</div>
+
 <footer class="footer">
   <div class="footer__grid">
     <div class="footer__brand">
@@ -92,6 +116,8 @@
       <a href="account.html">My account</a>
       <a href="terms.html">Terms &amp; Policies</a>
       <a href="returns.html">Return Policy</a>
+      <a href="tutorials.html">Tutorials</a>
+      <a href="made-with-crispy.html">Made with Crispy</a>
     </div>
     <div class="footer__col">
       <h5>Follow</h5>
@@ -112,5 +138,65 @@
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/store.js"></script>
+<script>
+(function(){
+  const openBtn = document.getElementById('aiOpenBtn');
+  const closeBtn = document.getElementById('aiCloseBtn');
+  const panel = document.getElementById('aiPanel');
+  const messages = document.getElementById('aiMessages');
+  const form = document.getElementById('aiForm');
+  const input = document.getElementById('aiInput');
+  if (!openBtn || !panel) return;
+
+  // Pull the real FAQ content straight from the page so the assistant
+  // always matches whatever questions are actually listed here.
+  const bank = [...document.querySelectorAll('.faq')].map(f => ({
+    q: f.querySelector('.faq__q').textContent.replace('+','').trim(),
+    a: f.querySelector('.faq__a p').textContent.trim()
+  }));
+
+  const STOP = new Set(['a','an','the','is','are','do','does','i','my','can','on','it','to','for','of','and','or','in','with','you','your','what','how','will','these']);
+  function keywords(str){
+    return str.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(w => w && !STOP.has(w));
+  }
+  function bestMatch(query){
+    const qWords = keywords(query);
+    if (!qWords.length) return null;
+    let best = null, bestScore = 0;
+    bank.forEach(item => {
+      const itemWords = new Set(keywords(item.q + ' ' + item.a));
+      const score = qWords.reduce((n, w) => n + (itemWords.has(w) ? 1 : 0), 0);
+      if (score > bestScore){ bestScore = score; best = item; }
+    });
+    return bestScore > 0 ? best : null;
+  }
+
+  function addMsg(text, who){
+    const div = document.createElement('div');
+    div.className = 'ai-msg ai-msg--' + who;
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function open(){ panel.classList.add('is-open'); panel.setAttribute('aria-hidden','false'); input.focus(); }
+  function close(){ panel.classList.remove('is-open'); panel.setAttribute('aria-hidden','true'); }
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = input.value.trim();
+    if (!val) return;
+    addMsg(val, 'user');
+    input.value = '';
+    const match = bestMatch(val);
+    setTimeout(() => {
+      if (match) addMsg(match.a, 'bot');
+      else addMsg("I couldn't find a solid match for that in the FAQ — try rephrasing, or reach out on the Contact page and a real person will help.", 'bot');
+    }, 300);
+  });
+})();
+</script>
 </body>
 </html>
