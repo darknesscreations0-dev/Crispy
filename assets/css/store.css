@@ -105,9 +105,24 @@ main{ position:relative; z-index:1; }
 .nav__account .dc-login-trigger:hover{ background:#221c17; }
 
 @media (max-width:720px){
-  .nav__links{ display:none; }
+  .nav__links{
+    display:none; position:absolute; top:100%; left:0; right:0;
+    flex-direction:column; gap:0; background:var(--c-surface);
+    border-bottom:1px solid var(--c-border); padding:.5rem;
+  }
+  .nav__links.is-open{ display:flex; }
+  .nav__links a{ padding:.9rem 1rem; width:100%; }
   .nav__cart-label{ display:none; }
 }
+.nav__burger{
+  display:none; align-items:center; justify-content:center;
+  width:38px; height:38px; margin-right:.2rem; flex-shrink:0;
+  background:transparent; border:1px solid var(--c-border); color:var(--c-text);
+}
+.nav__burger svg{ width:18px; height:18px; }
+@media (max-width:720px){ .nav__burger{ display:flex; } }
+.nav{ position:sticky; }
+.nav__pill{ position:relative; }
 
 /* ---------- Buttons ---------- */
 .btn{
@@ -300,7 +315,7 @@ main{ position:relative; z-index:1; }
 .catrow__chip:first-child{ background:var(--c-orange); color:#1a0800; border-color:transparent; }
 
 /* ---------- Search bar (catalog) ---------- */
-.searchrow{ max-width:1200px; margin:0 auto; padding:0 var(--gutter) 1.2rem; }
+.searchrow{ max-width:1200px; margin:0 auto; padding:0 var(--gutter) 1.2rem; display:flex; gap:.6rem; }
 .searchrow input{
   width:100%; padding:.85rem 1.1rem; border-radius:0;
   border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-text);
@@ -308,6 +323,12 @@ main{ position:relative; z-index:1; }
 }
 .searchrow input:focus{ outline:1px solid var(--c-orange); outline-offset:0; border-color:var(--c-orange); }
 .searchrow input::placeholder{ color:var(--c-text-faint); }
+.searchrow button{
+  flex-shrink:0; width:48px; display:flex; align-items:center; justify-content:center;
+  background:var(--c-orange); color:#1a0800; border:none;
+}
+.searchrow button:hover{ background:var(--c-orange-2); }
+.searchrow button svg{ width:18px; height:18px; }
 
 /* ---------- Filter bar (catalog, marketplace-style) ---------- */
 .filterbar{
