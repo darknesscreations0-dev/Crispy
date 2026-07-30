@@ -19,7 +19,10 @@
 <header class="nav">
   <div class="nav__pill">
     <a href="index.html" class="nav__logo" aria-label="Crispy home"><img src="assets/logo.png" alt="Crispy"></a>
-    <nav class="nav__links" aria-label="Primary">
+    <button type="button" class="nav__burger" data-nav-burger aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav__links" aria-label="Primary" data-nav-links>
       <a href="index.html">Home</a>
       <a href="catalog.html">Catalog</a>
       <a href="faq.html" class="is-active">FAQ</a>
