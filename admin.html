@@ -113,7 +113,8 @@
           <div><label>Title *</label><input type="text" id="bn_title" required placeholder="Crispy Captions"></div>
           <div><label>Badge / eyebrow (optional)</label><input type="text" id="bn_badge" placeholder="New release"></div>
           <div style="grid-column:1/-1;"><label>Subtitle (optional)</label><textarea id="bn_subtitle" rows="2" placeholder="Whatever you want it to say — no limit."></textarea></div>
-          <div><label>Link URL (where clicking it goes)</label><input type="text" id="bn_link_url" placeholder="product.html?id=... or catalog.html or https://..."></div>
+          <div><label>Link URL (optional — leave blank to show no button)</label><input type="text" id="bn_link_url" placeholder="product.html?id=... or catalog.html or https://..."></div>
+          <div><label>Button text (only shown if a link is set)</label><input type="text" id="bn_cta_text" placeholder="Learn more"></div>
           <div><label>Price tag shown on the banner (optional)</label><input type="text" id="bn_price_label" placeholder="e.g. From $14.99 — leave blank to hide it"></div>
           <div><label>Sort order</label><input type="number" step="1" id="bn_sort_order" placeholder="0"></div>
           <div><label><input type="checkbox" id="bn_is_active" checked> Active (shown on homepage)</label></div>
@@ -645,6 +646,7 @@
     document.getElementById('bn_badge').value = banner ? banner.badge || '' : '';
     document.getElementById('bn_subtitle').value = banner ? banner.subtitle || '' : '';
     document.getElementById('bn_link_url').value = banner ? banner.link_url || '' : '';
+    document.getElementById('bn_cta_text').value = banner ? banner.cta_text || '' : '';
     document.getElementById('bn_price_label').value = banner ? banner.price_label || '' : '';
     document.getElementById('bn_sort_order').value = banner ? (banner.sort_order ?? 0) : (banners.length);
     document.getElementById('bn_is_active').checked = banner ? !!banner.is_active : true;
@@ -737,6 +739,7 @@
       badge: document.getElementById('bn_badge').value.trim() || null,
       subtitle: document.getElementById('bn_subtitle').value.trim() || null,
       link_url: document.getElementById('bn_link_url').value.trim() || null,
+      cta_text: document.getElementById('bn_cta_text').value.trim() || null,
       price_label: document.getElementById('bn_price_label').value.trim() || null,
       sort_order: document.getElementById('bn_sort_order').value ? Number(document.getElementById('bn_sort_order').value) : 0,
       is_active: document.getElementById('bn_is_active').checked,
