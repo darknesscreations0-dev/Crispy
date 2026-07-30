@@ -64,11 +64,25 @@ const DCAuth = (() => {
     if (!c || !user) return null;
     const { data, error } = await c
       .from('profiles')
-      .select('username')
+      .select('username, full_name, phone, backup_email, date_of_birth, avatar_url')
       .eq('id', user.id)
       .maybeSingle();
     if (error) return null;
-    return data; // { username } or null if no row yet
+    return data; // profile row, or null if no row yet
+  }
+
+  // Saves any subset of profile fields for the signed-in user. Creates the
+  // profile row if it doesn't exist yet (upsert). Pass only the fields you
+  // want to update, e.g. updateProfile({ username: 'x', phone: 'y' }).
+  async function updateProfile(fields) {
+    const c = client();
+    const user = await getUser();
+    if (!c || !user) return { error: { message: 'You are not signed in.' } };
+    return c
+      .from('profiles')
+      .upsert({ id: user.id, ...fields }, { onConflict: 'id' })
+      .select()
+      .maybeSingle();
   }
 
   // Saves the username for the signed-in user. Creates the profile row
@@ -91,18 +105,23 @@ const DCAuth = (() => {
 
     // If signed in, try to show their username; fall back to email.
     let label = 'Account';
+    let avatarUrl = null;
     if (user) {
       label = user.email || 'Account';
       try {
         const profile = await getProfile();
         if (profile && profile.username) label = profile.username;
+        if (profile && profile.avatar_url) avatarUrl = profile.avatar_url;
       } catch (e) { /* keep email fallback if profile fetch fails */ }
     }
+    const initial = (label || '?').trim().charAt(0).toUpperCase();
 
     document.querySelectorAll('[data-dc-account]').forEach((slot) => {
       if (user) {
         slot.innerHTML = `
-          <a class="dc-account-name" href="account.html" style="margin-right:.7rem; color:inherit; text-decoration:none;">${label}</a>
+          <a class="dc-account-name" href="account.html" title="${label}" style="text-decoration:none;">
+            <span class="nav__avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="${label}">` : initial}</span>
+          </a>
           <button class="dc-account-logout" data-dc-logout>Log out</button>
         `;
       } else {
