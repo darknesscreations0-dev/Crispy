@@ -72,24 +72,18 @@
     </div>
   </div>
 
-  <!-- Live interactive preview — only rendered when the admin has turned
-       this on for this specific product (see admin.html). No generic
-       placeholder demo here anymore; script below removes this whole
-       section if the product doesn't have one configured. -->
+  <!-- Live interactive preview — only rendered when the product has an
+       uploaded demo (preview_url). Renders that demo's real index.html
+       in an iframe. No generic placeholder demo anymore. -->
   <section class="section" id="pdPreviewSection" style="display:none;">
     <div class="section__head reveal">
       <div class="eyebrow">Try it yourself</div>
       <h2 class="section__title">Live interactive <span class="accent">preview.</span></h2>
-      <p class="section__sub">Pick a tab, tap a preset, see it in action.</p>
     </div>
     <div class="container">
-      <div class="demo reveal reveal--scale" data-product-demo>
-        <div class="demo__panel">
-          <div class="demo__tabs" data-product-demo-tabs></div>
-          <div data-product-demo-list></div>
-        </div>
-        <div class="demo__stage" data-product-demo-stage></div>
-      </div>
+      <iframe id="pdPreviewFrame" title="Live preview" loading="lazy"
+        style="width:100%;aspect-ratio:16/9;border:1px solid var(--c-border);background:var(--c-surface-2);"
+        sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
     </div>
   </section>
 </main>
@@ -206,6 +200,7 @@
           </div>
         </div>
       </div>
+      <div id="pdGallery" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem;"></div>
     `;
 
     document.getElementById('pdAddBtn').addEventListener('click', () => {
@@ -215,61 +210,36 @@
     if (buyBtn) buyBtn.addEventListener('click', () => window.CrispyStore.buyNow(product));
 
     renderProductPreview(product);
+    renderGallery(product);
   }
 
-  /* ---------- per-product live preview panel ----------
-     Only shows up when the admin explicitly enabled it for this product
-     (product.preview_enabled + a non-empty product.preview_tabs array).
-     Otherwise the whole section stays hidden — no generic fake demo. */
+  /* ---------- per-product live preview (uploaded demo) ----------
+     Only shows up when the admin uploaded a demo folder for this
+     product (product.preview_url). Otherwise the section stays hidden —
+     no generic fake demo. */
   function renderProductPreview(product){
     const section = document.getElementById('pdPreviewSection');
-    let tabs = [];
-    if (product.preview_enabled && Array.isArray(product.preview_tabs)){
-      tabs = product.preview_tabs.filter(t => t && t.label && Array.isArray(t.items) && t.items.length);
+    const frame = document.getElementById('pdPreviewFrame');
+    if (!product.preview_url){
+      section.style.display = 'none';
+      return;
     }
-    if (!tabs.length){ section.style.display = 'none'; return; }
     section.style.display = '';
+    frame.src = product.preview_url;
+  }
 
-    const tabsWrap = section.querySelector('[data-product-demo-tabs]');
-    const listWrap = section.querySelector('[data-product-demo-list]');
-    const stage = section.querySelector('[data-product-demo-stage]');
-
-    function renderStageItem(item){
-      if (item.type === 'video' && item.url){
-        stage.innerHTML = `<video src="${esc(item.url)}" autoplay muted loop playsinline></video>`;
-      } else if (item.type === 'image' && item.url){
-        stage.innerHTML = `<img src="${esc(item.url)}" alt="${esc(item.label)}">`;
-      } else {
-        stage.innerHTML = `<div class="demo__word">${esc(item.label)}</div>`;
-      }
-    }
-
-    function paintList(tabIndex){
-      const tab = tabs[tabIndex];
-      listWrap.innerHTML = tab.items.map((item, i) =>
-        `<div class="demo__preset${i===0?' is-active':''}" data-i="${i}">${esc(item.label)}<span>▶</span></div>`
-      ).join('');
-      listWrap.querySelectorAll('.demo__preset').forEach(row => {
-        row.addEventListener('click', () => {
-          listWrap.querySelectorAll('.demo__preset').forEach(r => r.classList.remove('is-active'));
-          row.classList.add('is-active');
-          renderStageItem(tab.items[Number(row.dataset.i)]);
-        });
-      });
-      renderStageItem(tab.items[0]);
-    }
-
-    tabsWrap.innerHTML = tabs.map((t, i) =>
-      `<button class="demo__tab${i===0?' is-active':''}" data-t="${i}">${esc(t.label)}</button>`
-    ).join('');
-    tabsWrap.querySelectorAll('.demo__tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabsWrap.querySelectorAll('.demo__tab').forEach(b => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        paintList(Number(btn.dataset.t));
-      });
-    });
-    paintList(0);
+  /* ---------- extra gallery (images/videos beyond the main product media) ---------- */
+  function renderGallery(product){
+    const wrap = document.getElementById('pdGallery');
+    const items = Array.isArray(product.gallery) ? product.gallery : [];
+    if (!items.length){ wrap.innerHTML = ''; return; }
+    wrap.innerHTML = items.map(g => `
+      <div style="width:140px;height:140px;background:var(--c-surface-2);border:1px solid var(--c-border);overflow:hidden;">
+        ${g.type === 'video'
+          ? `<video src="${esc(g.url)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
+          : `<img src="${esc(g.url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`}
+      </div>
+    `).join('');
   }
 
   document.addEventListener('DOMContentLoaded', load);

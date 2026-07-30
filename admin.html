@@ -132,7 +132,7 @@
           <input type="hidden" id="f_media_type" value="image">
         </div>
         <div><label>Video URL (optional)</label><input type="url" id="f_video_url" placeholder="https://…"></div>
-        <div style="grid-column:1/-1;"><label>Description</label><textarea id="f_description" rows="3"></textarea></div>
+        <div style="grid-column:1/-1;"><label>Description (no length limit — write as much as you need)</label><textarea id="f_description" rows="6"></textarea></div>
         <div class="adm-checks">
           <label><input type="checkbox" id="f_is_free"> Free product</label>
           <label><input type="checkbox" id="f_is_featured"> Featured</label>
@@ -140,17 +140,29 @@
         </div>
 
         <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
-          <label><input type="checkbox" id="f_preview_enabled"> Show a "Live interactive preview" panel on this product's page</label>
-          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.4rem 0 .8rem;">
-            Off by default — leave unchecked and the product page simply won't show that section. Fill in at least one tab below to turn it on. Each line in a tab is one clickable preset: <code>Label</code> for animated text, or <code>Label | image | https://...</code> / <code>Label | video | https://...</code> to show real media instead.
+          <label>Live preview demo (optional)</label>
+          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
+            Upload the whole exported demo folder (it needs an <code>index.html</code> inside — CSS/JS/images in the same folder are uploaded and linked automatically). Leave empty and the product page just won't show a preview section.
           </p>
+          <div class="cp-avatar-drop-like" id="admPreviewDrop" style="text-align:left;">
+            <input type="file" id="admPreviewFolder" webkitdirectory directory multiple hidden>
+            <span id="admPreviewDropText">Click to choose the demo folder</span>
+          </div>
+          <p class="adm-msg" id="admPreviewMsg" style="margin-top:.4rem;"></p>
+          <p id="admPreviewCurrent" style="font-size:.8rem;margin-top:.4rem;"></p>
+          <input type="hidden" id="f_preview_url">
         </div>
-        <div><label>Tab 1 name (e.g. "Easing")</label><input type="text" id="f_pt1_label" placeholder="Easing"></div>
-        <div style="grid-column:1/-1;"><label>Tab 1 presets (one per line)</label><textarea id="f_pt1_items" rows="3" placeholder="Smooth Bounce&#10;Before / after | image | https://...&#10;Clip | video | https://..."></textarea></div>
-        <div><label>Tab 2 name (optional)</label><input type="text" id="f_pt2_label" placeholder="Text"></div>
-        <div style="grid-column:1/-1;"><label>Tab 2 presets (one per line)</label><textarea id="f_pt2_items" rows="3"></textarea></div>
-        <div><label>Tab 3 name (optional)</label><input type="text" id="f_pt3_label" placeholder="Glass"></div>
-        <div style="grid-column:1/-1;"><label>Tab 3 presets (one per line)</label><textarea id="f_pt3_items" rows="3"></textarea></div>
+
+        <div style="grid-column:1/-1;">
+          <label>Gallery (optional — extra images/videos shown on the product page)</label>
+          <div class="cp-avatar-drop-like" id="admGalleryDrop">
+            <input type="file" id="admGalleryFile" accept="image/*,video/*" multiple hidden>
+            <span>Click to add one or more images/videos to the gallery</span>
+          </div>
+          <p class="adm-msg" id="admGalleryMsg" style="margin-top:.4rem;"></p>
+          <div id="admGalleryList" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem;"></div>
+          <input type="hidden" id="f_gallery" value="[]">
+        </div>
 
         <div class="adm-form-actions">
           <button type="submit" class="btn">Save product</button>
@@ -196,6 +208,16 @@
   const admImgFile = document.getElementById('admImgFile');
   const admImgDropText = document.getElementById('admImgDropText');
   const admImgMsg = document.getElementById('admImgMsg');
+  const admPreviewDrop = document.getElementById('admPreviewDrop');
+  const admPreviewFolder = document.getElementById('admPreviewFolder');
+  const admPreviewDropText = document.getElementById('admPreviewDropText');
+  const admPreviewMsg = document.getElementById('admPreviewMsg');
+  const admPreviewCurrent = document.getElementById('admPreviewCurrent');
+  const admGalleryDrop = document.getElementById('admGalleryDrop');
+  const admGalleryFile = document.getElementById('admGalleryFile');
+  const admGalleryMsg = document.getElementById('admGalleryMsg');
+  const admGalleryList = document.getElementById('admGalleryList');
+  let galleryItems = [];
 
   let client = null;
   let products = [];
@@ -228,39 +250,20 @@
     document.getElementById('f_is_featured').checked = product ? !!product.is_featured : false;
     document.getElementById('f_is_active').checked = product ? !!product.is_active : true;
 
-    document.getElementById('f_preview_enabled').checked = product ? !!product.preview_enabled : false;
-    const tabs = (product && Array.isArray(product.preview_tabs)) ? product.preview_tabs : [];
-    [1,2,3].forEach((n, i) => {
-      const t = tabs[i];
-      document.getElementById(`f_pt${n}_label`).value = t ? (t.label || '') : '';
-      document.getElementById(`f_pt${n}_items`).value = t && Array.isArray(t.items)
-        ? t.items.map(it => it.type && it.type !== 'text' && it.url ? `${it.label} | ${it.type} | ${it.url}` : it.label).join('\n')
-        : '';
+    document.getElementById('f_preview_url').value = product ? (product.preview_url || '') : '';
+    admPreviewCurrent.innerHTML = product && product.preview_url
+      ? `Current: <a href="${esc(product.preview_url)}" target="_blank" rel="noopener">${esc(product.preview_url)}</a> — <button type="button" class="btn btn--ghost btn--sm" id="admPreviewClear">Remove</button>`
+      : 'No demo uploaded yet.';
+    const clearBtn = document.getElementById('admPreviewClear');
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+      document.getElementById('f_preview_url').value = '';
+      admPreviewCurrent.textContent = 'No demo uploaded yet.';
     });
+
+    galleryItems = (product && Array.isArray(product.gallery)) ? product.gallery.slice() : [];
+    renderGalleryList();
 
     form.scrollIntoView({ behavior:'smooth', block:'start' });
-  }
-
-  // Parses the 3 tab-name + textarea pairs in the form into the
-  // preview_tabs jsonb shape product.html expects. Blank tabs (no label
-  // or no valid lines) are dropped.
-  function parsePreviewTabs(){
-    const tabs = [];
-    [1,2,3].forEach(n => {
-      const label = document.getElementById(`f_pt${n}_label`).value.trim();
-      const raw = document.getElementById(`f_pt${n}_items`).value;
-      const items = raw.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
-        const parts = line.split('|').map(s => s.trim());
-        const itemLabel = parts[0] || '';
-        const type = (parts[1] || 'text').toLowerCase();
-        const url = parts[2] || '';
-        if (!itemLabel) return null;
-        if ((type === 'image' || type === 'video') && url) return { label: itemLabel, type, url };
-        return { label: itemLabel, type: 'text' };
-      }).filter(Boolean);
-      if (label && items.length) tabs.push({ label, items });
-    });
-    return tabs;
   }
   function closeForm(){ form.classList.remove('is-open'); }
 
@@ -355,6 +358,96 @@
     if (file) uploadProductImage(file);
   });
 
+  /* ---------- Live preview demo folder upload ----------
+     Uploads every file in the chosen folder to Storage under
+     previews/<random-id>/<same relative path>, so an index.html that
+     links to ./style.css or ./assets/x.png next to it keeps working —
+     the relative paths are preserved in Storage. */
+  async function uploadPreviewFolder(fileList){
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    const indexFile = files.find(f => /(^|\/)index\.html?$/i.test(f.webkitRelativePath || f.name));
+    if (!indexFile){
+      admPreviewMsg.textContent = 'That folder needs an index.html file in it.'; admPreviewMsg.style.color = '#ff6b6b';
+      return;
+    }
+    const folderId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    admPreviewDropText.textContent = `Uploading 0/${files.length}…`;
+    admPreviewMsg.textContent = '';
+    let done = 0;
+    let indexPublicUrl = '';
+    for (const file of files){
+      // webkitRelativePath looks like "my-demo/index.html" — strip the
+      // top-level folder name, we already namespace by folderId instead.
+      const rel = (file.webkitRelativePath || file.name).split('/').slice(1).join('/') || file.name;
+      const path = `previews/${folderId}/${rel}`;
+      const { error } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+      if (error){
+        admPreviewMsg.textContent = `Failed on ${rel}: ${error.message}`; admPreviewMsg.style.color = '#ff6b6b';
+        admPreviewDropText.textContent = 'Click to choose the demo folder';
+        return;
+      }
+      done++;
+      admPreviewDropText.textContent = `Uploading ${done}/${files.length}…`;
+      if (file === indexFile){
+        const { data: pub } = client.storage.from('products').getPublicUrl(path);
+        indexPublicUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+      }
+    }
+    admPreviewDropText.textContent = 'Click to choose the demo folder';
+    document.getElementById('f_preview_url').value = indexPublicUrl;
+    admPreviewCurrent.innerHTML = `Current: <a href="${esc(indexPublicUrl)}" target="_blank" rel="noopener">${esc(indexPublicUrl)}</a> — <button type="button" class="btn btn--ghost btn--sm" id="admPreviewClear">Remove</button>`;
+    document.getElementById('admPreviewClear').addEventListener('click', () => {
+      document.getElementById('f_preview_url').value = '';
+      admPreviewCurrent.textContent = 'No demo uploaded yet.';
+    });
+    admPreviewMsg.textContent = `Uploaded ${files.length} files — click Save product to keep it.`; admPreviewMsg.style.color = '#4ade80';
+  }
+  admPreviewDrop.addEventListener('click', () => admPreviewFolder.click());
+  admPreviewFolder.addEventListener('change', () => uploadPreviewFolder(admPreviewFolder.files));
+
+  /* ---------- Gallery (extra images/videos) ---------- */
+  function renderGalleryList(){
+    document.getElementById('f_gallery').value = JSON.stringify(galleryItems);
+    admGalleryList.innerHTML = galleryItems.map((g, i) => `
+      <div style="position:relative;width:72px;height:72px;background:var(--c-surface-2);overflow:hidden;" data-g="${i}">
+        ${g.type === 'video'
+          ? `<video src="${esc(g.url)}" muted></video>`
+          : `<img src="${esc(g.url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`}
+        <button type="button" data-g-remove="${i}" style="position:absolute;top:2px;right:2px;background:#000;color:#fff;border:none;width:18px;height:18px;line-height:18px;font-size:11px;cursor:pointer;">×</button>
+      </div>
+    `).join('');
+    admGalleryList.querySelectorAll('[data-g-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        galleryItems.splice(Number(btn.dataset.gRemove), 1);
+        renderGalleryList();
+      });
+    });
+  }
+  async function uploadGalleryFiles(fileList){
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    admGalleryMsg.textContent = `Uploading 0/${files.length}…`; admGalleryMsg.style.color = 'var(--c-text-faint)';
+    let done = 0;
+    for (const file of files){
+      const isVideo = file.type.startsWith('video/');
+      const isImage = file.type.startsWith('image/');
+      if (!isVideo && !isImage) continue;
+      const ext = (file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase();
+      const path = `gallery/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const { error } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+      if (error){ admGalleryMsg.textContent = error.message || 'Upload failed.'; admGalleryMsg.style.color = '#ff6b6b'; continue; }
+      const { data: pub } = client.storage.from('products').getPublicUrl(path);
+      galleryItems.push({ type: isVideo ? 'video' : 'image', url: pub && pub.publicUrl ? pub.publicUrl : '' });
+      done++;
+      admGalleryMsg.textContent = `Uploading ${done}/${files.length}…`;
+    }
+    renderGalleryList();
+    admGalleryMsg.textContent = `Added ${done} file(s) — click Save product to keep it.`; admGalleryMsg.style.color = '#4ade80';
+  }
+  admGalleryDrop.addEventListener('click', () => admGalleryFile.click());
+  admGalleryFile.addEventListener('change', () => uploadGalleryFiles(admGalleryFile.files));
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('f_id').value;
@@ -375,8 +468,8 @@
       is_free: document.getElementById('f_is_free').checked,
       is_featured: document.getElementById('f_is_featured').checked,
       is_active: document.getElementById('f_is_active').checked,
-      preview_enabled: document.getElementById('f_preview_enabled').checked,
-      preview_tabs: parsePreviewTabs()
+      preview_url: document.getElementById('f_preview_url').value.trim() || null,
+      gallery: galleryItems.length ? galleryItems : null
     };
     if (!payload.name){ formMsg.textContent = 'Name is required.'; formMsg.style.color = '#ff6b6b'; return; }
 
