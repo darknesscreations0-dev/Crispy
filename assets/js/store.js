@@ -148,9 +148,10 @@ const CrispyStore = (() => {
               ? `<span class="now free">Free</span>`
               : `<span class="now">${money(p.price)}</span>${p.compare_at ? `<span class="was">${money(p.compare_at)}</span>` : ''}`}
           </div>
-          <button class="btn btn--sm btn--block card__btn" data-add="${p.id}">
-            ${free ? 'Download' : 'Add to cart'}
-          </button>
+          <div class="card__actions">
+            <button class="btn btn--sm card__btn" data-add="${p.id}">${free ? 'Download' : 'Add to cart'}</button>
+            ${free ? '' : `<button class="btn btn--sm btn--ghost card__btn" data-buy="${p.id}">Buy now</button>`}
+          </div>
         </div>
       </article>`;
   }
@@ -218,6 +219,7 @@ const CrispyStore = (() => {
           <div class="card__actions">
             ${p.video_url ? `<a class="btn btn--ghost" href="${esc(p.video_url)}" target="_blank" rel="noopener">Video</a>` : ''}
             <button class="btn" data-add="${p.id}">${free ? 'Download' : 'Add to cart'}</button>
+            ${free ? '' : `<button class="btn btn--ghost" data-buy="${p.id}">Buy now</button>`}
             <a class="btn btn--ghost" href="${href}">More info</a>
           </div>
         </div>
@@ -231,6 +233,21 @@ const CrispyStore = (() => {
         if (p) addToCart(p);
       });
     });
+    document.querySelectorAll('[data-buy]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = products.find(x => String(x.id) === String(btn.dataset.buy));
+        if (p) buyNow(p);
+      });
+    });
+  }
+
+  // "Buy now" — adds the item then jumps straight to the cart, skipping
+  // the "keep browsing" step. There's no live payment gateway yet (see
+  // cart.html), so for now this is just a faster path to checkout, same
+  // as Add to cart followed by manually opening the cart.
+  function buyNow(product){
+    addToCart(product);
+    window.location.href = 'cart.html';
   }
 
   /* ---------- Interactive demo panel ---------- */
@@ -278,21 +295,36 @@ const CrispyStore = (() => {
     paintList('easing');
   }
 
+  // Homepage banner timing/count — configurable from the admin panel
+  // (site_settings table, singleton row id=1). Falls back to the old
+  // hardcoded defaults if the table/row isn't there yet.
+  async function fetchBannerSettings(){
+    const c = client();
+    if (!c) return { banner_interval_seconds: 5, banner_max_slides: 6 };
+    const { data, error } = await c.from('site_settings').select('*').eq('id', 1).maybeSingle();
+    if (error || !data) return { banner_interval_seconds: 5, banner_max_slides: 6 };
+    return data;
+  }
+
   /* ---------- page renderers ---------- */
   async function renderHome(){
     const products = await fetchProducts();
 
     const bannerWrap = document.querySelector('[data-home-banners]');
     if (bannerWrap){
+      const settings = await fetchBannerSettings();
+      const maxSlides = Math.max(1, Number(settings.banner_max_slides) || 6);
+      const intervalMs = Math.max(1, Number(settings.banner_interval_seconds) || 5) * 1000;
       // banner_position is set from the admin panel — it's the explicit,
       // ordered list of what shows in the homepage banner carousel and in
       // what order. Falls back to featured products if nothing's been
       // configured yet, so the homepage never shows an empty banner.
       const positioned = products
         .filter(p => p.banner_position != null)
-        .sort((a, b) => a.banner_position - b.banner_position);
-      const spotlight = positioned.length ? positioned : products.filter(p => p.is_featured).slice(0, 5);
-      const list = spotlight.length ? spotlight : products.slice(0, 5);
+        .sort((a, b) => a.banner_position - b.banner_position)
+        .slice(0, maxSlides);
+      const spotlight = positioned.length ? positioned : products.filter(p => p.is_featured).slice(0, maxSlides);
+      const list = spotlight.length ? spotlight : products.slice(0, maxSlides);
       if (!list.length){
         bannerWrap.innerHTML = `<p class="state-msg">Products coming soon.</p>`;
       } else {
@@ -321,7 +353,7 @@ const CrispyStore = (() => {
         let timer = null;
         const resetTimer = () => {
           if (timer) clearInterval(timer);
-          if (list.length > 1) timer = setInterval(() => { i = (i + 1) % list.length; paint(); }, 5000);
+          if (list.length > 1) timer = setInterval(() => { i = (i + 1) % list.length; paint(); }, intervalMs);
         };
         paint();
         resetTimer();
@@ -626,6 +658,6 @@ const CrispyStore = (() => {
   document.addEventListener('DOMContentLoaded', init);
   document.addEventListener('crispy-cart-change', () => { renderCart(); });
 
-  return { addToCart, getCart, cartCount, cartTotal, showToast, money, placeholderImg };
+  return { addToCart, buyNow, getCart, cartCount, cartTotal, showToast, money, placeholderImg };
 })();
 window.CrispyStore = CrispyStore;
