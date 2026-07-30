@@ -268,9 +268,29 @@ const CrispyStore = (() => {
 
     const bannerWrap = document.querySelector('[data-home-banners]');
     if (bannerWrap){
-      const spotlight = products.filter(p => p.is_featured).slice(0, 3);
-      const list = spotlight.length ? spotlight : products.slice(0, 3);
-      bannerWrap.innerHTML = list.length ? list.map(bannerHTML).join('') : `<p class="state-msg">Products coming soon.</p>`;
+      const spotlight = products.filter(p => p.is_featured).slice(0, 5);
+      const list = spotlight.length ? spotlight : products.slice(0, 5);
+      if (!list.length){
+        bannerWrap.innerHTML = `<p class="state-msg">Products coming soon.</p>`;
+      } else {
+        let i = 0;
+        const paint = () => {
+          bannerWrap.innerHTML = bannerHTML(list[i]) +
+            (list.length > 1
+              ? `<div class="banner-dots">${list.map((_, idx) => `<button data-dot="${idx}" class="${idx===i?'is-active':''}" aria-label="Slide ${idx+1}"></button>`).join('')}</div>`
+              : '');
+          bannerWrap.querySelectorAll('[data-dot]').forEach(dot => {
+            dot.addEventListener('click', () => { i = Number(dot.dataset.dot); paint(); resetTimer(); });
+          });
+        };
+        let timer = null;
+        const resetTimer = () => {
+          if (timer) clearInterval(timer);
+          if (list.length > 1) timer = setInterval(() => { i = (i + 1) % list.length; paint(); }, 5000);
+        };
+        paint();
+        resetTimer();
+      }
     }
 
     const grid = document.querySelector('[data-home-grid]');
