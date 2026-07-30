@@ -147,16 +147,35 @@ const CrispyStore = (() => {
   }
 
   /* ---------- banner markup (home spotlight) ---------- */
+  const BANNER_ICONS = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>'
+  };
   function bannerHTML(p){
-    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 700, 440))}" alt="${esc(p.name)}" loading="lazy">`;
+    const free = p.is_free || Number(p.price) === 0;
+    const media = `<img src="${esc(p.image_url || placeholderImg(p.name || p.id, 700, 700))}" alt="${esc(p.name)}" loading="lazy">`;
     const desc = p.description ? esc(p.description).slice(0, 90) : 'Built in-house, tested on real client work.';
     return `
       <a class="banner reveal" href="catalog.html">
+        <div class="banner__price">
+          <small>${free ? 'Get it' : 'From'}</small>
+          <strong>${free ? 'Free' : money(p.price)}</strong>
+        </div>
         <div class="banner__body">
           <div class="banner__eyebrow">${esc(p.category || 'Featured')}</div>
           <h3 class="banner__title">${esc(p.name)}</h3>
           <p class="banner__sub">${desc}</p>
-          <span class="btn btn--sm">${p.is_free || Number(p.price)===0 ? 'Get it free' : `Shop ${money(p.price)}`}</span>
+          <ul class="banner__features">
+            <li>${BANNER_ICONS.check} Instant download</li>
+            <li>${BANNER_ICONS.shield} Lifetime updates included</li>
+            <li>${BANNER_ICONS.bolt} Commercial license included</li>
+          </ul>
+          <span class="btn btn--sm">${free ? 'Get it free' : `Shop ${money(p.price)}`}</span>
+          <div class="banner__pills">
+            <span class="banner__pill">Tested &amp; documented</span>
+            <span class="banner__pill">One-time payment</span>
+          </div>
         </div>
         <div class="banner__media">${media}</div>
       </a>`;
@@ -274,14 +293,26 @@ const CrispyStore = (() => {
         bannerWrap.innerHTML = `<p class="state-msg">Products coming soon.</p>`;
       } else {
         let i = 0;
+        const go = (n) => { i = (n + list.length) % list.length; paint(); resetTimer(); };
         const paint = () => {
-          bannerWrap.innerHTML = bannerHTML(list[i]) +
-            (list.length > 1
-              ? `<div class="banner-dots">${list.map((_, idx) => `<button data-dot="${idx}" class="${idx===i?'is-active':''}" aria-label="Slide ${idx+1}"></button>`).join('')}</div>`
-              : '');
+          bannerWrap.innerHTML =
+            (list.length > 1 ? `
+              <button class="banner-nav banner-nav--prev" data-prev aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <button class="banner-nav banner-nav--next" data-next aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+            ` : '') +
+            bannerHTML(list[i]) +
+            (list.length > 1 ? `
+              <div class="banner-counter">
+                <span>${i+1} / ${list.length}</span>
+                <div class="banner-dots">${list.map((_, idx) => `<button data-dot="${idx}" class="${idx===i?'is-active':''}" aria-label="Slide ${idx+1}"></button>`).join('')}</div>
+              </div>` : '');
           bannerWrap.querySelectorAll('[data-dot]').forEach(dot => {
-            dot.addEventListener('click', () => { i = Number(dot.dataset.dot); paint(); resetTimer(); });
+            dot.addEventListener('click', (e) => { e.preventDefault(); go(Number(dot.dataset.dot)); });
           });
+          const prev = bannerWrap.querySelector('[data-prev]');
+          const next = bannerWrap.querySelector('[data-next]');
+          if (prev) prev.addEventListener('click', (e) => { e.preventDefault(); go(i - 1); });
+          if (next) next.addEventListener('click', (e) => { e.preventDefault(); go(i + 1); });
         };
         let timer = null;
         const resetTimer = () => {
