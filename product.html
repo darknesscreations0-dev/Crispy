@@ -72,26 +72,23 @@
     </div>
   </div>
 
-  <!-- Live interactive preview -->
-  <section class="section">
+  <!-- Live interactive preview — only rendered when the admin has turned
+       this on for this specific product (see admin.html). No generic
+       placeholder demo here anymore; script below removes this whole
+       section if the product doesn't have one configured. -->
+  <section class="section" id="pdPreviewSection" style="display:none;">
     <div class="section__head reveal">
       <div class="eyebrow">Try it yourself</div>
       <h2 class="section__title">Live interactive <span class="accent">preview.</span></h2>
-      <p class="section__sub">Pick a tab, tap a preset, watch it animate — this is the kind of control you get inside Crispy tools.</p>
+      <p class="section__sub">Pick a tab, tap a preset, see it in action.</p>
     </div>
     <div class="container">
-      <div class="demo reveal reveal--scale" data-demo>
+      <div class="demo reveal reveal--scale" data-product-demo>
         <div class="demo__panel">
-          <div class="demo__tabs">
-            <button class="demo__tab is-active" data-tab="easing">Easing</button>
-            <button class="demo__tab" data-tab="text">Text</button>
-            <button class="demo__tab" data-tab="glass">Glass</button>
-          </div>
-          <div data-demo-list></div>
+          <div class="demo__tabs" data-product-demo-tabs></div>
+          <div data-product-demo-list></div>
         </div>
-        <div class="demo__stage">
-          <div class="demo__word">Smooth Bounce</div>
-        </div>
+        <div class="demo__stage" data-product-demo-stage></div>
       </div>
     </div>
   </section>
@@ -205,6 +202,7 @@
           <div class="pd-actions">
             ${product.video_url ? `<a class="btn btn--ghost" href="${esc(product.video_url)}" target="_blank" rel="noopener">Watch video</a>` : ''}
             <button class="btn" id="pdAddBtn">${free ? 'Download' : 'Add to cart'}</button>
+            ${free ? '' : `<button class="btn btn--ghost" id="pdBuyBtn">Buy now</button>`}
           </div>
         </div>
       </div>
@@ -213,6 +211,65 @@
     document.getElementById('pdAddBtn').addEventListener('click', () => {
       window.CrispyStore.addToCart(product);
     });
+    const buyBtn = document.getElementById('pdBuyBtn');
+    if (buyBtn) buyBtn.addEventListener('click', () => window.CrispyStore.buyNow(product));
+
+    renderProductPreview(product);
+  }
+
+  /* ---------- per-product live preview panel ----------
+     Only shows up when the admin explicitly enabled it for this product
+     (product.preview_enabled + a non-empty product.preview_tabs array).
+     Otherwise the whole section stays hidden — no generic fake demo. */
+  function renderProductPreview(product){
+    const section = document.getElementById('pdPreviewSection');
+    let tabs = [];
+    if (product.preview_enabled && Array.isArray(product.preview_tabs)){
+      tabs = product.preview_tabs.filter(t => t && t.label && Array.isArray(t.items) && t.items.length);
+    }
+    if (!tabs.length){ section.style.display = 'none'; return; }
+    section.style.display = '';
+
+    const tabsWrap = section.querySelector('[data-product-demo-tabs]');
+    const listWrap = section.querySelector('[data-product-demo-list]');
+    const stage = section.querySelector('[data-product-demo-stage]');
+
+    function renderStageItem(item){
+      if (item.type === 'video' && item.url){
+        stage.innerHTML = `<video src="${esc(item.url)}" autoplay muted loop playsinline></video>`;
+      } else if (item.type === 'image' && item.url){
+        stage.innerHTML = `<img src="${esc(item.url)}" alt="${esc(item.label)}">`;
+      } else {
+        stage.innerHTML = `<div class="demo__word">${esc(item.label)}</div>`;
+      }
+    }
+
+    function paintList(tabIndex){
+      const tab = tabs[tabIndex];
+      listWrap.innerHTML = tab.items.map((item, i) =>
+        `<div class="demo__preset${i===0?' is-active':''}" data-i="${i}">${esc(item.label)}<span>▶</span></div>`
+      ).join('');
+      listWrap.querySelectorAll('.demo__preset').forEach(row => {
+        row.addEventListener('click', () => {
+          listWrap.querySelectorAll('.demo__preset').forEach(r => r.classList.remove('is-active'));
+          row.classList.add('is-active');
+          renderStageItem(tab.items[Number(row.dataset.i)]);
+        });
+      });
+      renderStageItem(tab.items[0]);
+    }
+
+    tabsWrap.innerHTML = tabs.map((t, i) =>
+      `<button class="demo__tab${i===0?' is-active':''}" data-t="${i}">${esc(t.label)}</button>`
+    ).join('');
+    tabsWrap.querySelectorAll('.demo__tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabsWrap.querySelectorAll('.demo__tab').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        paintList(Number(btn.dataset.t));
+      });
+    });
+    paintList(0);
   }
 
   document.addEventListener('DOMContentLoaded', load);

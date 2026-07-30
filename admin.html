@@ -82,6 +82,27 @@
       <button class="btn" id="admNewBtn">+ New product</button>
     </div>
 
+    <div class="adm-form is-open" style="margin-bottom:1.6rem;">
+      <h3>Homepage banner settings</h3>
+      <div class="adm-form-grid">
+        <div>
+          <label>Max banners shown</label>
+          <input type="number" min="1" step="1" id="bs_max_slides" placeholder="6">
+        </div>
+        <div>
+          <label>Auto-shift every (seconds)</label>
+          <input type="number" min="1" step="1" id="bs_interval" placeholder="5">
+        </div>
+        <div class="adm-form-actions">
+          <button type="button" class="btn" id="bsSaveBtn">Save banner settings</button>
+        </div>
+        <p class="adm-msg" id="bsMsg"></p>
+      </div>
+      <p style="font-size:.78rem;color:var(--c-text-faint);margin-top:.4rem;">
+        Which products actually appear in the banner, and in what order, is still set per-product below via "Banner #" — this just controls how many of those show at once and how fast they auto-rotate.
+      </p>
+    </div>
+
     <form class="adm-form" id="admForm">
       <h3 id="admFormTitle">New product</h3>
       <input type="hidden" id="f_id">
@@ -117,6 +138,20 @@
           <label><input type="checkbox" id="f_is_featured"> Featured</label>
           <label><input type="checkbox" id="f_is_active" checked> Active (visible on site)</label>
         </div>
+
+        <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
+          <label><input type="checkbox" id="f_preview_enabled"> Show a "Live interactive preview" panel on this product's page</label>
+          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.4rem 0 .8rem;">
+            Off by default — leave unchecked and the product page simply won't show that section. Fill in at least one tab below to turn it on. Each line in a tab is one clickable preset: <code>Label</code> for animated text, or <code>Label | image | https://...</code> / <code>Label | video | https://...</code> to show real media instead.
+          </p>
+        </div>
+        <div><label>Tab 1 name (e.g. "Easing")</label><input type="text" id="f_pt1_label" placeholder="Easing"></div>
+        <div style="grid-column:1/-1;"><label>Tab 1 presets (one per line)</label><textarea id="f_pt1_items" rows="3" placeholder="Smooth Bounce&#10;Before / after | image | https://...&#10;Clip | video | https://..."></textarea></div>
+        <div><label>Tab 2 name (optional)</label><input type="text" id="f_pt2_label" placeholder="Text"></div>
+        <div style="grid-column:1/-1;"><label>Tab 2 presets (one per line)</label><textarea id="f_pt2_items" rows="3"></textarea></div>
+        <div><label>Tab 3 name (optional)</label><input type="text" id="f_pt3_label" placeholder="Glass"></div>
+        <div style="grid-column:1/-1;"><label>Tab 3 presets (one per line)</label><textarea id="f_pt3_items" rows="3"></textarea></div>
+
         <div class="adm-form-actions">
           <button type="submit" class="btn">Save product</button>
           <button type="button" class="btn btn--ghost" id="admCancelBtn">Cancel</button>
@@ -192,7 +227,40 @@
     document.getElementById('f_is_free').checked = product ? !!product.is_free : false;
     document.getElementById('f_is_featured').checked = product ? !!product.is_featured : false;
     document.getElementById('f_is_active').checked = product ? !!product.is_active : true;
+
+    document.getElementById('f_preview_enabled').checked = product ? !!product.preview_enabled : false;
+    const tabs = (product && Array.isArray(product.preview_tabs)) ? product.preview_tabs : [];
+    [1,2,3].forEach((n, i) => {
+      const t = tabs[i];
+      document.getElementById(`f_pt${n}_label`).value = t ? (t.label || '') : '';
+      document.getElementById(`f_pt${n}_items`).value = t && Array.isArray(t.items)
+        ? t.items.map(it => it.type && it.type !== 'text' && it.url ? `${it.label} | ${it.type} | ${it.url}` : it.label).join('\n')
+        : '';
+    });
+
     form.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // Parses the 3 tab-name + textarea pairs in the form into the
+  // preview_tabs jsonb shape product.html expects. Blank tabs (no label
+  // or no valid lines) are dropped.
+  function parsePreviewTabs(){
+    const tabs = [];
+    [1,2,3].forEach(n => {
+      const label = document.getElementById(`f_pt${n}_label`).value.trim();
+      const raw = document.getElementById(`f_pt${n}_items`).value;
+      const items = raw.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+        const parts = line.split('|').map(s => s.trim());
+        const itemLabel = parts[0] || '';
+        const type = (parts[1] || 'text').toLowerCase();
+        const url = parts[2] || '';
+        if (!itemLabel) return null;
+        if ((type === 'image' || type === 'video') && url) return { label: itemLabel, type, url };
+        return { label: itemLabel, type: 'text' };
+      }).filter(Boolean);
+      if (label && items.length) tabs.push({ label, items });
+    });
+    return tabs;
   }
   function closeForm(){ form.classList.remove('is-open'); }
 
@@ -306,7 +374,9 @@
       description: document.getElementById('f_description').value.trim() || null,
       is_free: document.getElementById('f_is_free').checked,
       is_featured: document.getElementById('f_is_featured').checked,
-      is_active: document.getElementById('f_is_active').checked
+      is_active: document.getElementById('f_is_active').checked,
+      preview_enabled: document.getElementById('f_preview_enabled').checked,
+      preview_tabs: parsePreviewTabs()
     };
     if (!payload.name){ formMsg.textContent = 'Name is required.'; formMsg.style.color = '#ff6b6b'; return; }
 
@@ -325,6 +395,31 @@
     setTimeout(closeForm, 500);
   });
 
+  /* ---------- Homepage banner settings (site_settings, singleton row) ---------- */
+  const bsMax = document.getElementById('bs_max_slides');
+  const bsInterval = document.getElementById('bs_interval');
+  const bsMsg = document.getElementById('bsMsg');
+  const bsSaveBtn = document.getElementById('bsSaveBtn');
+
+  async function loadBannerSettings(){
+    const { data, error } = await client.from('site_settings').select('*').eq('id', 1).maybeSingle();
+    if (error || !data){
+      bsMax.value = 6; bsInterval.value = 5;
+      return;
+    }
+    bsMax.value = data.banner_max_slides;
+    bsInterval.value = data.banner_interval_seconds;
+  }
+  bsSaveBtn.addEventListener('click', async () => {
+    const maxSlides = Number(bsMax.value) || 6;
+    const interval = Number(bsInterval.value) || 5;
+    bsMsg.textContent = 'Saving…'; bsMsg.style.color = 'var(--c-text-faint)';
+    const { error } = await client.from('site_settings')
+      .upsert({ id: 1, banner_max_slides: maxSlides, banner_interval_seconds: interval }, { onConflict: 'id' });
+    if (error){ bsMsg.textContent = error.message || 'Could not save.'; bsMsg.style.color = '#ff6b6b'; return; }
+    bsMsg.textContent = 'Saved!'; bsMsg.style.color = '#4ade80';
+  });
+
   async function init(){
     const user = await DCAuth.getUser();
     if (!user){ window.location.href = 'login.html'; return; }
@@ -340,6 +435,7 @@
     gate.style.display = 'none';
     wrap.style.display = 'block';
     await loadProducts();
+    await loadBannerSettings();
   }
 
   init();
