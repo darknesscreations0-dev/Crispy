@@ -171,6 +171,10 @@
         </div>
         <div><label>Video URL (optional)</label><input type="url" id="f_video_url" placeholder="https://…"></div>
         <div style="grid-column:1/-1;"><label>Description (no length limit — write as much as you need)</label><textarea id="f_description" rows="6"></textarea></div>
+        <div style="grid-column:1/-1;">
+          <label>Highlights (one per line — shown as a checkmark list on the product page, replaces the old fixed "License / Updates" text)</label>
+          <textarea id="f_highlights" rows="4" placeholder="Commercial use included&#10;Free lifetime updates&#10;Works in AE 2023+"></textarea>
+        </div>
         <div class="adm-checks">
           <label><input type="checkbox" id="f_is_free"> Free product</label>
           <label><input type="checkbox" id="f_is_featured"> Featured</label>
@@ -212,6 +216,12 @@
             <textarea id="admStoryTextInput" rows="3" placeholder="Write a paragraph…" style="flex:1;min-width:220px;"></textarea>
             <div style="display:flex;flex-direction:column;gap:.4rem;">
               <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddText">+ Add text block</button>
+              <label style="font-size:.72rem;color:var(--c-text-faint);">Width for the next image/video:</label>
+              <select id="admStoryWidth" style="padding:.4rem .5rem;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);font-size:.78rem;">
+                <option value="100">Full width</option>
+                <option value="50">Half (sits side by side with another half)</option>
+                <option value="33">Third (sits 3-across)</option>
+              </select>
               <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddMediaBtn">+ Add image/video block</button>
               <input type="file" id="admStoryMediaFile" accept="image/*,video/*" hidden>
             </div>
@@ -308,6 +318,7 @@
       : 'No image';
     document.getElementById('f_video_url').value = product ? product.video_url || '' : '';
     document.getElementById('f_description').value = product ? product.description || '' : '';
+    document.getElementById('f_highlights').value = (product && Array.isArray(product.highlights)) ? product.highlights.join('\n') : '';
     document.getElementById('f_is_free').checked = product ? !!product.is_free : false;
     document.getElementById('f_is_featured').checked = product ? !!product.is_featured : false;
     document.getElementById('f_is_active').checked = product ? !!product.is_active : true;
@@ -513,7 +524,7 @@
     admStoryList.innerHTML = storyBlocks.map((b, i) => `
       <div style="display:flex;gap:.6rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
         <div style="flex:1;min-width:0;font-size:.8rem;color:var(--c-text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          ${b.type === 'text' ? esc(b.content) : `[${b.type}] ${esc(b.url)}`}
+          ${b.type === 'text' ? esc(b.content) : `[${b.type}${b.width && b.width !== 100 ? ' · ' + b.width + '%' : ''}] ${esc(b.url)}`}
         </div>
         <div style="display:flex;gap:.3rem;flex-shrink:0;">
           <button type="button" class="btn btn--ghost btn--sm" data-story-up="${i}" ${i===0?'disabled':''}>↑</button>
@@ -557,7 +568,8 @@
     const { error } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
     if (error){ admStoryMsg.textContent = error.message || 'Upload failed.'; admStoryMsg.style.color = '#ff6b6b'; return; }
     const { data: pub } = client.storage.from('products').getPublicUrl(path);
-    storyBlocks.push({ type: isVideo ? 'video' : 'image', url: pub && pub.publicUrl ? pub.publicUrl : '' });
+    const width = Number(document.getElementById('admStoryWidth').value) || 100;
+    storyBlocks.push({ type: isVideo ? 'video' : 'image', url: pub && pub.publicUrl ? pub.publicUrl : '', width });
     admStoryMediaFile.value = '';
     admStoryMsg.textContent = 'Added — click Save product to keep it.'; admStoryMsg.style.color = '#4ade80';
     renderStoryList();
@@ -579,6 +591,7 @@
       media_type: document.getElementById('f_media_type').value || 'image',
       video_url: document.getElementById('f_video_url').value.trim() || null,
       description: document.getElementById('f_description').value.trim() || null,
+      highlights: document.getElementById('f_highlights').value.split('\n').map(s => s.trim()).filter(Boolean),
       is_free: document.getElementById('f_is_free').checked,
       is_featured: document.getElementById('f_is_featured').checked,
       is_active: document.getElementById('f_is_active').checked,
