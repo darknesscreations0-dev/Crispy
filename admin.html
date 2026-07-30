@@ -99,8 +99,46 @@
         <p class="adm-msg" id="bsMsg"></p>
       </div>
       <p style="font-size:.78rem;color:var(--c-text-faint);margin-top:.4rem;">
-        Which products actually appear in the banner, and in what order, is still set per-product below via "Banner #" — this just controls how many of those show at once and how fast they auto-rotate.
+        These just control timing/count — the banners themselves are managed below, fully separate from products.
       </p>
+    </div>
+
+    <div class="adm-form is-open" style="margin-bottom:1.6rem;">
+      <h3>Homepage banners</h3>
+      <div id="bnList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.2rem;"></div>
+
+      <form id="bnForm" style="border-top:1px solid var(--c-border);padding-top:1rem;">
+        <input type="hidden" id="bn_id">
+        <div class="adm-form-grid">
+          <div><label>Title *</label><input type="text" id="bn_title" required placeholder="Crispy Captions"></div>
+          <div><label>Badge / eyebrow (optional)</label><input type="text" id="bn_badge" placeholder="New release"></div>
+          <div style="grid-column:1/-1;"><label>Subtitle (optional)</label><textarea id="bn_subtitle" rows="2" placeholder="Whatever you want it to say — no limit."></textarea></div>
+          <div><label>Link URL (where clicking it goes)</label><input type="text" id="bn_link_url" placeholder="product.html?id=... or catalog.html or https://..."></div>
+          <div><label>Price tag shown on the banner (optional)</label><input type="text" id="bn_price_label" placeholder="e.g. From $14.99 — leave blank to hide it"></div>
+          <div><label>Sort order</label><input type="number" step="1" id="bn_sort_order" placeholder="0"></div>
+          <div><label><input type="checkbox" id="bn_is_active" checked> Active (shown on homepage)</label></div>
+          <div style="grid-column:1/-1;">
+            <label>Banner image or video</label>
+            <div class="adm-avatar-row">
+              <span class="adm-img-preview" id="bnImgPreview">No media</span>
+              <div style="flex:1;min-width:200px;">
+                <div class="cp-avatar-drop-like" id="bnImgDrop">
+                  <input type="file" id="bnImgFile" accept="image/*,video/*" hidden>
+                  <span id="bnImgDropText">Drag &amp; drop an image or video, or click to choose one</span>
+                </div>
+                <p class="adm-msg" id="bnImgMsg" style="margin-top:.4rem;"></p>
+              </div>
+            </div>
+            <input type="hidden" id="bn_image_url">
+            <input type="hidden" id="bn_media_type" value="image">
+          </div>
+          <div class="adm-form-actions">
+            <button type="submit" class="btn">Save banner</button>
+            <button type="button" class="btn btn--ghost" id="bnCancelBtn">Clear form</button>
+          </div>
+          <p class="adm-msg" id="bnFormMsg"></p>
+        </div>
+      </form>
     </div>
 
     <form class="adm-form" id="admForm">
@@ -115,7 +153,6 @@
         <div><label>Compare-at price (optional, for sale %)</label><input type="number" step="0.01" id="f_compare_at"></div>
         <div><label>Rating (1–5)</label><input type="number" step="0.1" min="1" max="5" id="f_rating" placeholder="5"></div>
         <div><label>Badge (optional, e.g. "New")</label><input type="text" id="f_badge"></div>
-        <div><label>Banner position (blank = not in homepage banner)</label><input type="number" min="1" step="1" id="f_banner_position" placeholder="e.g. 1, 2, 3…"></div>
         <div style="grid-column:1/-1;">
           <label>Product image</label>
           <div class="adm-avatar-row">
@@ -193,10 +230,10 @@
     <div style="overflow-x:auto;">
       <table class="adm-table">
         <thead>
-          <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Banner #</th><th>Active</th><th>Featured</th><th></th></tr>
+          <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Active</th><th>Featured</th><th></th></tr>
         </thead>
         <tbody id="admTableBody">
-          <tr><td colspan="8"><p class="state-msg">Loading products…</p></td></tr>
+          <tr><td colspan="7"><p class="state-msg">Loading products…</p></td></tr>
         </tbody>
       </table>
     </div>
@@ -261,7 +298,6 @@
     document.getElementById('f_compare_at').value = product ? product.compare_at ?? '' : '';
     document.getElementById('f_rating').value = product ? product.rating ?? '' : '';
     document.getElementById('f_badge').value = product ? product.badge || '' : '';
-    document.getElementById('f_banner_position').value = product && product.banner_position != null ? product.banner_position : '';
     document.getElementById('f_image_url').value = product ? product.image_url || '' : '';
     document.getElementById('f_media_type').value = product ? product.media_type || 'image' : 'image';
     admImgPreview.innerHTML = product && product.image_url
@@ -297,7 +333,7 @@
 
   function renderTable(){
     if (!products.length){
-      tbody.innerHTML = '<tr><td colspan="8"><p class="state-msg">No products yet — add your first one.</p></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7"><p class="state-msg">No products yet — add your first one.</p></td></tr>';
       return;
     }
     tbody.innerHTML = products.map(p => `
@@ -306,7 +342,6 @@
         <td>${esc(p.name)}${p.media_type === 'video' ? ' <span class="adm-pill adm-pill--off" style="margin-left:.3rem;">Video</span>' : ''}</td>
         <td>${esc(p.category || '—')}</td>
         <td>${p.is_free ? 'Free' : '$' + Number(p.price || 0).toFixed(2)}</td>
-        <td><input type="number" min="1" step="1" class="adm-banner-input" data-banner-pos="${p.id}" value="${p.banner_position != null ? p.banner_position : ''}" placeholder="—"></td>
         <td><span class="adm-pill ${p.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${p.is_active ? 'Active' : 'Hidden'}</span></td>
         <td><span class="adm-pill ${p.is_featured ? 'adm-pill--on' : 'adm-pill--off'}">${p.is_featured ? 'Yes' : 'No'}</span></td>
         <td>
@@ -328,22 +363,13 @@
       if (error){ alert('Could not delete: ' + error.message); return; }
       await loadProducts();
     }));
-    tbody.querySelectorAll('[data-banner-pos]').forEach(inp => inp.addEventListener('change', async () => {
-      const val = inp.value.trim();
-      const { error } = await client.from('products')
-        .update({ banner_position: val ? Number(val) : null })
-        .eq('id', inp.dataset.bannerPos);
-      if (error){ alert('Could not update banner position: ' + error.message); return; }
-      const p = products.find(x => String(x.id) === String(inp.dataset.bannerPos));
-      if (p) p.banner_position = val ? Number(val) : null;
-    }));
   }
 
   async function loadProducts(){
     // Admin sees everything, including inactive/draft products —
     // unlike the storefront, which only shows is_active = true.
     const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false });
-    if (error){ tbody.innerHTML = `<tr><td colspan="8"><p class="state-msg">Couldn't load products: ${esc(error.message)}</p></td></tr>`; return; }
+    if (error){ tbody.innerHTML = `<tr><td colspan="7"><p class="state-msg">Couldn't load products: ${esc(error.message)}</p></td></tr>`; return; }
     products = data || [];
     renderTable();
   }
@@ -548,7 +574,6 @@
       compare_at: document.getElementById('f_compare_at').value ? Number(document.getElementById('f_compare_at').value) : null,
       rating: document.getElementById('f_rating').value ? Number(document.getElementById('f_rating').value) : null,
       badge: document.getElementById('f_badge').value.trim() || null,
-      banner_position: document.getElementById('f_banner_position').value ? Number(document.getElementById('f_banner_position').value) : null,
       image_url: document.getElementById('f_image_url').value.trim() || null,
       media_type: document.getElementById('f_media_type').value || 'image',
       video_url: document.getElementById('f_video_url').value.trim() || null,
@@ -602,6 +627,134 @@
     bsMsg.textContent = 'Saved!'; bsMsg.style.color = '#4ade80';
   });
 
+  /* ---------- Homepage banners (banners table — fully custom, not tied to products) ---------- */
+  const bnList = document.getElementById('bnList');
+  const bnForm = document.getElementById('bnForm');
+  const bnFormMsg = document.getElementById('bnFormMsg');
+  const bnCancelBtn = document.getElementById('bnCancelBtn');
+  const bnImgPreview = document.getElementById('bnImgPreview');
+  const bnImgDrop = document.getElementById('bnImgDrop');
+  const bnImgFile = document.getElementById('bnImgFile');
+  const bnImgDropText = document.getElementById('bnImgDropText');
+  const bnImgMsg = document.getElementById('bnImgMsg');
+  let banners = [];
+
+  function bnOpenForm(banner){
+    document.getElementById('bn_id').value = banner ? banner.id : '';
+    document.getElementById('bn_title').value = banner ? banner.title || '' : '';
+    document.getElementById('bn_badge').value = banner ? banner.badge || '' : '';
+    document.getElementById('bn_subtitle').value = banner ? banner.subtitle || '' : '';
+    document.getElementById('bn_link_url').value = banner ? banner.link_url || '' : '';
+    document.getElementById('bn_price_label').value = banner ? banner.price_label || '' : '';
+    document.getElementById('bn_sort_order').value = banner ? (banner.sort_order ?? 0) : (banners.length);
+    document.getElementById('bn_is_active').checked = banner ? !!banner.is_active : true;
+    document.getElementById('bn_image_url').value = banner ? banner.image_url || '' : '';
+    document.getElementById('bn_media_type').value = banner ? banner.media_type || 'image' : 'image';
+    bnImgPreview.innerHTML = banner && banner.image_url
+      ? (banner.media_type === 'video'
+          ? `<video src="${esc(banner.image_url)}" muted loop autoplay playsinline></video>`
+          : `<img src="${esc(banner.image_url)}" alt="">`)
+      : 'No media';
+    bnFormMsg.textContent = '';
+    bnForm.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+  function bnResetForm(){ bnOpenForm(null); }
+  bnCancelBtn.addEventListener('click', bnResetForm);
+
+  async function uploadBannerMedia(file){
+    const isVideo = file && file.type.startsWith('video/');
+    const isImage = file && file.type.startsWith('image/');
+    if (!file || (!isVideo && !isImage)){
+      bnImgMsg.textContent = 'Please choose an image or video file.'; bnImgMsg.style.color = '#ff6b6b';
+      return;
+    }
+    bnImgDropText.textContent = 'Uploading…'; bnImgMsg.textContent = '';
+    const ext = (file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase();
+    const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    bnImgDropText.textContent = 'Drag & drop an image or video, or click to choose one';
+    if (upErr){ bnImgMsg.textContent = upErr.message || 'Upload failed.'; bnImgMsg.style.color = '#ff6b6b'; return; }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    const publicUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    document.getElementById('bn_image_url').value = publicUrl;
+    document.getElementById('bn_media_type').value = isVideo ? 'video' : 'image';
+    bnImgPreview.innerHTML = isVideo
+      ? `<video src="${esc(publicUrl)}" muted loop autoplay playsinline></video>`
+      : `<img src="${esc(publicUrl)}" alt="">`;
+    bnImgMsg.textContent = 'Ready — click Save banner to keep it.'; bnImgMsg.style.color = '#4ade80';
+  }
+  bnImgDrop.addEventListener('click', () => bnImgFile.click());
+  bnImgFile.addEventListener('change', () => { if (bnImgFile.files[0]) uploadBannerMedia(bnImgFile.files[0]); });
+  ['dragover','dragenter'].forEach(evt => bnImgDrop.addEventListener(evt, (e) => { e.preventDefault(); bnImgDrop.classList.add('is-dragover'); }));
+  ['dragleave','drop'].forEach(evt => bnImgDrop.addEventListener(evt, (e) => { e.preventDefault(); bnImgDrop.classList.remove('is-dragover'); }));
+  bnImgDrop.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) uploadBannerMedia(file);
+  });
+
+  function renderBnList(){
+    if (!banners.length){
+      bnList.innerHTML = '<p style="font-size:.8rem;color:var(--c-text-faint);">No banners yet — add one below.</p>';
+      return;
+    }
+    bnList.innerHTML = banners.map(b => `
+      <div style="display:flex;gap:.7rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
+        <span style="width:44px;height:44px;flex-shrink:0;background:var(--c-surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          ${b.image_url ? (b.media_type === 'video' ? `<video src="${esc(b.image_url)}" muted style="width:100%;height:100%;object-fit:cover;"></video>` : `<img src="${esc(b.image_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`) : ''}
+        </span>
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${esc(b.title)}</div>
+        <span class="adm-pill ${b.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${b.is_active ? 'Active' : 'Hidden'}</span>
+        <div class="adm-row-actions">
+          <button type="button" class="btn btn--ghost" data-bn-edit="${b.id}">Edit</button>
+          <button type="button" class="btn btn--ghost" data-bn-delete="${b.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    bnList.querySelectorAll('[data-bn-edit]').forEach(btn => btn.addEventListener('click', () => {
+      const b = banners.find(x => String(x.id) === String(btn.dataset.bnEdit));
+      if (b) bnOpenForm(b);
+    }));
+    bnList.querySelectorAll('[data-bn-delete]').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this banner?')) return;
+      const { error } = await client.from('banners').delete().eq('id', btn.dataset.bnDelete);
+      if (error){ alert('Could not delete: ' + error.message); return; }
+      await loadBanners();
+    }));
+  }
+
+  async function loadBanners(){
+    const { data, error } = await client.from('banners').select('*').order('sort_order', { ascending: true });
+    if (error){ bnList.innerHTML = `<p class="state-msg">Couldn't load banners: ${esc(error.message)}</p>`; return; }
+    banners = data || [];
+    renderBnList();
+  }
+
+  bnForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('bn_id').value;
+    const payload = {
+      title: document.getElementById('bn_title').value.trim(),
+      badge: document.getElementById('bn_badge').value.trim() || null,
+      subtitle: document.getElementById('bn_subtitle').value.trim() || null,
+      link_url: document.getElementById('bn_link_url').value.trim() || null,
+      price_label: document.getElementById('bn_price_label').value.trim() || null,
+      sort_order: document.getElementById('bn_sort_order').value ? Number(document.getElementById('bn_sort_order').value) : 0,
+      is_active: document.getElementById('bn_is_active').checked,
+      image_url: document.getElementById('bn_image_url').value.trim() || null,
+      media_type: document.getElementById('bn_media_type').value || 'image'
+    };
+    if (!payload.title){ bnFormMsg.textContent = 'Title is required.'; bnFormMsg.style.color = '#ff6b6b'; return; }
+    bnFormMsg.textContent = 'Saving…'; bnFormMsg.style.color = 'var(--c-text-faint)';
+    const query = id
+      ? client.from('banners').update(payload).eq('id', id)
+      : client.from('banners').insert(payload);
+    const { error } = await query;
+    if (error){ bnFormMsg.textContent = error.message || 'Could not save.'; bnFormMsg.style.color = '#ff6b6b'; return; }
+    bnFormMsg.textContent = 'Saved!'; bnFormMsg.style.color = '#4ade80';
+    await loadBanners();
+    setTimeout(bnResetForm, 500);
+  });
+
   async function init(){
     const user = await DCAuth.getUser();
     if (!user){ window.location.href = 'login.html'; return; }
@@ -618,6 +771,7 @@
     wrap.style.display = 'block';
     await loadProducts();
     await loadBannerSettings();
+    await loadBanners();
   }
 
   init();
