@@ -6,8 +6,8 @@
    ============================================================ */
 
 :root{
-  --cp-orange:      #f47920;
-  --cp-orange-2:    #d9661a;
+  --cp-orange:      #f7923f;
+  --cp-orange-2:    #e07a1f;
   --cp-amber:       #FFA500;
   --cp-bg:          #171717;
   --cp-surface:     #212121;
@@ -56,7 +56,7 @@ body.cp-body{
 }
 .cp-logo__mark{
   width:30px; height:30px;
-  border-radius:9px;
+  border-radius:0;
   background:var(--cp-orange);
   display:flex; align-items:center; justify-content:center;
   font-size:.95rem;
@@ -72,7 +72,7 @@ body.cp-body{
 .cp-lang{
   display:flex; align-items:center; gap:.3rem;
   padding:.5rem .8rem;
-  border-radius:999px;
+  border-radius:0;
   border:1px solid var(--cp-border);
   font-size:.85rem;
   color:var(--cp-text-dim);
@@ -123,7 +123,7 @@ body.cp-body{
   align-items:center;
   gap:.5rem;
   padding:.95rem 2.2rem;
-  border-radius:8px;
+  border-radius:0;
   font-weight:700;
   font-size:.95rem;
   color:#1a0800;
@@ -162,7 +162,7 @@ body.cp-body{
 
 .cp-card{
   position:relative;
-  border-radius:16px;
+  border-radius:0;
   overflow:hidden;
   background:var(--cp-surface);
   border:1px solid var(--cp-border);
@@ -182,7 +182,7 @@ body.cp-body{
   position:absolute; top:.6rem; left:.6rem;
   font-size:.68rem; font-weight:700;
   padding:.25rem .55rem;
-  border-radius:999px;
+  border-radius:0;
   background:var(--cp-orange);
   color:#1a0800;
 }
@@ -213,13 +213,13 @@ body.cp-body{
 .cp-blueprint{
   text-align:center;
   padding:1.6rem;
-  border-radius:18px;
+  border-radius:0;
   border:1px solid var(--cp-border);
   background:var(--cp-surface);
 }
 .cp-blueprint__cover{
   height:180px;
-  border-radius:12px;
+  border-radius:0;
   margin-bottom:1.2rem;
   background:var(--cp-surface);
   position:relative;
@@ -233,7 +233,7 @@ body.cp-body{
   position:absolute; top:.6rem; right:.6rem;
   font-size:.65rem; font-weight:700;
   background:#ff4d4d; color:#fff;
-  padding:.2rem .5rem; border-radius:999px;
+  padding:.2rem .5rem; border-radius:0;
 }
 .cp-blueprint h4{ font-size:1rem; font-weight:600; margin-bottom:.9rem; }
 
@@ -246,7 +246,7 @@ body.cp-body{
 }
 .cp-app-icon{
   width:64px; height:64px;
-  border-radius:16px;
+  border-radius:0;
   background:var(--cp-surface);
   border:1px solid var(--cp-border);
   display:flex; align-items:center; justify-content:center;
@@ -258,7 +258,7 @@ body.cp-body{
 
 /* ---------- Editor mockup ---------- */
 .cp-mockup{
-  border-radius:16px;
+  border-radius:0;
   border:1px solid var(--cp-border);
   background:var(--cp-surface);
   padding:1.4rem;
@@ -268,8 +268,8 @@ body.cp-body{
 .cp-mockup__bar{ display:flex; gap:.4rem; margin-bottom:1rem; }
 .cp-mockup__bar span{ width:10px; height:10px; border-radius:50%; background:var(--cp-border); }
 .cp-mockup__grid{ display:grid; grid-template-columns:1fr 1.4fr; gap:1rem; }
-.cp-mockup__panel{ background:rgba(255,255,255,0.03); border-radius:10px; padding:1rem; min-height:160px; }
-.cp-mockup__panel .line{ height:8px; border-radius:4px; background:rgba(255,255,255,0.08); margin-bottom:.6rem; }
+.cp-mockup__panel{ background:rgba(255,255,255,0.03); border-radius:0; padding:1rem; min-height:160px; }
+.cp-mockup__panel .line{ height:8px; border-radius:0; background:rgba(255,255,255,0.08); margin-bottom:.6rem; }
 .cp-mockup__panel .line.orange{ background:var(--cp-orange); width:60%; }
 
 /* ---------- Offer grid ---------- */
@@ -282,14 +282,14 @@ body.cp-body{
 .cp-offer-card{
   text-align:center;
   padding:1.8rem 1.2rem;
-  border-radius:16px;
+  border-radius:0;
   border:1px solid var(--cp-border);
   background:var(--cp-surface);
 }
 .cp-offer-card__icon{
   width:44px; height:44px;
   margin:0 auto 1rem;
-  border-radius:12px;
+  border-radius:0;
   background:var(--cp-orange);
   display:flex; align-items:center; justify-content:center;
   font-size:1.2rem;
@@ -334,7 +334,7 @@ body.cp-body{
 .cp-footer__socials{ display:flex; justify-content:center; gap:.8rem; margin-bottom:1.6rem; }
 .cp-footer__socials a{
   width:38px; height:38px;
-  border-radius:50%;
+  border-radius:0;
   border:1px solid var(--cp-border);
   display:flex; align-items:center; justify-content:center;
   color:var(--cp-text-dim);
@@ -350,14 +350,14 @@ body.cp-body{
   background:rgba(10,10,10,0.85);
   backdrop-filter:blur(14px);
   border:1px solid var(--cp-border);
-  border-radius:999px;
+  border-radius:0;
   padding:.35rem;
   box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 .cp-bottom-nav a{
   display:flex; align-items:center; gap:.5rem;
   padding:.75rem 1.4rem;
-  border-radius:999px;
+  border-radius:0;
   font-size:.85rem;
   font-weight:600;
   color:var(--cp-text-dim);
