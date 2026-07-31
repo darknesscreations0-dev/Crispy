@@ -383,7 +383,7 @@ main{ position:relative; z-index:1; }
 
 /* ---------- Filter bar (catalog, marketplace-style) ---------- */
 .filterbar{
-  max-width:1200px; margin:0 auto; padding:0 var(--gutter) .9rem;
+  max-width:1200px; margin:0 auto; padding:1rem var(--gutter) 1.1rem;
   display:flex; flex-wrap:wrap; align-items:flex-end; gap:.7rem;
 }
 .filterbar__field{ display:flex; flex-direction:column; gap:.25rem; }
@@ -398,7 +398,7 @@ main{ position:relative; z-index:1; }
 .filterbar__count{ margin-left:auto; align-self:center; color:var(--c-text-faint); font-size:.78rem; }
 
 .sorttabs{
-  display:flex; max-width:1200px; margin:0 auto; padding:0 var(--gutter) .9rem;
+  display:flex; max-width:1200px; margin:0 auto; padding:.3rem var(--gutter) .9rem;
   border-bottom:1px solid var(--c-border);
 }
 .sorttab{
