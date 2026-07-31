@@ -126,36 +126,88 @@
 
   <!-- Made with Crispy -->
   <section class="section">
-    <div class="section__head reveal">
-      <div class="eyebrow">Community</div>
-      <h2 class="section__title">Made with <span class="accent">Crispy.</span></h2>
-      <p class="section__sub">Real work from creators using our tools, straight from Instagram.</p>
-    </div>
     <div class="container">
-      <div class="showcase-grid" data-made-with>
-        <a class="showcase-card" href="#" target="_blank" rel="noopener">
-          <div class="showcase-card__media showcase-card__media--1">
-            <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+      <div class="showcase-hero reveal">
+        <div class="showcase-hero__blob" aria-hidden="true"></div>
+        <div class="showcase-hero__dots" aria-hidden="true"></div>
+
+        <div class="showcase-hero__head">
+          <a class="showcase-follow" href="https://www.instagram.com/crispyv0/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            Follow @crispyv0
+          </a>
+          <div class="eyebrow">Community</div>
+          <h2 class="section__title">Made with <span class="accent">Crispy.</span></h2>
+          <p class="section__sub">Real work from creators using our tools, straight from Instagram.</p>
+          <div class="showcase-hero__nav">
+            <button type="button" class="showcase-nav" data-showcase-prev aria-label="Previous">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button type="button" class="showcase-nav" data-showcase-next aria-label="Next">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
           </div>
-          <span class="showcase-card__credit"><span class="showcase-card__avatar">D</span>@dropletee_</span>
-        </a>
-        <a class="showcase-card" href="#" target="_blank" rel="noopener">
-          <div class="showcase-card__media showcase-card__media--2">
-            <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-          </div>
-          <span class="showcase-card__credit"><span class="showcase-card__avatar">H</span>@hazrd.design</span>
-        </a>
-        <a class="showcase-card" href="#" target="_blank" rel="noopener">
-          <div class="showcase-card__media showcase-card__media--3"></div>
-          <span class="showcase-card__credit"><span class="showcase-card__avatar">M</span>@motion.mira</span>
-        </a>
-        <a class="showcase-card" href="#" target="_blank" rel="noopener">
-          <div class="showcase-card__media showcase-card__media--4">
-            <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-          </div>
-          <span class="showcase-card__credit"><span class="showcase-card__avatar">K</span>@kesz.edits</span>
-        </a>
+        </div>
+
+        <div class="showcase-grid" data-made-with>
+          <a class="showcase-card" href="#" target="_blank" rel="noopener">
+            <div class="showcase-card__media showcase-card__media--1">
+              <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+              <span class="showcase-card__chip">
+                <span class="showcase-card__avatar">D</span>
+                <span class="showcase-card__chip-name">Dropletee</span>
+                <span class="showcase-card__chip-arrow">→</span>
+              </span>
+            </div>
+            <span class="showcase-card__handle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+              @dropletee_
+            </span>
+          </a>
+          <a class="showcase-card" href="#" target="_blank" rel="noopener">
+            <div class="showcase-card__media showcase-card__media--2">
+              <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+              <span class="showcase-card__chip">
+                <span class="showcase-card__avatar">H</span>
+                <span class="showcase-card__chip-name">Hazrd Design</span>
+                <span class="showcase-card__chip-arrow">→</span>
+              </span>
+            </div>
+            <span class="showcase-card__handle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+              @hazrd.design
+            </span>
+          </a>
+          <a class="showcase-card" href="#" target="_blank" rel="noopener">
+            <div class="showcase-card__media showcase-card__media--3">
+              <span class="showcase-card__chip">
+                <span class="showcase-card__avatar">M</span>
+                <span class="showcase-card__chip-name">Motion Mira</span>
+                <span class="showcase-card__chip-arrow">→</span>
+              </span>
+            </div>
+            <span class="showcase-card__handle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+              @motion.mira
+            </span>
+          </a>
+          <a class="showcase-card" href="#" target="_blank" rel="noopener">
+            <div class="showcase-card__media showcase-card__media--4">
+              <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+              <span class="showcase-card__chip">
+                <span class="showcase-card__avatar">K</span>
+                <span class="showcase-card__chip-name">Kesz Edits</span>
+                <span class="showcase-card__chip-arrow">→</span>
+              </span>
+            </div>
+            <span class="showcase-card__handle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+              @kesz.edits
+            </span>
+          </a>
+        </div>
       </div>
+
       <div style="text-align:center;margin-top:1.6rem;">
         <a href="made-with-crispy.html" class="btn btn--ghost">See all work</a>
       </div>
@@ -256,5 +308,16 @@
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/store.js"></script>
+<script>
+(function(){
+  const track = document.querySelector('[data-made-with]');
+  const prev = document.querySelector('[data-showcase-prev]');
+  const next = document.querySelector('[data-showcase-next]');
+  if (!track || !prev || !next) return;
+  const amount = () => Math.max(240, track.clientWidth * 0.8);
+  prev.addEventListener('click', () => track.scrollBy({ left: -amount(), behavior: 'smooth' }));
+  next.addEventListener('click', () => track.scrollBy({ left: amount(), behavior: 'smooth' }));
+})();
+</script>
 </body>
 </html>
