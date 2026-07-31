@@ -108,12 +108,12 @@ const DCAuth = (() => {
     const c = client();
     if (!c) return { error: { message: 'Store is not configured yet.' } };
     try {
-      const res = await fetch(`${window.SUPABASE_URL}/functions/v1/resolve-login`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/resolve-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': window.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({ identifier })
       });
