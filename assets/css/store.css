@@ -302,16 +302,15 @@ main{ position:relative; z-index:1; }
 .banner-nav svg{ width:18px; height:18px; }
 .banner-nav--prev{ left:.6rem; } .banner-nav--next{ right:.6rem; }
 .banner-nav:hover{ background:var(--c-orange); color:#1a0800; border-color:transparent; }
-.banner-counter{
-  display:flex; align-items:center; justify-content:center; gap:.8rem;
-  margin-top:.9rem; color:var(--c-text-faint); font-size:.82rem; font-variant-numeric:tabular-nums;
+.banner-dots{
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  margin-top:.9rem;
 }
-.banner-dots{ display:flex; gap:.35rem; }
 .banner-dots button{
-  width:7px; height:7px; border-radius:999px; background:var(--c-border);
-  transition:all .2s var(--ease); padding:0; border:none;
+  width:8px; height:8px; border-radius:50%; background:transparent;
+  border:1.5px solid var(--c-border); transition:all .25s var(--ease); padding:0;
 }
-.banner-dots button.is-active{ background:var(--c-orange); width:20px; }
+.banner-dots button.is-active{ background:var(--c-orange); border-color:var(--c-orange); }
 
 .banner{
   position:relative; min-height:440px; border-radius:0; overflow:hidden;
