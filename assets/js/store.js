@@ -379,10 +379,7 @@ const CrispyStore = (() => {
             ` : '') +
             bannerHTML(list[i]) +
             (list.length > 1 ? `
-              <div class="banner-counter">
-                <span>${i+1} / ${list.length}</span>
-                <div class="banner-dots">${list.map((_, idx) => `<button data-dot="${idx}" class="${idx===i?'is-active':''}" aria-label="Slide ${idx+1}"></button>`).join('')}</div>
-              </div>` : '');
+              <div class="banner-dots">${list.map((_, idx) => `<button data-dot="${idx}" class="${idx===i?'is-active':''}" aria-label="Slide ${idx+1}"></button>`).join('')}</div>` : '');
           bannerWrap.querySelectorAll('[data-dot]').forEach(dot => {
             dot.addEventListener('click', (e) => { e.preventDefault(); go(Number(dot.dataset.dot)); });
           });
