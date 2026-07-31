@@ -205,7 +205,7 @@ const CrispyStore = (() => {
         ${b.price_label ? `<div class="banner__price"><strong>${esc(b.price_label)}</strong></div>` : ''}
         <div class="banner__overlay">
           ${b.badge ? `<div class="banner__eyebrow">${esc(b.badge)}</div>` : ''}
-          <h3 class="banner__title">${esc(b.title || '')}</h3>
+          <h3 class="banner__title"${b.title_font ? ` style="font-family:'${esc(b.title_font)}', var(--font-display);"` : ''}>${esc(b.title || '')}</h3>
           ${b.subtitle ? `<p class="banner__sub">${esc(b.subtitle)}</p>` : ''}
           ${href ? `<a class="btn btn--sm banner__cta" href="${esc(href)}"${external ? ' target="_blank" rel="noopener"' : ''}>${esc(ctaText)}</a>` : ''}
         </div>
@@ -337,6 +337,24 @@ const CrispyStore = (() => {
     return data || [];
   }
 
+  // Loads only the specific Google Fonts actually chosen for the current
+  // banners (not the whole 100+ font list) — one <link>, updated whenever
+  // the set of fonts in use changes.
+  function loadGoogleFonts(fontNames){
+    const names = [...new Set(fontNames.filter(Boolean))];
+    if (!names.length) return;
+    const families = names.map(n => `family=${encodeURIComponent(n).replace(/%20/g, '+')}:wght@400;600;700`).join('&');
+    const href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+    let link = document.getElementById('dynamic-banner-fonts');
+    if (!link){
+      link = document.createElement('link');
+      link.id = 'dynamic-banner-fonts';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  }
+
   /* ---------- page renderers ---------- */
   async function renderHome(){
     const products = await fetchProducts();
@@ -347,6 +365,7 @@ const CrispyStore = (() => {
       const maxSlides = Math.max(1, Number(settings.banner_max_slides) || 6);
       const intervalMs = Math.max(1, Number(settings.banner_interval_seconds) || 5) * 1000;
       const list = (await fetchBanners()).slice(0, maxSlides);
+      loadGoogleFonts(list.map(b => b.title_font));
       if (!list.length){
         bannerWrap.innerHTML = `<p class="state-msg">No banners set up yet — add one in the admin panel.</p>`;
       } else {
