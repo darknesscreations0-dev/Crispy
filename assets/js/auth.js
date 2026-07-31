@@ -98,6 +98,33 @@ const DCAuth = (() => {
       .maybeSingle();
   }
 
+  // Turns whatever the person typed into the "email or username" field
+  // into a real email Supabase Auth understands. If it's already an
+  // email, this is a no-op network call that just hands it back. If
+  // it's a username, the resolve-login edge function looks up the real
+  // email server-side (see that file for why this needs a function
+  // instead of a plain query).
+  async function resolveIdentifier(identifier) {
+    const c = client();
+    if (!c) return { error: { message: 'Store is not configured yet.' } };
+    try {
+      const res = await fetch(`${window.SUPABASE_URL}/functions/v1/resolve-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': window.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ identifier })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) return { error: { message: data.error || 'Could not find that account.' } };
+      return { email: data.email };
+    } catch (e) {
+      return { error: { message: 'Could not reach the server. Try again.' } };
+    }
+  }
+
   /* ---------- Password reset ---------- */
 
   // Sends a reset-password email to the given address. The link in that
@@ -165,5 +192,5 @@ const DCAuth = (() => {
     });
   }
 
-  return { getUser, signUp, signIn, signInWithGoogle, signOut, getProfile, updateProfile, updateUsername, resetPassword, updatePassword, renderAccountSlots };
+  return { getUser, signUp, signIn, signInWithGoogle, signOut, getProfile, updateProfile, updateUsername, resolveIdentifier, resetPassword, updatePassword, renderAccountSlots };
 })();
