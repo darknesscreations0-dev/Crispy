@@ -218,6 +218,20 @@
           <label>Highlights (one per line — shown as a checkmark list on the product page, replaces the old fixed "License / Updates" text)</label>
           <textarea id="f_highlights" rows="4" placeholder="Commercial use included&#10;Free lifetime updates&#10;Works in AE 2023+"></textarea>
         </div>
+        <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
+          <label>Product file (what the customer actually downloads after buying)</label>
+          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
+            Upload the real deliverable — the .zip, .mogrt, .aep, whatever it is. This is completely separate from the preview image/video above; customers never see this until they've paid.
+          </p>
+          <div class="cp-avatar-drop-like" id="admFileDrop" style="text-align:left;">
+            <input type="file" id="admFileInput" hidden>
+            <span id="admFileDropText">Click to choose the file (or drag & drop)</span>
+          </div>
+          <p class="adm-msg" id="admFileMsg" style="margin-top:.4rem;"></p>
+          <p id="admFileCurrent" style="font-size:.8rem;margin-top:.4rem;">No file uploaded yet.</p>
+          <input type="hidden" id="f_download_url">
+        </div>
+
         <div class="adm-checks">
           <label><input type="checkbox" id="f_is_free"> Free product</label>
           <label><input type="checkbox" id="f_is_featured"> Featured</label>
@@ -322,6 +336,11 @@
   const admPreviewDropText = document.getElementById('admPreviewDropText');
   const admPreviewMsg = document.getElementById('admPreviewMsg');
   const admPreviewCurrent = document.getElementById('admPreviewCurrent');
+  const admFileDrop = document.getElementById('admFileDrop');
+  const admFileInput = document.getElementById('admFileInput');
+  const admFileDropText = document.getElementById('admFileDropText');
+  const admFileMsg = document.getElementById('admFileMsg');
+  const admFileCurrent = document.getElementById('admFileCurrent');
   const admGalleryDrop = document.getElementById('admGalleryDrop');
   const admGalleryFile = document.getElementById('admGalleryFile');
   const admGalleryMsg = document.getElementById('admGalleryMsg');
@@ -365,6 +384,16 @@
     document.getElementById('f_is_free').checked = product ? !!product.is_free : false;
     document.getElementById('f_is_featured').checked = product ? !!product.is_featured : false;
     document.getElementById('f_is_active').checked = product ? !!product.is_active : true;
+
+    document.getElementById('f_download_url').value = product ? (product.download_url || '') : '';
+    admFileCurrent.innerHTML = product && product.download_url
+      ? `Current file: <a href="${esc(product.download_url)}" target="_blank" rel="noopener">${esc(product.download_url.split('/').pop())}</a> — <button type="button" class="btn btn--ghost btn--sm" id="admFileClear">Remove</button>`
+      : 'No file uploaded yet.';
+    const fileClearBtn = document.getElementById('admFileClear');
+    if (fileClearBtn) fileClearBtn.addEventListener('click', () => {
+      document.getElementById('f_download_url').value = '';
+      admFileCurrent.textContent = 'No file uploaded yet.';
+    });
 
     document.getElementById('f_preview_url').value = product ? (product.preview_url || '') : '';
     admPreviewCurrent.innerHTML = product && product.preview_url
@@ -515,6 +544,33 @@
   admPreviewDrop.addEventListener('click', () => admPreviewFolder.click());
   admPreviewFolder.addEventListener('change', () => uploadPreviewFolder(admPreviewFolder.files));
 
+  /* ---------- Product file (the real deliverable, product-files bucket) ---------- */
+  async function uploadProductFile(file){
+    if (!file) return;
+    admFileDropText.textContent = 'Uploading…'; admFileMsg.textContent = '';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name}`;
+    const { error } = await client.storage.from('product-files').upload(path, file, { upsert: true, cacheControl: '3600' });
+    admFileDropText.textContent = 'Click to choose the file (or drag & drop)';
+    if (error){ admFileMsg.textContent = error.message || 'Upload failed.'; admFileMsg.style.color = '#ff6b6b'; return; }
+    const { data: pub } = client.storage.from('product-files').getPublicUrl(path);
+    const publicUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    document.getElementById('f_download_url').value = publicUrl;
+    admFileCurrent.innerHTML = `Current file: <a href="${esc(publicUrl)}" target="_blank" rel="noopener">${esc(file.name)}</a> — <button type="button" class="btn btn--ghost btn--sm" id="admFileClear">Remove</button>`;
+    document.getElementById('admFileClear').addEventListener('click', () => {
+      document.getElementById('f_download_url').value = '';
+      admFileCurrent.textContent = 'No file uploaded yet.';
+    });
+    admFileMsg.textContent = 'Uploaded — click Save product to keep it.'; admFileMsg.style.color = '#4ade80';
+  }
+  admFileDrop.addEventListener('click', () => admFileInput.click());
+  admFileInput.addEventListener('change', () => { if (admFileInput.files[0]) uploadProductFile(admFileInput.files[0]); });
+  ['dragover','dragenter'].forEach(evt => admFileDrop.addEventListener(evt, (e) => { e.preventDefault(); admFileDrop.classList.add('is-dragover'); }));
+  ['dragleave','drop'].forEach(evt => admFileDrop.addEventListener(evt, (e) => { e.preventDefault(); admFileDrop.classList.remove('is-dragover'); }));
+  admFileDrop.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) uploadProductFile(file);
+  });
+
   /* ---------- Gallery (extra images/videos) ---------- */
   function renderGalleryList(){
     document.getElementById('f_gallery').value = JSON.stringify(galleryItems);
@@ -635,6 +691,7 @@
       video_url: document.getElementById('f_video_url').value.trim() || null,
       description: document.getElementById('f_description').value.trim() || null,
       highlights: document.getElementById('f_highlights').value.split('\n').map(s => s.trim()).filter(Boolean),
+      download_url: document.getElementById('f_download_url').value.trim() || null,
       is_free: document.getElementById('f_is_free').checked,
       is_featured: document.getElementById('f_is_featured').checked,
       is_active: document.getElementById('f_is_active').checked,
