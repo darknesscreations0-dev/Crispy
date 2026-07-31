@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Files — Crispy</title>
+<meta name="description" content="Everything you've bought on Crispy.">
+<link rel="icon" type="image/png" href="assets/logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/crispy-pizza.css">
+
+<style>
+.cp-acct-wrap{
+  position:relative; z-index:1;
+  max-width:760px; margin:0 auto;
+  padding:clamp(2.5rem, 7vw, 4rem) clamp(1.2rem,4vw,2rem) 6rem;
+}
+.cp-acct-header{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:1rem; margin-bottom:2.2rem; flex-wrap:wrap;
+}
+.cp-acct-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
+.cp-acct-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; }
+.cp-section-box{
+  border:1px solid var(--cp-border);
+  border-radius:0;
+  background:var(--cp-surface);
+  padding:1.6rem;
+  margin-bottom:1.2rem;
+}
+.cp-file-row{
+  display:flex; align-items:center; gap:1rem; padding:1rem 0;
+  border-bottom:1px solid var(--cp-border);
+}
+.cp-file-row:last-child{ border-bottom:none; }
+.cp-file-thumb{ width:52px; height:52px; flex-shrink:0; background:var(--cp-surface-2, #1a1a1a); overflow:hidden; }
+.cp-file-thumb img{ width:100%; height:100%; object-fit:cover; }
+.cp-file-info{ flex:1; min-width:0; }
+.cp-file-info h4{ font-size:.92rem; font-weight:600; margin-bottom:.15rem; }
+.cp-file-info span{ font-size:.78rem; color:var(--cp-text-faint); }
+</style>
+</head>
+<body>
+
+<div class="cp-starfield" aria-hidden="true"></div>
+
+<header class="cp-topbar">
+  <a href="index.html" class="cp-logo">
+    <span class="cp-logo__mark">🔥</span>
+    Crispy <span class="dim">· by Darkness</span>
+  </a>
+  <div class="cp-topbar__right">
+  </div>
+</header>
+
+<main>
+  <div class="cp-acct-wrap" id="filesContent">
+    <p style="color:var(--cp-text-faint);">Loading…</p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+(function () {
+  const content = document.getElementById('filesContent');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (m) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
+    ));
+  }
+
+  function fmtDate(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
+    catch (e) { return ''; }
+  }
+
+  async function load() {
+    const user = await DCAuth.getUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    content.innerHTML = `
+      <div class="cp-acct-header">
+        <div>
+          <div class="cp-acct-eyebrow">Crispy account</div>
+          <h1 class="cp-acct-title">My files</h1>
+        </div>
+        <a class="cp-btn cp-btn--ghost-cp cp-btn--sm" href="account.html" style="width:auto;">Back to account</a>
+      </div>
+      <div class="cp-section-box" id="filesBox">
+        <p style="color:var(--cp-text-faint);">Loading your purchases…</p>
+      </div>
+    `;
+
+    const box = document.getElementById('filesBox');
+    const client = window.supabaseClient;
+    if (!client) { box.innerHTML = '<p style="color:var(--cp-text-faint);">Store is not configured yet.</p>'; return; }
+
+    // Reads from the `purchases` table, scoped to the signed-in user.
+    // Checkout isn't live on the storefront yet, so this will normally be
+    // empty until a real purchase flow starts writing rows here.
+    const { data, error } = await client
+      .from('purchases')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      box.innerHTML = `<p style="color:var(--cp-text-faint);">Nothing here yet — once checkout is live, everything you buy on Crispy will show up here with instant downloads.</p>`;
+      return;
+    }
+    if (!data || !data.length) {
+      box.innerHTML = `<p style="color:var(--cp-text-faint);">Nothing here yet — once checkout is live, everything you buy on Crispy will show up here with instant downloads.</p>`;
+      return;
+    }
+
+    box.innerHTML = data.map(p => {
+      const name = p.product_name || p.name || 'Untitled product';
+      const image = p.image_url || '';
+      const date = fmtDate(p.created_at || p.purchased_at);
+      const downloadUrl = p.download_url || p.file_url || '#';
+      return `
+        <div class="cp-file-row">
+          <span class="cp-file-thumb">${image ? `<img src="${esc(image)}" alt="">` : ''}</span>
+          <div class="cp-file-info">
+            <h4>${esc(name)}</h4>
+            <span>${esc(date)}</span>
+          </div>
+          <a class="cp-btn cp-btn--sm" href="${esc(downloadUrl)}" style="width:auto;" target="_blank" rel="noopener">Download</a>
+        </div>
+      `;
+    }).join('');
+  }
+
+  load();
+})();
+</script>
+
+</body>
+</html>
