@@ -51,7 +51,7 @@
         <p>Crispy is a software company building tools that make creative work easier, faster, and more fun for creators. We're working toward the biggest creator community out there, with tools built from real hands-on editing experience.</p>
         <div style="margin-top:1.4rem;display:flex;flex-direction:column;gap:.6rem;">
           <a class="btn btn--ghost btn--sm" href="https://discord.gg/ZJ36YfuST" target="_blank" rel="noopener">💬 Join our Discord</a>
-          <a class="btn btn--ghost btn--sm" href="mailto:contactcrispy0@gmail.com">✉️ contactcrispy0@gmail.com</a>
+          <a class="btn btn--ghost btn--sm" href="mailto:contactcrispy0@gmail.com" id="emailBtn">✉️ <span id="emailBtnText">contactcrispy0@gmail.com</span></a>
         </div>
       </div>
 
@@ -116,6 +116,25 @@
   // Contact form — sends via the `send-contact` Supabase Edge Function,
   // which emails contactcrispy0@gmail.com through Resend. See
   // supabase-functions/send-contact/index.ts for setup.
+  // Email button — mailto: still fires for anyone with a mail client set up,
+  // but since a lot of people don't, we also copy the address to the
+  // clipboard on click and flash "Copied!" so it always does *something* useful.
+  const emailBtn = document.getElementById('emailBtn');
+  const emailBtnText = document.getElementById('emailBtnText');
+  const EMAIL_ADDRESS = 'contactcrispy0@gmail.com';
+  let emailResetTimer = null;
+
+  emailBtn.addEventListener('click', (e) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(EMAIL_ADDRESS).then(() => {
+        emailBtnText.textContent = 'Copied to clipboard!';
+        clearTimeout(emailResetTimer);
+        emailResetTimer = setTimeout(() => { emailBtnText.textContent = EMAIL_ADDRESS; }, 2000);
+      }).catch(() => { /* clipboard blocked — mailto still fires as usual */ });
+    }
+    // Deliberately not calling e.preventDefault() — the mailto: link keeps working normally.
+  });
+
   const contactBtn = document.getElementById('contactSend');
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
