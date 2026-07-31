@@ -119,6 +119,13 @@
   const contactBtn = document.getElementById('contactSend');
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  // Arriving from a product page's "custom deal / another way to pay"
+  // link pre-fills the message so the person doesn't retype context.
+  const aboutProduct = new URLSearchParams(window.location.search).get('about');
+  if (aboutProduct) {
+    document.getElementById('cmsg').value = `Hi, I'm interested in "${aboutProduct}" — `;
+  }
+
   contactBtn.addEventListener('click', async () => {
     const name = document.getElementById('cname').value.trim();
     const email = document.getElementById('cemail').value.trim();

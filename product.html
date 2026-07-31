@@ -215,6 +215,7 @@
             <button class="btn" id="pdAddBtn">${free ? 'Download' : 'Add to cart'}</button>
             ${free ? '' : `<button class="btn btn--ghost" id="pdBuyBtn">Buy now</button>`}
           </div>
+          ${free ? '' : `<p style="margin-top:-.8rem;margin-bottom:1.5rem;font-size:.85rem;"><a href="contact.html?about=${encodeURIComponent(product.name)}">Need a custom license, bulk deal, or another way to pay? Contact us →</a></p>`}
         </div>
       </div>
       <div id="pdGallery" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem;"></div>
