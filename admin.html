@@ -116,6 +116,49 @@
           <div><label>Link URL (optional — leave blank to show no button)</label><input type="text" id="bn_link_url" placeholder="product.html?id=... or catalog.html or https://..."></div>
           <div><label>Button text (only shown if a link is set)</label><input type="text" id="bn_cta_text" placeholder="Learn more"></div>
           <div><label>Price tag shown on the banner (optional)</label><input type="text" id="bn_price_label" placeholder="e.g. From $14.99 — leave blank to hide it"></div>
+          <div><label>Title font (headline text)</label>
+            <select id="bn_title_font">
+              <option value="">Default (site font)</option>
+              <optgroup label="Sans-serif">
+                <option>Inter</option><option>Roboto</option><option>Open Sans</option><option>Lato</option>
+                <option>Poppins</option><option>Montserrat</option><option>Work Sans</option><option>Nunito Sans</option>
+                <option>Manrope</option><option>Sora</option><option>Space Grotesk</option><option>Plus Jakarta Sans</option>
+                <option>DM Sans</option><option>Outfit</option><option>Urbanist</option><option>Lexend</option>
+                <option>Epilogue</option><option>Onest</option><option>Figtree</option><option>Hanken Grotesk</option>
+                <option>Instrument Sans</option><option>Public Sans</option><option>IBM Plex Sans</option><option>Karla</option>
+                <option>Rubik</option><option>Mulish</option><option>Jost</option><option>Red Hat Display</option>
+                <option>Albert Sans</option><option>Be Vietnam Pro</option><option>Schibsted Grotesk</option><option>Archivo</option>
+                <option>Barlow</option><option>Heebo</option><option>Cabin</option><option>Arial</option>
+              </optgroup>
+              <optgroup label="Display / Bold / Headline">
+                <option>Bebas Neue</option><option>Anton</option><option>Archivo Black</option><option>Oswald</option>
+                <option>Barlow Condensed</option><option>Big Shoulders Display</option><option>League Spartan</option><option>Unbounded</option>
+                <option>Chivo</option><option>Staatliches</option><option>Passion One</option><option>Alfa Slab One</option>
+                <option>Bungee</option><option>Fjalla One</option><option>Teko</option><option>Saira Condensed</option>
+                <option>Prosto One</option><option>Titan One</option><option>Russo One</option><option>Black Ops One</option>
+                <option>Monoton</option><option>Righteous</option><option>Bowlby One</option><option>Baloo 2</option>
+              </optgroup>
+              <optgroup label="Serif">
+                <option>Playfair Display</option><option>Fraunces</option><option>DM Serif Display</option><option>DM Serif Text</option>
+                <option>Libre Baskerville</option><option>Cormorant</option><option>Cormorant Garamond</option><option>Lora</option>
+                <option>Merriweather</option><option>PT Serif</option><option>Crimson Text</option><option>Bitter</option>
+                <option>Spectral</option><option>Noto Serif</option><option>Source Serif 4</option><option>Newsreader</option>
+                <option>Domine</option><option>Zilla Slab</option><option>Vollkorn</option><option>Petrona</option>
+              </optgroup>
+              <optgroup label="Monospace">
+                <option>JetBrains Mono</option><option>Space Mono</option><option>IBM Plex Mono</option><option>Roboto Mono</option>
+                <option>Fira Code</option><option>Source Code Pro</option><option>Inconsolata</option><option>Courier Prime</option>
+                <option>Overpass Mono</option><option>DM Mono</option>
+              </optgroup>
+              <optgroup label="Handwritten / Script / Decorative">
+                <option>Pacifico</option><option>Caveat</option><option>Permanent Marker</option><option>Dancing Script</option>
+                <option>Sacramento</option><option>Satisfy</option><option>Great Vibes</option><option>Kalam</option>
+                <option>Shadows Into Light</option><option>Indie Flower</option><option>Amatic SC</option><option>Architects Daughter</option>
+                <option>Gochi Hand</option><option>Patrick Hand</option><option>Yellowtail</option>
+              </optgroup>
+            </select>
+            <p style="font-size:.72rem;color:var(--c-text-faint);margin-top:.3rem;">Note: real Helvetica isn't free to embed on the web (paid license) — Arial or Inter are the closest free stand-ins.</p>
+          </div>
           <div><label>Sort order</label><input type="number" step="1" id="bn_sort_order" placeholder="0"></div>
           <div><label><input type="checkbox" id="bn_is_active" checked> Active (shown on homepage)</label></div>
           <div style="grid-column:1/-1;">
@@ -660,6 +703,7 @@
     document.getElementById('bn_subtitle').value = banner ? banner.subtitle || '' : '';
     document.getElementById('bn_link_url').value = banner ? banner.link_url || '' : '';
     document.getElementById('bn_cta_text').value = banner ? banner.cta_text || '' : '';
+    document.getElementById('bn_title_font').value = banner ? banner.title_font || '' : '';
     document.getElementById('bn_price_label').value = banner ? banner.price_label || '' : '';
     document.getElementById('bn_sort_order').value = banner ? (banner.sort_order ?? 0) : (banners.length);
     document.getElementById('bn_is_active').checked = banner ? !!banner.is_active : true;
@@ -753,6 +797,7 @@
       subtitle: document.getElementById('bn_subtitle').value.trim() || null,
       link_url: document.getElementById('bn_link_url').value.trim() || null,
       cta_text: document.getElementById('bn_cta_text').value.trim() || null,
+      title_font: document.getElementById('bn_title_font').value || null,
       price_label: document.getElementById('bn_price_label').value.trim() || null,
       sort_order: document.getElementById('bn_sort_order').value ? Number(document.getElementById('bn_sort_order').value) : 0,
       is_active: document.getElementById('bn_is_active').checked,
