@@ -98,6 +98,28 @@ const DCAuth = (() => {
       .maybeSingle();
   }
 
+  /* ---------- Password reset ---------- */
+
+  // Sends a reset-password email to the given address. The link in that
+  // email lands on reset-password.html, which establishes a recovery
+  // session and lets the person set a new password.
+  async function resetPassword(email) {
+    const c = client();
+    if (!c) return { error: { message: 'Store is not configured yet.' } };
+    const basePath = window.location.pathname.replace(/[^/]*$/, '');
+    return c.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + basePath + 'reset-password.html'
+    });
+  }
+
+  // Called from reset-password.html once Supabase has established a
+  // recovery session from the emailed link, to actually set the new password.
+  async function updatePassword(newPassword) {
+    const c = client();
+    if (!c) return { error: { message: 'Store is not configured yet.' } };
+    return c.auth.updateUser({ password: newPassword });
+  }
+
   /* ---------- Wire up any [data-dc-account] nav slot ---------- */
 
   async function renderAccountSlots() {
@@ -143,5 +165,5 @@ const DCAuth = (() => {
     });
   }
 
-  return { getUser, signUp, signIn, signInWithGoogle, signOut, getProfile, updateUsername, renderAccountSlots };
+  return { getUser, signUp, signIn, signInWithGoogle, signOut, getProfile, updateProfile, updateUsername, resetPassword, updatePassword, renderAccountSlots };
 })();
