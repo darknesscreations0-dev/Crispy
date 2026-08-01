@@ -68,6 +68,7 @@
   <h1>License Admin</h1>
   <input type="password" id="adminKeyInput" placeholder="Admin key">
   <button class="primary" style="width:100%" onclick="unlock()">Unlock</button>
+  <div id="lockStatus" style="margin-top:10px; font-size:11px; min-height:14px;"></div>
 </div>
 
 <div id="app" style="display:none; max-width: 1000px; margin: 0 auto;">
@@ -123,13 +124,42 @@
     el.className = kind || "";
   }
 
+  function setLockStatus(msg, kind) {
+    var el = document.getElementById("lockStatus");
+    el.textContent = msg || "";
+    el.style.color = kind === "err" ? "#e0685f" : kind === "ok" ? "#79b97e" : "#6e6157";
+  }
+
   function unlock() {
     var key = document.getElementById("adminKeyInput").value.trim();
-    if (!key) return;
+    if (!key) return setLockStatus("Enter the admin key.", "err");
     localStorage.setItem(ADMIN_KEY_STORE, key);
-    document.getElementById("lockScreen").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    loadLicenses();
+    setLockStatus("Checking...");
+
+    fetch(FUNCTIONS_BASE + "/admin-licenses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-key": key },
+      body: JSON.stringify({ action: "list" }),
+    })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          localStorage.removeItem(ADMIN_KEY_STORE);
+          return setLockStatus(
+            res.data && res.data.error === "unauthorized"
+              ? "Wrong admin key."
+              : "Error: " + JSON.stringify(res.data),
+            "err",
+          );
+        }
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        renderRows(res.data.licenses);
+        setStatus(res.data.licenses.length + " license(s)");
+      })
+      .catch(function (err) {
+        setLockStatus("Couldn't reach the server: " + err.message, "err");
+      });
   }
 
   function debounceSearch() {
@@ -151,7 +181,7 @@
           localStorage.removeItem(ADMIN_KEY_STORE);
           document.getElementById("lockScreen").style.display = "block";
           document.getElementById("app").style.display = "none";
-          return setStatus("Wrong admin key.", "err");
+          return setLockStatus("Wrong admin key.", "err");
         }
         return setStatus("Failed to load.", "err");
       }
@@ -166,7 +196,7 @@
     licenses.forEach(function (lic) {
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td class="key" title="Click to copy" onclick="copyKey(\\'' + lic.license_key + '\\')">' + lic.license_key + '</td>' +
+        '<td class="key" title="Click to copy">' + lic.license_key + '</td>' +
         '<td>' + lic.email + '</td>' +
         '<td><span class="badge ' + lic.status + '">' + lic.status + '</span></td>' +
         '<td class="device">' + (lic.device_name ? lic.device_name : '<span class="none">unbound</span>') + '</td>' +
@@ -174,6 +204,7 @@
         '<td class="device">' + fmt(lic.last_seen_at) + '</td>' +
         '<td id="actions-' + cssSafe(lic.license_key) + '"></td>';
       tbody.appendChild(tr);
+      tr.querySelector(".key").onclick = function () { copyKey(lic.license_key); };
 
       var actionsCell = tr.querySelector('[id^="actions-"]');
       if (lic.status === "active") {
