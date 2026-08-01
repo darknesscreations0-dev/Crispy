@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crispy — License Admin</title>
+<style>
+  :root {
+    --bg-0: #0b0705; --panel: #16100b; --panel-2: #1a130d; --panel-border: #2c2014;
+    --card: #1f1710; --card-hi: #2a1f14; --card-border: #3a2b1a;
+    --text-primary: #f2ece4; --text-secondary: #a3958a; --text-dim: #6e6157;
+    --orange: #e8762c; --orange-1: #f2884a; --orange-2: #f79a4d; --orange-dim: #6e4018;
+    --green: #79b97e; --red: #e0685f;
+    --r-lg: 18px; --r-md: 12px; --r-sm: 9px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg-0); color: var(--text-primary);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 13px;
+    min-height: 100vh; padding: 24px;
+  }
+  h1 { font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: var(--orange-2); margin: 0 0 20px; }
+  .card {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--panel-border); border-radius: var(--r-lg);
+    padding: 18px; margin-bottom: 20px;
+  }
+  #lockScreen { max-width: 340px; margin: 80px auto; text-align: center; }
+  #lockScreen input { width: 100%; margin-bottom: 12px; }
+  input, select {
+    background: #1c1a18; border: 1px solid #3a3530; color: var(--text-primary);
+    padding: 9px 10px; border-radius: var(--r-sm); font-size: 12px; font-family: inherit; outline: none;
+  }
+  input:focus, select:focus { border-color: var(--orange); }
+  button {
+    padding: 9px 14px; border-radius: var(--r-sm); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; font-family: inherit;
+    border: 1px solid var(--card-border); background: linear-gradient(180deg, var(--card-hi), var(--card));
+    color: var(--text-primary);
+  }
+  button:hover { filter: brightness(1.1); }
+  button.primary {
+    background: linear-gradient(180deg, var(--orange-2), var(--orange)); color: #1c0c02; border-color: #ffb066;
+  }
+  button.danger { color: var(--red); }
+  button.small { padding: 5px 9px; font-size: 10px; margin-right: 4px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); padding: 8px 10px; border-bottom: 1px solid var(--panel-border); }
+  td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; vertical-align: middle; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .key { font-family: monospace; letter-spacing: 0.5px; cursor: pointer; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .badge.active { background: rgba(121,185,126,0.15); color: var(--green); }
+  .badge.revoked { background: rgba(224,104,95,0.15); color: var(--red); }
+  .device { color: var(--text-secondary); font-size: 11px; }
+  .none { color: var(--text-dim); font-style: italic; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+  .toolbar input[type="text"] { flex: 1; }
+  #status { font-size: 11px; color: var(--text-dim); margin-top: 8px; min-height: 14px; }
+  #status.err { color: var(--red); }
+  #status.ok { color: var(--green); }
+  .create-row { display: flex; gap: 8px; }
+  .create-row input { flex: 1; }
+</style>
+</head>
+<body>
+
+<div id="lockScreen">
+  <h1>License Admin</h1>
+  <input type="password" id="adminKeyInput" placeholder="Admin key">
+  <button class="primary" style="width:100%" onclick="unlock()">Unlock</button>
+</div>
+
+<div id="app" style="display:none; max-width: 1000px; margin: 0 auto;">
+  <h1>Crispy Pizza — License Admin</h1>
+
+  <div class="card">
+    <div style="font-size:11px; color:var(--text-secondary); margin-bottom:10px;">Issue a key manually (e.g. a gift, a support fix, a direct sale)</div>
+    <div class="create-row">
+      <input type="email" id="newEmail" placeholder="customer@email.com">
+      <input type="text" id="newProduct" placeholder="Product (default: crispy-pizza)">
+      <button class="primary" onclick="createLicense()">Create & Email Key</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Search by key or email..." oninput="debounceSearch()">
+      <button onclick="loadLicenses()">Refresh</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Key</th><th>Email</th><th>Status</th><th>Device</th><th>Created</th><th>Last seen</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="status"></div>
+  </div>
+</div>
+
+<script>
+  var FUNCTIONS_BASE = "https://sqayzhsybgfgyrnpwxyn.supabase.co/functions/v1";
+  var ADMIN_KEY_STORE = "cp_admin_key";
+  var searchTimer;
+
+  function adminKey() { return localStorage.getItem(ADMIN_KEY_STORE) || ""; }
+
+  function api(action, extra) {
+    var body = Object.assign({ action: action }, extra || {});
+    return fetch(FUNCTIONS_BASE + "/admin-licenses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-key": adminKey() },
+      body: JSON.stringify(body),
+    }).then(function (r) {
+      return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+    });
+  }
+
+  function setStatus(msg, kind) {
+    var el = document.getElementById("status");
+    el.textContent = msg || "";
+    el.className = kind || "";
+  }
+
+  function unlock() {
+    var key = document.getElementById("adminKeyInput").value.trim();
+    if (!key) return;
+    localStorage.setItem(ADMIN_KEY_STORE, key);
+    document.getElementById("lockScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadLicenses();
+  }
+
+  function debounceSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadLicenses, 300);
+  }
+
+  function fmt(dateStr) {
+    if (!dateStr) return "—";
+    var d = new Date(dateStr);
+    return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function loadLicenses() {
+    setStatus("Loading...");
+    api("list", { search: document.getElementById("searchInput").value.trim() }).then(function (res) {
+      if (!res.ok) {
+        if (res.data.error === "unauthorized") {
+          localStorage.removeItem(ADMIN_KEY_STORE);
+          document.getElementById("lockScreen").style.display = "block";
+          document.getElementById("app").style.display = "none";
+          return setStatus("Wrong admin key.", "err");
+        }
+        return setStatus("Failed to load.", "err");
+      }
+      renderRows(res.data.licenses);
+      setStatus(res.data.licenses.length + " license(s)");
+    });
+  }
+
+  function renderRows(licenses) {
+    var tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+    licenses.forEach(function (lic) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td class="key" title="Click to copy" onclick="copyKey(\\'' + lic.license_key + '\\')">' + lic.license_key + '</td>' +
+        '<td>' + lic.email + '</td>' +
+        '<td><span class="badge ' + lic.status + '">' + lic.status + '</span></td>' +
+        '<td class="device">' + (lic.device_name ? lic.device_name : '<span class="none">unbound</span>') + '</td>' +
+        '<td class="device">' + fmt(lic.created_at) + '</td>' +
+        '<td class="device">' + fmt(lic.last_seen_at) + '</td>' +
+        '<td id="actions-' + cssSafe(lic.license_key) + '"></td>';
+      tbody.appendChild(tr);
+
+      var actionsCell = tr.querySelector('[id^="actions-"]');
+      if (lic.status === "active") {
+        actionsCell.appendChild(makeBtn("Revoke", "small danger", function () { revoke(lic.license_key); }));
+      } else {
+        actionsCell.appendChild(makeBtn("Reactivate", "small", function () { reactivate(lic.license_key); }));
+      }
+      if (lic.device_id) {
+        actionsCell.appendChild(makeBtn("Unbind device", "small", function () { unbind(lic.license_key); }));
+      }
+    });
+  }
+
+  function cssSafe(s) { return s.replace(/[^a-zA-Z0-9]/g, "_"); }
+
+  function makeBtn(label, cls, onClick) {
+    var b = document.createElement("button");
+    b.textContent = label;
+    b.className = cls;
+    b.onclick = onClick;
+    return b;
+  }
+
+  function copyKey(key) {
+    navigator.clipboard.writeText(key);
+    setStatus("Copied " + key, "ok");
+  }
+
+  function createLicense() {
+    var email = document.getElementById("newEmail").value.trim();
+    var product = document.getElementById("newProduct").value.trim();
+    if (!email) return setStatus("Enter an email first.", "err");
+    setStatus("Creating...");
+    api("create", { email: email, product: product || undefined }).then(function (res) {
+      if (!res.ok) return setStatus("Failed to create key.", "err");
+      setStatus("Created and emailed: " + res.data.license_key, "ok");
+      document.getElementById("newEmail").value = "";
+      document.getElementById("newProduct").value = "";
+      loadLicenses();
+    });
+  }
+
+  function revoke(key) {
+    if (!confirm("Revoke " + key + "? It will stop working immediately.")) return;
+    api("revoke", { license_key: key }).then(function (res) {
+      if (!res.ok) return setStatus("Failed.", "err");
+      setStatus("Revoked " + key, "ok");
+      loadLicenses();
+    });
+  }
+
+  function reactivate(key) {
+    api("reactivate", { license_key: key }).then(function (res) {
+      if (!res.ok) return setStatus("Failed.", "err");
+      setStatus("Reactivated " + key, "ok");
+      loadLicenses();
+    });
+  }
+
+  function unbind(key) {
+    if (!confirm("Free up " + key + " from its current device? They'll be able to activate fresh anywhere without needing an OTP.")) return;
+    api("unbind", { license_key: key }).then(function (res) {
+      if (!res.ok) return setStatus("Failed.", "err");
+      setStatus("Unbound " + key, "ok");
+      loadLicenses();
+    });
+  }
+
+  // auto-unlock if key already stored
+  if (adminKey()) {
+    document.getElementById("lockScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadLicenses();
+  }
+</script>
+</body>
+</html>
