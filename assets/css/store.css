@@ -411,17 +411,35 @@ main{ position:relative; z-index:1; }
 
 /* ---------- Made with Crispy (showcase) ---------- */
 .showcase-hero{
-  position:relative; isolation:isolate; overflow:hidden;
+  position:relative; isolation:isolate;
   border-radius:22px;
   padding:clamp(1.8rem,4vw,3rem) clamp(1.2rem,4vw,2.4rem) clamp(2.2rem,4vw,3rem);
   background:linear-gradient(135deg,#4b3df0 0%,#6c46e6 46%,#8036e0 100%);
 }
+.showcase-hero__decor{
+  position:absolute; inset:0; z-index:0; overflow:hidden;
+  border-radius:inherit; pointer-events:none;
+}
 .showcase-hero__blob{
-  position:absolute; left:-10%; top:-20%; z-index:0;
-  width:min(48%,420px); aspect-ratio:1/1;
-  background:radial-gradient(circle at 35% 35%, #ffb066 0%, #f7923f 55%, transparent 76%);
+  position:absolute; z-index:0;
+  aspect-ratio:1/1;
   border-radius:44% 56% 62% 38% / 48% 42% 58% 52%;
+}
+.showcase-hero__blob--1{
+  left:-10%; top:-20%; width:min(48%,420px);
+  background:radial-gradient(circle at 35% 35%, #ffb066 0%, #f7923f 55%, transparent 76%);
   opacity:.92;
+}
+.showcase-hero__blob--2{
+  right:-8%; bottom:-24%; width:min(38%,340px);
+  background:radial-gradient(circle at 60% 40%, #ff6fae 0%, #b23fe0 55%, transparent 76%);
+  opacity:.55;
+  border-radius:38% 62% 45% 55% / 55% 45% 62% 38%;
+}
+.showcase-hero__blob--3{
+  right:6%; top:-6%; width:min(20%,160px);
+  background:radial-gradient(circle at 50% 50%, #ffe08a 0%, #f7923f 60%, transparent 78%);
+  opacity:.4;
 }
 .showcase-hero__dots{
   position:absolute; left:3%; top:8%; z-index:0;
@@ -457,10 +475,13 @@ main{ position:relative; z-index:1; }
 
 .showcase-grid{
   position:relative; z-index:1;
+}
+.showcase-grid--carousel{
   display:flex; gap:1rem; overflow-x:auto; scroll-snap-type:x mandatory;
   padding-bottom:.3rem; scrollbar-width:none;
 }
-.showcase-grid::-webkit-scrollbar{ display:none; }
+.showcase-grid--carousel::-webkit-scrollbar{ display:none; }
+.showcase-grid--carousel .showcase-card{ scroll-snap-align:start; flex:0 0 auto; width:clamp(200px,22vw,258px); }
 .showcase-card{
   scroll-snap-align:start; flex:0 0 auto;
   width:clamp(200px,22vw,258px);
