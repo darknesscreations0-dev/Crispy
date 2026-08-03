@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crispy — License Admin</title>
 <style>
   :root {
@@ -58,6 +59,32 @@
   #status { font-size: 11px; color: var(--text-dim); margin-top: 8px; min-height: 14px; }
   #status.err { color: var(--red); }
   #status.ok { color: var(--green); }
+
+  @media (max-width: 640px) {
+    body { padding: 14px; font-size: 13px; }
+    .card { padding: 14px; }
+    .create-row { flex-direction: column; align-items: stretch; }
+    .create-row input, .create-row button { width: 100%; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar button { width: 100%; }
+
+    /* Table becomes a stack of cards below 640px — no horizontal scrolling/squeezing */
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tbody tr {
+      border: 1px solid var(--card-border); border-radius: var(--r-md);
+      margin-bottom: 10px; padding: 10px 12px; background: var(--card);
+    }
+    tbody tr:hover td { background: transparent; }
+    tbody td { border-bottom: none; padding: 4px 0; display: flex; justify-content: space-between; gap: 10px; }
+    tbody td::before {
+      content: attr(data-label); color: var(--text-dim); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    tbody td.mobile-actions { display: block; padding-top: 8px; }
+    tbody td.mobile-actions::before { content: none; }
+    tbody td.mobile-actions button { margin: 2px 4px 2px 0; }
+  }
   .create-row { display: flex; gap: 8px; }
   .create-row input { flex: 1; }
 </style>
@@ -196,13 +223,13 @@
     licenses.forEach(function (lic) {
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td class="key" title="Click to copy">' + lic.license_key + '</td>' +
-        '<td>' + lic.email + '</td>' +
-        '<td><span class="badge ' + lic.status + '">' + lic.status + '</span></td>' +
-        '<td class="device">' + (lic.device_name ? lic.device_name : '<span class="none">unbound</span>') + '</td>' +
-        '<td class="device">' + fmt(lic.created_at) + '</td>' +
-        '<td class="device">' + fmt(lic.last_seen_at) + '</td>' +
-        '<td id="actions-' + cssSafe(lic.license_key) + '"></td>';
+        '<td class="key" data-label="Key" title="Click to copy">' + lic.license_key + '</td>' +
+        '<td data-label="Email">' + lic.email + '</td>' +
+        '<td data-label="Status"><span class="badge ' + lic.status + '">' + lic.status + '</span></td>' +
+        '<td class="device" data-label="Device">' + (lic.device_name ? lic.device_name : '<span class="none">unbound</span>') + '</td>' +
+        '<td class="device" data-label="Created">' + fmt(lic.created_at) + '</td>' +
+        '<td class="device" data-label="Last seen">' + fmt(lic.last_seen_at) + '</td>' +
+        '<td class="mobile-actions" id="actions-' + cssSafe(lic.license_key) + '"></td>';
       tbody.appendChild(tr);
       tr.querySelector(".key").onclick = function () { copyKey(lic.license_key); };
 
