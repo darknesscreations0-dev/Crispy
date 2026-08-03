@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Files — Crispy</title>
+<title>Library — Crispy</title>
 <meta name="description" content="Everything you've bought on Crispy.">
 <link rel="icon" type="image/png" href="assets/icon.png">
 
@@ -26,6 +26,7 @@
 }
 .cp-acct-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
 .cp-acct-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; }
+.cp-section-heading{ font-size:.92rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--cp-text-faint); margin:0 0 .9rem; }
 .cp-section-box{
   border:1px solid var(--cp-border);
   border-radius:0;
@@ -43,6 +44,19 @@
 .cp-file-info{ flex:1; min-width:0; }
 .cp-file-info h4{ font-size:.92rem; font-weight:600; margin-bottom:.15rem; }
 .cp-file-info span{ font-size:.78rem; color:var(--cp-text-faint); }
+
+/* License Keys section */
+.cp-lic-row{
+  display:flex; align-items:center; gap:1rem; padding:1rem 0;
+  border-bottom:1px solid var(--cp-border); flex-wrap:wrap;
+}
+.cp-lic-row:last-child{ border-bottom:none; }
+.cp-lic-info{ flex:1; min-width:200px; }
+.cp-lic-key{ font-family:monospace; font-size:.98rem; font-weight:600; letter-spacing:.5px; }
+.cp-lic-meta{ font-size:.78rem; color:var(--cp-text-faint); margin-top:.2rem; }
+.cp-lic-badge{ display:inline-block; padding:2px 9px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border:1px solid; }
+.cp-lic-badge--active{ color:#79b97e; border-color:#79b97e; }
+.cp-lic-badge--revoked{ color:#e0685f; border-color:#e0685f; }
 </style>
 </head>
 <body>
@@ -70,6 +84,8 @@
 <script>
 (function () {
   const content = document.getElementById('filesContent');
+  const FUNCTIONS_BASE = 'https://sqayzhsybgfgyrnpwxyn.supabase.co/functions/v1';
+  const ANON_KEY = 'sb_publishable_t-_OryiioljtSOGH985nAw_z8MJ2wk4';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, (m) => (
@@ -91,18 +107,32 @@
       <div class="cp-acct-header">
         <div>
           <div class="cp-acct-eyebrow">Crispy account</div>
-          <h1 class="cp-acct-title">My files</h1>
+          <h1 class="cp-acct-title">Library</h1>
         </div>
         <a class="cp-btn cp-btn--ghost-cp cp-btn--sm" href="account.html" style="width:auto;">Back to account</a>
       </div>
+
+      <h2 class="cp-section-heading">License keys</h2>
+      <div class="cp-section-box" id="licBox">
+        <p style="color:var(--cp-text-faint);">Loading your license keys…</p>
+      </div>
+
+      <h2 class="cp-section-heading">Purchases</h2>
       <div class="cp-section-box" id="filesBox">
         <p style="color:var(--cp-text-faint);">Loading your purchases…</p>
       </div>
     `;
 
+    loadPurchases();
+    loadLicenses();
+  }
+
+  async function loadPurchases() {
     const box = document.getElementById('filesBox');
     const client = window.supabaseClient;
     if (!client) { box.innerHTML = '<p style="color:var(--cp-text-faint);">Store is not configured yet.</p>'; return; }
+
+    const user = await DCAuth.getUser();
 
     // Reads from the `purchases` table, scoped to the signed-in user.
     // Checkout isn't live on the storefront yet, so this will normally be
@@ -113,11 +143,7 @@
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      box.innerHTML = `<p style="color:var(--cp-text-faint);">Nothing here yet — once checkout is live, everything you buy on Crispy will show up here with instant downloads.</p>`;
-      return;
-    }
-    if (!data || !data.length) {
+    if (error || !data || !data.length) {
       box.innerHTML = `<p style="color:var(--cp-text-faint);">Nothing here yet — once checkout is live, everything you buy on Crispy will show up here with instant downloads.</p>`;
       return;
     }
@@ -138,6 +164,73 @@
         </div>
       `;
     }).join('');
+  }
+
+  async function callLicenseFn(action, extra) {
+    const client = window.supabaseClient;
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) return { ok: false, data: { error: 'not_authenticated' } };
+
+    const res = await fetch(FUNCTIONS_BASE + '/my-license', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': ANON_KEY,
+      },
+      body: JSON.stringify(Object.assign({ action: action }, extra || {})),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data: data };
+  }
+
+  async function loadLicenses() {
+    const box = document.getElementById('licBox');
+    const res = await callLicenseFn('get');
+
+    if (!res.ok) {
+      box.innerHTML = `<p style="color:var(--cp-text-faint);">Couldn't load your license keys right now.</p>`;
+      return;
+    }
+
+    const licenses = res.data.licenses || [];
+    if (!licenses.length) {
+      box.innerHTML = `<p style="color:var(--cp-text-faint);">No license keys yet — these show up here automatically after a Crispy Pizza purchase.</p>`;
+      return;
+    }
+
+    box.innerHTML = licenses.map(lic => {
+      const badgeClass = lic.status === 'active' ? 'cp-lic-badge--active' : 'cp-lic-badge--revoked';
+      const device = lic.device_name ? esc(lic.device_name) : 'Not activated on any device yet';
+      const canReset = lic.status === 'active';
+      return `
+        <div class="cp-lic-row">
+          <div class="cp-lic-info">
+            <div class="cp-lic-key">${esc(lic.license_key)} <span class="cp-lic-badge ${badgeClass}">${esc(lic.status)}</span></div>
+            <div class="cp-lic-meta">${esc(lic.product || 'crispy-pizza')} · ${device}</div>
+          </div>
+          ${canReset ? `<button class="cp-btn cp-btn--ghost-cp cp-btn--sm cp-reset-btn" style="width:auto;" data-key="${esc(lic.license_key)}">Reset key</button>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    box.querySelectorAll('.cp-reset-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const key = btn.getAttribute('data-key');
+        if (!confirm('This will permanently deactivate ' + key + ' and issue you a brand new key by email. Continue?')) return;
+        btn.disabled = true;
+        btn.textContent = 'Resetting...';
+        const res = await callLicenseFn('reset', { license_key: key });
+        if (!res.ok) {
+          alert('Reset failed. Try again in a moment.');
+          btn.disabled = false;
+          btn.textContent = 'Reset key';
+          return;
+        }
+        alert('Done! Your new key (' + res.data.license_key + ') has been emailed to you.');
+        loadLicenses();
+      });
+    });
   }
 
   load();
