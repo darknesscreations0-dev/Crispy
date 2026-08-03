@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buy Direct — Crispy</title>
+<meta name="description" content="Purchase Crispy Pizza directly from the seller.">
+<link rel="icon" type="image/png" href="assets/icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/crispy-pizza.css">
+
+<style>
+.cp-buy-wrap{
+  position:relative; z-index:1;
+  max-width:640px; margin:0 auto;
+  padding:clamp(2.5rem, 7vw, 4rem) clamp(1.2rem,4vw,2rem) 6rem;
+}
+.cp-buy-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
+.cp-buy-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; color:#f2ece4; margin:0 0 1rem; }
+.cp-buy-note{
+  border:1px solid var(--cp-border); background:var(--cp-surface);
+  padding:1rem 1.2rem; margin-bottom:2rem; font-size:.85rem; color:var(--cp-text-faint); line-height:1.6;
+}
+.cp-buy-note b{ color:#f2ece4; }
+.cp-step-box{
+  border:1px solid var(--cp-border); background:var(--cp-surface);
+  padding:1.6rem; margin-bottom:1.2rem;
+}
+.cp-step-num{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:26px; height:26px; border:1px solid var(--cp-border);
+  font-size:.8rem; font-weight:700; margin-right:.6rem; flex-shrink:0;
+}
+.cp-step-head{ display:flex; align-items:center; margin-bottom:.7rem; font-weight:600; font-size:.95rem; }
+.cp-step-body{ font-size:.88rem; color:var(--cp-text-faint); line-height:1.7; padding-left:34px; }
+.cp-upi-box{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  background:var(--cp-surface-2, #1a1a1a); border:1px solid var(--cp-border);
+  padding:.9rem 1.1rem; margin-top:.6rem; font-family:monospace; font-size:1rem; color:#f2ece4;
+}
+.cp-upi-box button{
+  font-family:inherit; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;
+  background:transparent; border:1px solid var(--cp-border); color:#f2ece4;
+  padding:.4rem .7rem; cursor:pointer;
+}
+.cp-upi-box button:hover{ border-color:#e8762c; color:#e8762c; }
+.cp-price-tag{ font-size:1.3rem; font-weight:700; color:#f2ece4; margin:.4rem 0 0; }
+</style>
+</head>
+<body>
+
+<div class="cp-starfield" aria-hidden="true"></div>
+
+<header class="cp-topbar">
+  <a href="index.html" class="cp-logo cp-logo-clean">
+    <img src="assets/icon.png" alt="Crispy" style="height:28px;width:auto;display:block;">
+    <span style="color:#fff;font-weight:600;">Crispy</span>
+  </a>
+  <div class="cp-topbar__right"></div>
+</header>
+
+<main>
+  <div class="cp-buy-wrap">
+    <div class="cp-buy-eyebrow">Purchase</div>
+    <h1 class="cp-buy-title">Buy Crispy Pizza — direct from the seller</h1>
+
+    <div class="cp-buy-note">
+      <b>Card/automated checkout isn't live yet.</b> Until it is, purchases are handled directly over
+      WhatsApp — message us to buy, and you'll get your license key by email once payment's confirmed.
+    </div>
+
+    <div class="cp-step-box">
+      <div class="cp-step-head"><span class="cp-step-num">1</span> Message us on WhatsApp</div>
+      <div class="cp-step-body">
+        Tap below to start a chat — tell us which product you want, and we'll send you payment details.
+        <br><br>
+        <a href="https://wa.me/919557862237?text=Hi%2C%20I%27d%20like%20to%20buy%20Crispy%20Pizza"
+           target="_blank" rel="noopener"
+           style="display:inline-block;margin-top:.4rem;background:#e8762c;color:#1a0f06;font-weight:700;
+                  padding:.7rem 1.4rem;text-decoration:none;font-size:.9rem;">
+          Message on WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <div class="cp-step-box">
+      <div class="cp-step-head"><span class="cp-step-num">2</span> Pay and confirm</div>
+      <div class="cp-step-body">
+        We'll send you our UPI details there — pay directly and send a screenshot of the payment along
+        with the email address you want your license key sent to.
+      </div>
+    </div>
+
+    <div class="cp-step-box">
+      <div class="cp-step-head"><span class="cp-step-num">3</span> Get your license key</div>
+      <div class="cp-step-body">
+        Once payment's confirmed, you'll receive your license key by email — typically within a
+        few hours. Open Crispy Pizza in After Effects and paste the key into the activation screen.
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
