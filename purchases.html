@@ -25,7 +25,7 @@
   gap:1rem; margin-bottom:2.2rem; flex-wrap:wrap;
 }
 .cp-acct-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
-.cp-acct-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; }
+.cp-acct-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; color:#f2ece4; }
 .cp-section-heading{ font-size:.92rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--cp-text-faint); margin:0 0 .9rem; }
 .cp-section-box{
   border:1px solid var(--cp-border);
@@ -57,6 +57,9 @@
 .cp-lic-badge{ display:inline-block; padding:2px 9px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border:1px solid; }
 .cp-lic-badge--active{ color:#79b97e; border-color:#79b97e; }
 .cp-lic-badge--revoked{ color:#e0685f; border-color:#e0685f; }
+.cp-logo-clean{ display:flex; align-items:center; gap:.6rem; text-decoration:none !important; }
+.cp-logo-clean img{ height:28px; width:auto; display:block; }
+.cp-logo-clean span{ color:#ffffff !important; font-weight:600; text-decoration:none !important; }
 </style>
 </head>
 <body>
@@ -64,9 +67,9 @@
 <div class="cp-starfield" aria-hidden="true"></div>
 
 <header class="cp-topbar">
-  <a href="index.html" class="cp-logo">
-    <span class="cp-logo__mark">🔥</span>
-    Crispy <span class="dim">· by Darkness</span>
+  <a href="index.html" class="cp-logo cp-logo-clean">
+    <img src="assets/icon.png" alt="Crispy">
+    <span>Crispy</span>
   </a>
   <div class="cp-topbar__right">
   </div>
@@ -167,29 +170,43 @@
   }
 
   async function callLicenseFn(action, extra) {
-    const client = window.supabaseClient;
-    const { data: { session } } = await client.auth.getSession();
-    if (!session) return { ok: false, data: { error: 'not_authenticated' } };
+    try {
+      const client = window.supabaseClient;
+      if (!client) return { ok: false, data: { error: 'supabaseClient not found on this page' } };
 
-    const res = await fetch(FUNCTIONS_BASE + '/my-license', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + session.access_token,
-        'apikey': ANON_KEY,
-      },
-      body: JSON.stringify(Object.assign({ action: action }, extra || {})),
-    });
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, data: data };
+      const { data: sessionData, error: sessionErr } = await client.auth.getSession();
+      if (sessionErr) return { ok: false, data: { error: 'getSession error: ' + sessionErr.message } };
+      const session = sessionData && sessionData.session;
+      if (!session) return { ok: false, data: { error: 'not_authenticated' } };
+
+      const res = await fetch(FUNCTIONS_BASE + '/my-license', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token,
+          'apikey': ANON_KEY,
+        },
+        body: JSON.stringify(Object.assign({ action: action }, extra || {})),
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, data: data };
+    } catch (err) {
+      return { ok: false, data: { error: 'exception: ' + (err && err.message ? err.message : String(err)) } };
+    }
   }
 
   async function loadLicenses() {
     const box = document.getElementById('licBox');
-    const res = await callLicenseFn('get');
+    let res;
+    try {
+      res = await callLicenseFn('get');
+    } catch (err) {
+      box.innerHTML = `<p style="color:var(--cp-text-faint);">Error: ${esc(err && err.message ? err.message : String(err))}</p>`;
+      return;
+    }
 
     if (!res.ok) {
-      box.innerHTML = `<p style="color:var(--cp-text-faint);">Couldn't load your license keys right now.</p>`;
+      box.innerHTML = `<p style="color:var(--cp-text-faint);">Couldn't load your license keys: ${esc(res.data && res.data.error ? res.data.error : 'unknown error')}</p>`;
       return;
     }
 
