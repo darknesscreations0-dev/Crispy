@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buy Direct — Crispy</title>
-<meta name="description" content="Purchase Crispy Pizza directly from the seller.">
+<meta name="description" content="Complete your Crispy purchase directly with the seller.">
 <link rel="icon" type="image/png" href="assets/icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,14 +75,9 @@
 <main>
   <div class="cp-buy-wrap">
     <div class="cp-buy-eyebrow">Purchase</div>
-    <h1 class="cp-buy-title">Buy Crispy Pizza — direct from the seller</h1>
+    <h1 class="cp-buy-title">Buy direct from the seller</h1>
 
-    <div class="cp-order-box" id="orderBox" style="display:none;">
-      <div>
-        <div class="cp-order-name" id="productName"></div>
-      </div>
-      <div class="cp-order-price" id="productPrice"></div>
-    </div>
+    <div id="orderItems"></div>
 
     <div class="cp-buy-note">
       <b>Card/automated checkout isn't live yet.</b> Until it is, purchases are handled directly over
@@ -122,18 +117,39 @@
 </main>
 
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get('product');
-  const price = params.get('price');
+  // Same cart the rest of the site uses (see assets/js/store.js) —
+  // an array of {id, name, price, image, qty} under this localStorage key.
+  const CART_KEY = 'crispy_cart';
+  function getCart(){
+    try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function money(n){ return '$' + Number(n).toFixed(2); }
 
-  if (name || price) {
-    document.getElementById('orderBox').style.display = 'flex';
-    document.getElementById('productName').textContent = name || 'Crispy Pizza';
-    document.getElementById('productPrice').textContent = price ? '$' + price : '';
+  const cart = getCart();
+  const itemsEl = document.getElementById('orderItems');
 
-    const msg = `Hi, I'd like to buy ${name || 'Crispy Pizza'}${price ? ' ($' + price + ')' : ''}`;
+  if (cart.length){
+    const total = cart.reduce((s, i) => s + Number(i.price) * (i.qty || 1), 0);
+    itemsEl.innerHTML = cart.map(i => `
+      <div class="cp-order-box">
+        <div class="cp-order-name">${i.name}${i.qty > 1 ? ' × ' + i.qty : ''}</div>
+        <div class="cp-order-price">${money(i.price * (i.qty || 1))}</div>
+      </div>`).join('') + `
+      <div class="cp-order-box" style="border-color:#e8762c;">
+        <div class="cp-order-name">Total</div>
+        <div class="cp-order-price">${money(total)}</div>
+      </div>`;
+
+    const itemList = cart.map(i => `${i.name}${i.qty > 1 ? ' x' + i.qty : ''}`).join(', ');
+    const msg = `Hi, I'd like to buy: ${itemList} — Total ${money(total)}`;
     document.getElementById('waBtn').href =
       'https://wa.me/919557862237?text=' + encodeURIComponent(msg);
+  } else {
+    itemsEl.innerHTML = `
+      <div class="cp-order-box">
+        <div class="cp-order-name">Your cart is empty</div>
+      </div>`;
   }
 </script>
 
