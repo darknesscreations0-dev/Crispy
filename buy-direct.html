@@ -89,7 +89,7 @@
       <div class="cp-step-body">
         Tap below to start a chat — tell us which product you want, and we'll send you payment details.
         <br><br>
-        <a href="https://wa.me/919557862237?text=Hi%2C%20I%27d%20like%20to%20buy%20Crispy%20Pizza"
+        <a href="https://wa.me/919759469047?text=Hi%2C%20I%27d%20like%20to%20buy%20from%20Crispy"
            target="_blank" rel="noopener" id="waBtn"
            style="display:inline-block;margin-top:.4rem;background:#e8762c;color:#1a0f06;font-weight:700;
                   padding:.7rem 1.4rem;text-decoration:none;font-size:.9rem;">
@@ -141,10 +141,23 @@
         <div class="cp-order-price">${money(total)}</div>
       </div>`;
 
-    const itemList = cart.map(i => `${i.name}${i.qty > 1 ? ' x' + i.qty : ''}`).join(', ');
-    const msg = `Hi, I'd like to buy: ${itemList} — Total ${money(total)}`;
+    const itemLines = cart.map(i =>
+      `${i.name} — ${i.qty > 1 ? i.qty + ' × ' + money(i.price) + ' = ' : ''}${money(i.price * (i.qty || 1))}`
+    ).join('\n');
+
+    const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    const msg =
+`Crispy — Order Summary
+Date: ${today}
+
+${itemLines}
+
+Total: ${money(total)}
+
+Hi, I'd like to buy this — please share payment details.`;
     document.getElementById('waBtn').href =
-      'https://wa.me/919557862237?text=' + encodeURIComponent(msg);
+      'https://wa.me/919759469047?text=' + encodeURIComponent(msg);
   } else {
     itemsEl.innerHTML = `
       <div class="cp-order-box">
