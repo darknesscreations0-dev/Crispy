@@ -524,7 +524,7 @@ const CrispyStore = (() => {
         <div class="cart-summary__row total"><span>Total</span><span>${money(total)}</span></div>
         <button class="btn btn--block" style="margin-top:1.2rem;" data-checkout>Checkout</button>
         <p style="text-align:center;color:var(--c-text-faint);font-size:.78rem;margin-top:.8rem;">Secure checkout — coming soon.</p>
-        <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="buy-direct.html">Need another way to pay right now? Contact us →</a></p>
+        <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="contact.html">Need another way to pay right now? Contact us →</a></p>
       </div>`;
 
     wrap.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
@@ -535,7 +535,7 @@ const CrispyStore = (() => {
     }));
     wrap.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => { removeFromCart(b.dataset.remove); renderCart(); }));
     const co = wrap.querySelector('[data-checkout]');
-    if (co) co.addEventListener('click', () => { window.location.href = 'checkout.html'; });
+    if (co) co.addEventListener('click', () => showToast('Checkout isn\'t live yet — hang tight!'));
   }
 
   /* ---------- FAQ accordion ---------- */
