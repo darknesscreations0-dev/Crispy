@@ -87,6 +87,21 @@
   }
   .create-row { display: flex; gap: 8px; }
   .create-row input { flex: 1; }
+
+  .product-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .product-tab {
+    padding: 9px 16px; border-radius: var(--r-sm); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer;
+    border: 1px solid var(--card-border); background: var(--card); color: var(--text-secondary);
+  }
+  .product-tab.active {
+    background: linear-gradient(180deg, var(--orange-2), var(--orange)); color: #1c0c02; border-color: #ffb066;
+  }
+  .badge.product { background: rgba(232,118,44,0.14); color: var(--orange-1); margin-left: 6px; }
+  @media (max-width: 640px) {
+    .product-tabs { flex-wrap: wrap; }
+    .product-tab { flex: 1; text-align: center; }
+  }
 </style>
 </head>
 <body>
@@ -99,13 +114,22 @@
 </div>
 
 <div id="app" style="display:none; max-width: 1000px; margin: 0 auto;">
-  <h1>Crispy Pizza — License Admin</h1>
+  <h1>Crispy — License Admin</h1>
+
+  <div class="product-tabs" id="productTabs">
+    <div class="product-tab active" data-product="crispy-pizza">Crispy Pizza</div>
+    <div class="product-tab" data-product="crispy-captions">Crispy Captions</div>
+    <div class="product-tab" data-product="">All Products</div>
+  </div>
 
   <div class="card">
     <div style="font-size:11px; color:var(--text-secondary); margin-bottom:10px;">Issue a key manually (e.g. a gift, a support fix, a direct sale)</div>
     <div class="create-row">
       <input type="email" id="newEmail" placeholder="customer@email.com">
-      <input type="text" id="newProduct" placeholder="Product (default: crispy-pizza)">
+      <select id="newProduct">
+        <option value="crispy-pizza">Crispy Pizza</option>
+        <option value="crispy-captions">Crispy Captions</option>
+      </select>
       <button class="primary" onclick="createLicense()">Create & Email Key</button>
     </div>
   </div>
@@ -113,12 +137,17 @@
   <div class="card">
     <div class="toolbar">
       <input type="text" id="searchInput" placeholder="Search by key or email..." oninput="debounceSearch()">
+      <select id="statusFilter" onchange="loadLicenses()">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="revoked">Revoked</option>
+      </select>
       <button onclick="loadLicenses()">Refresh</button>
     </div>
     <table>
       <thead>
         <tr>
-          <th>Key</th><th>Email</th><th>Status</th><th>Device</th><th>Created</th><th>Last seen</th><th></th>
+          <th>Key</th><th>Product</th><th>Email</th><th>Status</th><th>Device</th><th>Created</th><th>Last seen</th><th></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -131,8 +160,19 @@
   var FUNCTIONS_BASE = "https://sqayzhsybgfgyrnpwxyn.supabase.co/functions/v1";
   var ADMIN_KEY_STORE = "cp_admin_key";
   var searchTimer;
+  var currentProduct = "crispy-pizza";
 
   function adminKey() { return localStorage.getItem(ADMIN_KEY_STORE) || ""; }
+
+  document.getElementById("productTabs").addEventListener("click", function (e) {
+    var tab = e.target.closest(".product-tab");
+    if (!tab) return;
+    document.querySelectorAll(".product-tab").forEach(function (t) { t.classList.remove("active"); });
+    tab.classList.add("active");
+    currentProduct = tab.dataset.product;
+    if (currentProduct) document.getElementById("newProduct").value = currentProduct;
+    loadLicenses();
+  });
 
   function api(action, extra) {
     var body = Object.assign({ action: action }, extra || {});
@@ -166,7 +206,7 @@
     fetch(FUNCTIONS_BASE + "/admin-licenses", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-admin-key": key },
-      body: JSON.stringify({ action: "list" }),
+      body: JSON.stringify({ action: "list", product: currentProduct || undefined }),
     })
       .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
@@ -202,7 +242,11 @@
 
   function loadLicenses() {
     setStatus("Loading...");
-    api("list", { search: document.getElementById("searchInput").value.trim() }).then(function (res) {
+    api("list", {
+      search: document.getElementById("searchInput").value.trim(),
+      product: currentProduct || undefined,
+      status: document.getElementById("statusFilter").value || undefined,
+    }).then(function (res) {
       if (!res.ok) {
         if (res.data.error === "unauthorized") {
           localStorage.removeItem(ADMIN_KEY_STORE);
@@ -224,6 +268,7 @@
       var tr = document.createElement("tr");
       tr.innerHTML =
         '<td class="key" data-label="Key" title="Click to copy">' + lic.license_key + '</td>' +
+        '<td data-label="Product">' + productLabel(lic.product) + '</td>' +
         '<td data-label="Email">' + lic.email + '</td>' +
         '<td data-label="Status"><span class="badge ' + lic.status + '">' + lic.status + '</span></td>' +
         '<td class="device" data-label="Device">' + (lic.device_name ? lic.device_name : '<span class="none">unbound</span>') + '</td>' +
@@ -247,6 +292,9 @@
 
   function cssSafe(s) { return s.replace(/[^a-zA-Z0-9]/g, "_"); }
 
+  var PRODUCT_LABELS = { "crispy-pizza": "Crispy Pizza", "crispy-captions": "Crispy Captions" };
+  function productLabel(p) { return PRODUCT_LABELS[p] || p || "—"; }
+
   function makeBtn(label, cls, onClick) {
     var b = document.createElement("button");
     b.textContent = label;
@@ -262,14 +310,13 @@
 
   function createLicense() {
     var email = document.getElementById("newEmail").value.trim();
-    var product = document.getElementById("newProduct").value.trim();
+    var product = document.getElementById("newProduct").value;
     if (!email) return setStatus("Enter an email first.", "err");
     setStatus("Creating...");
-    api("create", { email: email, product: product || undefined }).then(function (res) {
+    api("create", { email: email, product: product }).then(function (res) {
       if (!res.ok) return setStatus("Failed to create key.", "err");
       setStatus("Created and emailed: " + res.data.license_key, "ok");
       document.getElementById("newEmail").value = "";
-      document.getElementById("newProduct").value = "";
       loadLicenses();
     });
   }
