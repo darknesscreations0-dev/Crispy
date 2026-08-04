@@ -20,32 +20,40 @@
   max-width:640px; margin:0 auto;
   padding:clamp(2.5rem, 7vw, 4rem) clamp(1.2rem,4vw,2rem) 6rem;
 }
-.cp-buy-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
+.cp-buy-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint, #a89c8d); margin-bottom:.5rem; }
 .cp-buy-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; color:#f2ece4; margin:0 0 1rem; }
 .cp-buy-note{
-  border:1px solid var(--cp-border); background:var(--cp-surface);
-  padding:1rem 1.2rem; margin-bottom:2rem; font-size:.85rem; color:var(--cp-text-faint); line-height:1.6;
+  border:1px solid var(--cp-border, #3a3226); background:var(--cp-surface, #16120c);
+  padding:1rem 1.2rem; margin-bottom:2rem; font-size:.85rem; color:var(--cp-text-faint, #a89c8d); line-height:1.6;
 }
 .cp-buy-note b{ color:#f2ece4; }
 .cp-step-box{
-  border:1px solid var(--cp-border); background:var(--cp-surface);
+  border:1px solid var(--cp-border, #3a3226); background:var(--cp-surface, #16120c);
   padding:1.6rem; margin-bottom:1.2rem;
 }
 .cp-step-num{
   display:inline-flex; align-items:center; justify-content:center;
-  width:26px; height:26px; border:1px solid var(--cp-border);
+  width:26px; height:26px; border:1px solid var(--cp-border, #3a3226);
   font-size:.8rem; font-weight:700; margin-right:.6rem; flex-shrink:0;
+  color:#f2ece4;
 }
-.cp-step-head{ display:flex; align-items:center; margin-bottom:.7rem; font-weight:600; font-size:.95rem; }
-.cp-step-body{ font-size:.88rem; color:var(--cp-text-faint); line-height:1.7; padding-left:34px; }
+.cp-step-head{ display:flex; align-items:center; margin-bottom:.7rem; font-weight:600; font-size:.95rem; color:#f2ece4; }
+.cp-step-body{ font-size:.88rem; color:var(--cp-text-faint, #a89c8d); line-height:1.7; padding-left:34px; }
+.cp-order-box{
+  border:1px solid var(--cp-border, #3a3226); background:var(--cp-surface, #16120c);
+  padding:1.1rem 1.3rem; margin-bottom:1.6rem;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.cp-order-name{ font-weight:600; font-size:.95rem; color:#f2ece4; }
+.cp-order-price{ font-size:1.1rem; font-weight:700; color:#f2ece4; }
 .cp-upi-box{
   display:flex; align-items:center; justify-content:space-between; gap:1rem;
-  background:var(--cp-surface-2, #1a1a1a); border:1px solid var(--cp-border);
+  background:var(--cp-surface-2, #1a1a1a); border:1px solid var(--cp-border, #3a3226);
   padding:.9rem 1.1rem; margin-top:.6rem; font-family:monospace; font-size:1rem; color:#f2ece4;
 }
 .cp-upi-box button{
   font-family:inherit; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;
-  background:transparent; border:1px solid var(--cp-border); color:#f2ece4;
+  background:transparent; border:1px solid var(--cp-border, #3a3226); color:#f2ece4;
   padding:.4rem .7rem; cursor:pointer;
 }
 .cp-upi-box button:hover{ border-color:#e8762c; color:#e8762c; }
@@ -69,6 +77,13 @@
     <div class="cp-buy-eyebrow">Purchase</div>
     <h1 class="cp-buy-title">Buy Crispy Pizza — direct from the seller</h1>
 
+    <div class="cp-order-box" id="orderBox" style="display:none;">
+      <div>
+        <div class="cp-order-name" id="productName"></div>
+      </div>
+      <div class="cp-order-price" id="productPrice"></div>
+    </div>
+
     <div class="cp-buy-note">
       <b>Card/automated checkout isn't live yet.</b> Until it is, purchases are handled directly over
       WhatsApp — message us to buy, and you'll get your license key by email once payment's confirmed.
@@ -80,7 +95,7 @@
         Tap below to start a chat — tell us which product you want, and we'll send you payment details.
         <br><br>
         <a href="https://wa.me/919557862237?text=Hi%2C%20I%27d%20like%20to%20buy%20Crispy%20Pizza"
-           target="_blank" rel="noopener"
+           target="_blank" rel="noopener" id="waBtn"
            style="display:inline-block;margin-top:.4rem;background:#e8762c;color:#1a0f06;font-weight:700;
                   padding:.7rem 1.4rem;text-decoration:none;font-size:.9rem;">
           Message on WhatsApp
@@ -105,6 +120,22 @@
     </div>
   </div>
 </main>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get('product');
+  const price = params.get('price');
+
+  if (name || price) {
+    document.getElementById('orderBox').style.display = 'flex';
+    document.getElementById('productName').textContent = name || 'Crispy Pizza';
+    document.getElementById('productPrice').textContent = price ? '$' + price : '';
+
+    const msg = `Hi, I'd like to buy ${name || 'Crispy Pizza'}${price ? ' ($' + price + ')' : ''}`;
+    document.getElementById('waBtn').href =
+      'https://wa.me/919557862237?text=' + encodeURIComponent(msg);
+  }
+</script>
 
 </body>
 </html>
