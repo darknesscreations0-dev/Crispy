@@ -3,11 +3,9 @@
    Loads products from Supabase, runs the cart (localStorage),
    and wires shared UI (cart badge, toast, faq, countdown, reveals).
    ============================================================ */
-
 const CrispyStore = (() => {
   const CART_KEY = 'crispy_cart';
   const CURRENCY = '$';
-
   /* ---------- helpers ---------- */
   function client(){ return window.supabaseClient || null; }
   function money(n){ return CURRENCY + Number(n).toFixed(2); }
@@ -25,7 +23,6 @@ const CrispyStore = (() => {
     }
     return `<img${cls} src="${esc(p.image_url || placeholderImg(p.name || p.id, w, h))}" alt="${esc(p.name)}" loading="lazy">`;
   }
-
   // Resizes `container` to match the natural aspect ratio of the
   // .js-autofit-media element inside it (image or video), once its real
   // dimensions are known — so a landscape image never gets stuck inside
@@ -45,7 +42,6 @@ const CrispyStore = (() => {
       if (el.complete && el.naturalWidth) apply(); else el.addEventListener('load', apply, { once:true });
     }
   }
-
   function discountPct(p){
     if (!p.compare_at || Number(p.compare_at) <= Number(p.price)) return 0;
     return Math.round((1 - Number(p.price) / Number(p.compare_at)) * 100);
@@ -76,7 +72,6 @@ const CrispyStore = (() => {
     if (!apps.length) return '';
     return `<div class="card__apps">${apps.map(a => `<span class="card__app-chip">${esc(APP_ABBR[a] || a.slice(0,2))}</span>`).join('')}</div>`;
   }
-
   /* ---------- cart storage ---------- */
   function getCart(){
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
@@ -89,7 +84,6 @@ const CrispyStore = (() => {
   }
   function cartCount(){ return getCart().reduce((n,i)=> n + (i.qty||1), 0); }
   function cartTotal(){ return getCart().reduce((s,i)=> s + Number(i.price) * (i.qty||1), 0); }
-
   function addToCart(product){
     if (product.is_free || Number(product.price) === 0){
       showToast('This one is free — grab it from the product page!');
@@ -111,7 +105,6 @@ const CrispyStore = (() => {
     saveCart(items);
   }
   function removeFromCart(id){ saveCart(getCart().filter(i => i.id !== id)); }
-
   function updateCartBadge(){
     const n = cartCount();
     document.querySelectorAll('[data-cart-count]').forEach(el => {
@@ -119,7 +112,6 @@ const CrispyStore = (() => {
       el.style.display = n > 0 ? 'flex' : 'none';
     });
   }
-
   /* ---------- toast ---------- */
   let toastEl, toastTimer;
   function showToast(msg){
@@ -133,7 +125,6 @@ const CrispyStore = (() => {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toastEl.classList.remove('is-show'), 2200);
   }
-
   /* ---------- product fetch ---------- */
   const productCache = { all: null };
   async function fetchProducts(){
@@ -150,7 +141,6 @@ const CrispyStore = (() => {
     productCache.all = data || [];
     return productCache.all;
   }
-
   /* ---------- card markup ---------- */
   function cardHTML(p){
     const off = discountPct(p);
@@ -179,7 +169,6 @@ const CrispyStore = (() => {
         </div>
       </article>`;
   }
-
   /* ---------- banner markup (home spotlight) ---------- */
   const BANNER_ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
@@ -211,7 +200,6 @@ const CrispyStore = (() => {
         </div>
       </div>`;
   }
-
   /* ---------- catalog card markup (marketplace grid) ---------- */
   function catalogCardHTML(p){
     const free = p.is_free || Number(p.price) === 0;
@@ -246,7 +234,6 @@ const CrispyStore = (() => {
         </div>
       </article>`;
   }
-
   function wireAddButtons(products){
     document.querySelectorAll('[data-add]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -261,7 +248,6 @@ const CrispyStore = (() => {
       });
     });
   }
-
   // "Buy now" — adds the item then jumps straight to the cart, skipping
   // the "keep browsing" step. There's no live payment gateway yet (see
   // cart.html), so for now this is just a faster path to checkout, same
@@ -270,7 +256,6 @@ const CrispyStore = (() => {
     addToCart(product);
     window.location.href = 'cart.html';
   }
-
   /* ---------- Interactive demo panel ---------- */
   function wireDemo(){
     const demo = document.querySelector('[data-demo]');
@@ -283,7 +268,6 @@ const CrispyStore = (() => {
     };
     const list = demo.querySelector('[data-demo-list]');
     const tabs = demo.querySelectorAll('.demo__tab');
-
     function animateStage(){
       stage.style.transform = 'scale(.6) translateY(20px)';
       stage.style.opacity = '0';
@@ -315,7 +299,6 @@ const CrispyStore = (() => {
     }));
     paintList('easing');
   }
-
   // Homepage banner timing/count — configurable from the admin panel
   // (site_settings table, singleton row id=1). Falls back to the old
   // hardcoded defaults if the table/row isn't there yet.
@@ -326,7 +309,6 @@ const CrispyStore = (() => {
     if (error || !data) return { banner_interval_seconds: 5, banner_max_slides: 6 };
     return data;
   }
-
   // The homepage banner slides — fully custom, from the `banners` table,
   // not derived from any product.
   async function fetchBanners(){
@@ -336,7 +318,6 @@ const CrispyStore = (() => {
     if (error) return [];
     return data || [];
   }
-
   // Loads only the specific Google Fonts actually chosen for the current
   // banners (not the whole 100+ font list) — one <link>, updated whenever
   // the set of fonts in use changes.
@@ -354,11 +335,9 @@ const CrispyStore = (() => {
     }
     if (link.href !== href) link.href = href;
   }
-
   /* ---------- page renderers ---------- */
   async function renderHome(){
     const products = await fetchProducts();
-
     const bannerWrap = document.querySelector('[data-home-banners]');
     if (bannerWrap){
       const settings = await fetchBannerSettings();
@@ -397,18 +376,15 @@ const CrispyStore = (() => {
         resetTimer();
       }
     }
-
     const grid = document.querySelector('[data-home-grid]');
     if (grid){
       const featured = products.filter(p => p.is_featured).slice(0, 4);
       const list = featured.length ? featured : products.slice(0, 4);
       grid.innerHTML = list.length ? list.map(cardHTML).join('') : `<p class="state-msg">Products coming soon.</p>`;
     }
-
     wireAddButtons(products);
     observeReveals();
   }
-
   async function renderCatalog(){
     const grid = document.querySelector('[data-catalog-grid]');
     if (!grid) return;
@@ -419,14 +395,12 @@ const CrispyStore = (() => {
     const priceSelect = document.querySelector('[data-filter-price]');
     const compatSelect = document.querySelector('[data-filter-compat]');
     const sortTabs = document.querySelectorAll('[data-sort]');
-
     // Populate category options from real data
     if (catSelect){
       const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
       catSelect.innerHTML = `<option value="all">All categories</option>` +
         cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
     }
-
     // Pre-fill from URL (?q=... &cat=...) — lets the homepage search bar and
     // category links land here already filtered.
     const params = new URLSearchParams(window.location.search);
@@ -441,14 +415,12 @@ const CrispyStore = (() => {
       compatSelect.innerHTML = `<option value="all">All apps</option>` +
         apps.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
     }
-
     let sort = 'featured';
     function paint(){
       const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
       const cat = catSelect ? catSelect.value : 'all';
       const price = priceSelect ? priceSelect.value : 'all';
       const compat = compatSelect ? compatSelect.value : 'all';
-
       let list = products.filter(p => {
         if (cat !== 'all' && p.category !== cat) return false;
         if (compat !== 'all' && (p.compatible_with || 'After Effects') !== compat) return false;
@@ -463,17 +435,14 @@ const CrispyStore = (() => {
         }
         return true;
       });
-
       if (sort === 'latest') list = [...list].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
       else if (sort === 'popular') list = [...list].sort((a,b) => (Number(b.rating)||0) - (Number(a.rating)||0));
       else list = [...list].sort((a,b) => (b.is_featured === a.is_featured) ? 0 : (b.is_featured ? 1 : -1));
-
       grid.innerHTML = list.length ? list.map(catalogCardHTML).join('') : `<p class="state-msg">Nothing here yet.</p>`;
       if (countEl) countEl.textContent = `${list.length} product${list.length===1?'':'s'}`;
       wireAddButtons(products);
       observeReveals();
     }
-
     if (searchInput) searchInput.addEventListener('input', paint);
     if (catSelect) catSelect.addEventListener('change', paint);
     if (priceSelect) priceSelect.addEventListener('change', paint);
@@ -484,10 +453,8 @@ const CrispyStore = (() => {
       sort = tab.dataset.sort;
       paint();
     }));
-
     paint();
   }
-
   function renderCart(){
     const wrap = document.querySelector('[data-cart-wrap]');
     if (!wrap) return;
@@ -514,7 +481,6 @@ const CrispyStore = (() => {
         </div>
         <button class="cart-item__remove" data-remove="${i.id}">Remove</button>
       </div>`).join('');
-
     const total = cartTotal();
     wrap.innerHTML = `
       ${rows}
@@ -524,9 +490,8 @@ const CrispyStore = (() => {
         <div class="cart-summary__row total"><span>Total</span><span>${money(total)}</span></div>
         <button class="btn btn--block" style="margin-top:1.2rem;" data-checkout>Checkout</button>
         <p style="text-align:center;color:var(--c-text-faint);font-size:.78rem;margin-top:.8rem;">Secure checkout — coming soon.</p>
-        <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="contact.html">Need another way to pay right now? Contact us →</a></p>
+        <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="buy-direct.html">Need another way to pay right now? Contact us →</a></p>
       </div>`;
-
     wrap.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
       const it = getCart().find(x => x.id === b.dataset.inc); setQty(b.dataset.inc, (it?.qty||1)+1); renderCart();
     }));
@@ -535,9 +500,8 @@ const CrispyStore = (() => {
     }));
     wrap.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => { removeFromCart(b.dataset.remove); renderCart(); }));
     const co = wrap.querySelector('[data-checkout]');
-    if (co) co.addEventListener('click', () => showToast('Checkout isn\'t live yet — hang tight!'));
+    if (co) co.addEventListener('click', () => { window.location.href = 'checkout.html'; });
   }
-
   /* ---------- FAQ accordion ---------- */
   function wireFaq(){
     document.querySelectorAll('.faq__q').forEach(q => {
@@ -549,7 +513,6 @@ const CrispyStore = (() => {
       });
     });
   }
-
   /* ---------- countdown (rolling, resets each visit) ---------- */
   function wireCountdown(){
     const el = document.querySelector('[data-countdown]');
@@ -563,7 +526,6 @@ const CrispyStore = (() => {
     }
     tick();
   }
-
   /* ---------- reveal on scroll ---------- */
   let revealObs;
   function observeReveals(){
@@ -577,7 +539,6 @@ const CrispyStore = (() => {
     }
     document.querySelectorAll('.reveal:not(.is-visible)').forEach(el => revealObs.observe(el));
   }
-
   /* ---------- init ---------- */
   const NAV_ICONS = {
     'index.html': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
@@ -589,7 +550,6 @@ const CrispyStore = (() => {
     const burger = document.querySelector('[data-nav-burger]');
     const links = document.querySelector('[data-nav-links]');
     if (!burger || !links) return;
-
     // Inject icons per link (once)
     links.querySelectorAll('a').forEach(a => {
       if (a.querySelector('svg')) return;
@@ -597,12 +557,10 @@ const CrispyStore = (() => {
       const icon = NAV_ICONS[href];
       if (icon) a.insertAdjacentHTML('afterbegin', icon);
     });
-
     // Inject close button (once)
     if (!links.querySelector('[data-nav-close]')) {
       links.insertAdjacentHTML('afterbegin', `<button type="button" class="nav__close" data-nav-close aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`);
     }
-
     // Inject backdrop scrim (once)
     let scrim = document.querySelector('[data-nav-scrim]');
     if (!scrim) {
@@ -611,7 +569,6 @@ const CrispyStore = (() => {
       scrim.setAttribute('data-nav-scrim', '');
       document.body.appendChild(scrim);
     }
-
     const closeMenu = () => {
       links.classList.remove('is-open');
       scrim.classList.remove('is-open');
@@ -622,7 +579,6 @@ const CrispyStore = (() => {
       scrim.classList.add('is-open');
       burger.setAttribute('aria-expanded', 'true');
     };
-
     burger.addEventListener('click', () => {
       links.classList.contains('is-open') ? closeMenu() : openMenu();
     });
@@ -630,12 +586,10 @@ const CrispyStore = (() => {
     links.querySelector('[data-nav-close]').addEventListener('click', closeMenu);
     links.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
   }
-
   /* ---------- Cookie consent + update subscription ---------- */
   function wireCookieBanner(){
     if (localStorage.getItem('crispy-cookie-consent')) return;
     if (document.querySelector('[data-cookie-banner]')) return;
-
     const el = document.createElement('div');
     el.className = 'cookie-banner';
     el.setAttribute('data-cookie-banner', '');
@@ -651,14 +605,11 @@ const CrispyStore = (() => {
       <div class="cookie-banner__msg" data-cookie-msg></div>
     `;
     document.body.appendChild(el);
-
     function closeBanner(){
       localStorage.setItem('crispy-cookie-consent', '1');
       el.remove();
     }
-
     el.querySelector('[data-cookie-dismiss]').addEventListener('click', closeBanner);
-
     el.querySelector('[data-cookie-form]').addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = el.querySelector('[data-cookie-email]');
@@ -681,7 +632,6 @@ const CrispyStore = (() => {
       setTimeout(closeBanner, 900);
     });
   }
-
   function init(){
     updateCartBadge();
     wireFaq();
@@ -696,7 +646,6 @@ const CrispyStore = (() => {
   }
   document.addEventListener('DOMContentLoaded', init);
   document.addEventListener('crispy-cart-change', () => { renderCart(); });
-
   return { addToCart, buyNow, getCart, cartCount, cartTotal, showToast, money, placeholderImg, autoFitMedia };
 })();
 window.CrispyStore = CrispyStore;
