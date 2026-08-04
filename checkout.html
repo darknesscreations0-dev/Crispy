@@ -87,7 +87,7 @@
         <div class="cp-order-name" id="productName">Crispy Pizza — Lifetime License</div>
         <div class="cp-order-sub">1 item</div>
       </div>
-      <div class="cp-order-price" id="productPrice">₹XXXX</div>
+      <div class="cp-order-price" id="productPrice">$—</div>
     </div>
 
     <div class="cp-section-heading">Payment methods</div>
@@ -118,9 +118,32 @@
       </div>
     </div>
 
-    <a href="buy-direct.html" class="cp-continue-btn">Continue</a>
+    <a href="buy-direct.html" class="cp-continue-btn" id="continueBtn">Continue</a>
   </div>
 </main>
+
+<script>
+  // Reads the product being purchased from the URL, e.g.
+  // checkout.html?product=Crispy%20Pizza%20%E2%80%94%20Lifetime%20License&price=49
+  // Link to this page from your catalog/product cards with those params set.
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get('product');
+  const price = params.get('price');
+
+  if (name) {
+    document.getElementById('productName').textContent = name;
+  }
+  if (price) {
+    document.getElementById('productPrice').textContent = '$' + price;
+  }
+
+  // Carry the same product/price through to the buy-direct page so the
+  // WhatsApp message and order summary there stay in sync.
+  const continueBtn = document.getElementById('continueBtn');
+  if (name || price) {
+    continueBtn.href = 'buy-direct.html?' + params.toString();
+  }
+</script>
 
 </body>
 </html>
