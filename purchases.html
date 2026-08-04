@@ -24,39 +24,60 @@
   display:flex; align-items:center; justify-content:space-between;
   gap:1rem; margin-bottom:2.2rem; flex-wrap:wrap;
 }
-.cp-acct-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint); margin-bottom:.5rem; }
+.cp-acct-eyebrow{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--cp-text-faint, #a89c8d); margin-bottom:.5rem; }
 .cp-acct-title{ font-family:var(--font-display); font-size:clamp(1.7rem,3.6vw,2.4rem); font-weight:600; color:#f2ece4; }
-.cp-section-heading{ font-size:.92rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--cp-text-faint); margin:0 0 .9rem; }
+.cp-section-heading{ font-size:.92rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--cp-text-faint, #a89c8d); margin:0 0 .9rem; }
 .cp-section-box{
-  border:1px solid var(--cp-border);
+  border:1px solid var(--cp-border, #3a3226);
   border-radius:0;
-  background:var(--cp-surface);
+  background:var(--cp-surface, #16120c);
   padding:1.6rem;
   margin-bottom:1.2rem;
 }
-.cp-file-row{
-  display:flex; align-items:center; gap:1rem; padding:1rem 0;
-  border-bottom:1px solid var(--cp-border);
-}
-.cp-file-row:last-child{ border-bottom:none; }
-.cp-file-thumb{ width:52px; height:52px; flex-shrink:0; background:var(--cp-surface-2, #1a1a1a); overflow:hidden; }
-.cp-file-thumb img{ width:100%; height:100%; object-fit:cover; }
-.cp-file-info{ flex:1; min-width:0; }
-.cp-file-info h4{ font-size:.92rem; font-weight:600; margin-bottom:.15rem; }
-.cp-file-info span{ font-size:.78rem; color:var(--cp-text-faint); }
+.cp-empty-msg{ color:#a89c8d; font-size:.9rem; line-height:1.6; }
 
-/* License Keys section */
-.cp-lic-row{
-  display:flex; align-items:center; gap:1rem; padding:1rem 0;
-  border-bottom:1px solid var(--cp-border); flex-wrap:wrap;
+/* Merged purchase row: product + key + download, all in one card */
+.cp-purchase-row{
+  padding:1.3rem 0;
+  border-bottom:1px solid var(--cp-border, #3a3226);
 }
-.cp-lic-row:last-child{ border-bottom:none; }
-.cp-lic-info{ flex:1; min-width:200px; }
-.cp-lic-key{ font-family:monospace; font-size:.98rem; font-weight:600; letter-spacing:.5px; }
-.cp-lic-meta{ font-size:.78rem; color:var(--cp-text-faint); margin-top:.2rem; }
-.cp-lic-badge{ display:inline-block; padding:2px 9px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border:1px solid; }
+.cp-purchase-row:last-child{ border-bottom:none; }
+.cp-purchase-top{
+  display:flex; align-items:center; gap:1rem;
+}
+.cp-file-thumb{ width:56px; height:56px; flex-shrink:0; background:var(--cp-surface-2, #1a1a1a); overflow:hidden; }
+.cp-file-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.cp-purchase-info{ flex:1; min-width:0; }
+.cp-purchase-info h4{ font-size:1rem; font-weight:600; color:#f2ece4; margin-bottom:.15rem; }
+.cp-purchase-date{ font-size:.78rem; color:#a89c8d; }
+.cp-purchase-actions{ display:flex; gap:.6rem; flex-shrink:0; }
+
+.cp-purchase-details{
+  margin-top:1rem; margin-left:0;
+  background:var(--cp-surface-2, #1a1a1a);
+  border:1px solid var(--cp-border, #3a3226);
+  padding:.9rem 1.1rem;
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+}
+.cp-lic-key{ font-family:monospace; font-size:.95rem; font-weight:600; letter-spacing:.5px; color:#f2ece4; }
+.cp-lic-meta{ font-size:.78rem; color:#a89c8d; margin-top:.25rem; }
+.cp-lic-badge{ display:inline-block; padding:2px 9px; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border:1px solid; margin-left:.5rem; }
 .cp-lic-badge--active{ color:#79b97e; border-color:#79b97e; }
 .cp-lic-badge--revoked{ color:#e0685f; border-color:#e0685f; }
+.cp-no-license{ font-size:.82rem; color:#a89c8d; font-style:italic; }
+
+.cp-btn-download{
+  display:inline-block; text-decoration:none; text-align:center;
+  background:#e8762c; color:#1a0f06; font-weight:700; font-size:.82rem;
+  padding:.5rem 1rem; white-space:nowrap;
+}
+.cp-btn-reset{
+  display:inline-block; text-decoration:none; text-align:center; cursor:pointer;
+  background:transparent; color:#f2ece4; font-weight:600; font-size:.78rem;
+  border:1px solid var(--cp-border, #3a3226); padding:.45rem .9rem; white-space:nowrap;
+}
+.cp-btn-reset:hover{ border-color:#e8762c; color:#e8762c; }
+
 .cp-logo-clean{ display:flex; align-items:center; gap:.6rem; text-decoration:none !important; }
 .cp-logo-clean img{ height:28px; width:auto; display:block; }
 .cp-logo-clean span{ color:#ffffff !important; font-weight:600; text-decoration:none !important; }
@@ -77,7 +98,7 @@
 
 <main>
   <div class="cp-acct-wrap" id="filesContent">
-    <p style="color:var(--cp-text-faint);">Loading…</p>
+    <p class="cp-empty-msg">Loading…</p>
   </div>
 </main>
 
@@ -102,71 +123,15 @@
     catch (e) { return ''; }
   }
 
-  async function load() {
-    const user = await DCAuth.getUser();
-    if (!user) { window.location.href = 'login.html'; return; }
-
-    content.innerHTML = `
-      <div class="cp-acct-header">
-        <div>
-          <div class="cp-acct-eyebrow">Crispy account</div>
-          <h1 class="cp-acct-title">Library</h1>
-        </div>
-        <a class="cp-btn cp-btn--ghost-cp cp-btn--sm" href="account.html" style="width:auto;">Back to account</a>
-      </div>
-
-      <h2 class="cp-section-heading">License keys</h2>
-      <div class="cp-section-box" id="licBox">
-        <p style="color:var(--cp-text-faint);">Loading your license keys…</p>
-      </div>
-
-      <h2 class="cp-section-heading">Purchases</h2>
-      <div class="cp-section-box" id="filesBox">
-        <p style="color:var(--cp-text-faint);">Loading your purchases…</p>
-      </div>
-    `;
-
-    loadPurchases();
-    loadLicenses();
-  }
-
-  async function loadPurchases() {
-    const box = document.getElementById('filesBox');
-    const client = window.supabaseClient;
-    if (!client) { box.innerHTML = '<p style="color:var(--cp-text-faint);">Store is not configured yet.</p>'; return; }
-
-    const user = await DCAuth.getUser();
-
-    // Reads from the `purchases` table, scoped to the signed-in user.
-    // Checkout isn't live on the storefront yet, so this will normally be
-    // empty until a real purchase flow starts writing rows here.
-    const { data, error } = await client
-      .from('purchases')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error || !data || !data.length) {
-      box.innerHTML = `<p style="color:var(--cp-text-faint);">Nothing here yet — once checkout is live, everything you buy on Crispy will show up here with instant downloads.</p>`;
-      return;
-    }
-
-    box.innerHTML = data.map(p => {
-      const name = p.product_name || p.name || 'Untitled product';
-      const image = p.image_url || '';
-      const date = fmtDate(p.created_at || p.purchased_at);
-      const downloadUrl = p.download_url || p.file_url || '#';
-      return `
-        <div class="cp-file-row">
-          <span class="cp-file-thumb">${image ? `<img src="${esc(image)}" alt="">` : ''}</span>
-          <div class="cp-file-info">
-            <h4>${esc(name)}</h4>
-            <span>${esc(date)}</span>
-          </div>
-          <a class="cp-btn cp-btn--sm" href="${esc(downloadUrl)}" style="width:auto;" target="_blank" rel="noopener">Download</a>
-        </div>
-      `;
-    }).join('');
+  // Turns "Crispy Pizza — Lifetime License" and "crispy-pizza" into the
+  // same comparable string, so a purchase row and its license can be
+  // matched even though the two tables don't share an exact product id yet.
+  // NOTE: this is a best-effort match. The real fix is to store the same
+  // product_id/slug on both the `purchases` row and the license record
+  // when they're created (e.g. in your admin panel) — ask me to wire that
+  // up and this fuzzy matching goes away.
+  function slug(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
   }
 
   async function callLicenseFn(action, extra) {
@@ -195,46 +160,28 @@
     }
   }
 
-  async function loadLicenses() {
-    const box = document.getElementById('licBox');
-    let res;
-    try {
-      res = await callLicenseFn('get');
-    } catch (err) {
-      box.innerHTML = `<p style="color:var(--cp-text-faint);">Error: ${esc(err && err.message ? err.message : String(err))}</p>`;
-      return;
+  function licenseBlockHTML(lic) {
+    if (!lic) {
+      return `<div class="cp-purchase-details"><span class="cp-no-license">No license key on this purchase.</span></div>`;
     }
-
-    if (!res.ok) {
-      box.innerHTML = `<p style="color:var(--cp-text-faint);">Couldn't load your license keys: ${esc(res.data && res.data.error ? res.data.error : 'unknown error')}</p>`;
-      return;
-    }
-
-    const licenses = res.data.licenses || [];
-    if (!licenses.length) {
-      box.innerHTML = `<p style="color:var(--cp-text-faint);">No license keys yet — these show up here automatically after a Crispy Pizza purchase.</p>`;
-      return;
-    }
-
-    box.innerHTML = licenses.map(lic => {
-      const badgeClass = lic.status === 'active' ? 'cp-lic-badge--active' : 'cp-lic-badge--revoked';
-      const device = lic.device_name ? esc(lic.device_name) : 'Not activated on any device yet';
-      const canReset = lic.status === 'active';
-      return `
-        <div class="cp-lic-row">
-          <div class="cp-lic-info">
-            <div class="cp-lic-key">${esc(lic.license_key)} <span class="cp-lic-badge ${badgeClass}">${esc(lic.status)}</span></div>
-            <div class="cp-lic-meta">${esc(lic.product || 'crispy-pizza')} · ${device}</div>
-          </div>
-          ${canReset ? `<button class="cp-btn cp-btn--ghost-cp cp-btn--sm cp-reset-btn" style="width:auto;" data-key="${esc(lic.license_key)}">Reset key</button>` : ''}
+    const badgeClass = lic.status === 'active' ? 'cp-lic-badge--active' : 'cp-lic-badge--revoked';
+    const device = lic.device_name ? esc(lic.device_name) : 'Not activated on any device yet';
+    const canReset = lic.status === 'active';
+    return `
+      <div class="cp-purchase-details">
+        <div>
+          <div class="cp-lic-key">${esc(lic.license_key)}<span class="cp-lic-badge ${badgeClass}">${esc(lic.status)}</span></div>
+          <div class="cp-lic-meta">${device}</div>
         </div>
-      `;
-    }).join('');
+        ${canReset ? `<button class="cp-btn-reset cp-reset-btn" data-key="${esc(lic.license_key)}">Reset key</button>` : ''}
+      </div>`;
+  }
 
+  function wireResetButtons(box, reload) {
     box.querySelectorAll('.cp-reset-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const key = btn.getAttribute('data-key');
-        if (!confirm('This will permanently deactivate ' + key + ' and issue you a brand new key by email. Continue?')) return;
+        if (!confirm('This will permanently deactivate ' + key + ' and issue you a brand new key. Continue?')) return;
         btn.disabled = true;
         btn.textContent = 'Resetting...';
         const res = await callLicenseFn('reset', { license_key: key });
@@ -244,10 +191,121 @@
           btn.textContent = 'Reset key';
           return;
         }
-        alert('Done! Your new key (' + res.data.license_key + ') has been emailed to you.');
-        loadLicenses();
+        alert('Done — your new key is ready. Check your library.');
+        reload();
       });
     });
+  }
+
+  async function load() {
+    const user = await DCAuth.getUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    content.innerHTML = `
+      <div class="cp-acct-header">
+        <div>
+          <div class="cp-acct-eyebrow">Crispy account</div>
+          <h1 class="cp-acct-title">Library</h1>
+        </div>
+        <a class="cp-btn cp-btn--ghost-cp cp-btn--sm" href="account.html" style="width:auto;">Back to account</a>
+      </div>
+
+      <h2 class="cp-section-heading">Purchases</h2>
+      <div class="cp-section-box" id="purchasesBox">
+        <p class="cp-empty-msg">Loading your purchases…</p>
+      </div>
+    `;
+
+    loadPurchases();
+  }
+
+  async function loadPurchases() {
+    const box = document.getElementById('purchasesBox');
+    const client = window.supabaseClient;
+    if (!client) { box.innerHTML = '<p class="cp-empty-msg">Store is not configured yet.</p>'; return; }
+
+    const user = await DCAuth.getUser();
+
+    const [purchasesRes, licRes] = await Promise.all([
+      client.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      callLicenseFn('get'),
+    ]);
+
+    const purchases = (purchasesRes && purchasesRes.data) || [];
+    const licenses = (licRes && licRes.ok && licRes.data.licenses) || [];
+    const usedLicenseKeys = new Set();
+
+    if (!purchases.length) {
+      // No purchase records yet — but a license might already exist
+      // (e.g. issued manually before the purchases table had a row for it).
+      if (licenses.length) {
+        box.innerHTML = licenses.map(lic => `
+          <div class="cp-purchase-row">
+            <div class="cp-purchase-top">
+              <div class="cp-file-thumb"></div>
+              <div class="cp-purchase-info">
+                <h4>${esc(lic.product || 'Crispy product')}</h4>
+                <div class="cp-purchase-date">License issued directly — no purchase record yet</div>
+              </div>
+            </div>
+            ${licenseBlockHTML(lic)}
+          </div>`).join('');
+        wireResetButtons(box, loadPurchases);
+      } else {
+        box.innerHTML = `<p class="cp-empty-msg">Nothing here yet — once you buy something on Crispy, it'll show up here with your download and license key.</p>`;
+      }
+      return;
+    }
+
+    box.innerHTML = purchases.map(p => {
+      const name = p.product_name || p.name || 'Untitled product';
+      const image = p.image_url || '';
+      const date = fmtDate(p.created_at || p.purchased_at);
+      const downloadUrl = p.download_url || p.file_url || '';
+      const nameSlug = slug(name);
+
+      // Best-effort match: an unused license whose product slug appears
+      // in (or contains) the purchase's product name.
+      const matched = licenses.find(lic => {
+        if (usedLicenseKeys.has(lic.license_key)) return false;
+        const licSlug = slug(lic.product || '');
+        return licSlug && (nameSlug.includes(licSlug) || licSlug.includes(nameSlug));
+      });
+      if (matched) usedLicenseKeys.add(matched.license_key);
+
+      return `
+        <div class="cp-purchase-row">
+          <div class="cp-purchase-top">
+            <div class="cp-file-thumb">${image ? `<img src="${esc(image)}" alt="">` : ''}</div>
+            <div class="cp-purchase-info">
+              <h4>${esc(name)}</h4>
+              <div class="cp-purchase-date">Purchased ${esc(date)}</div>
+            </div>
+            <div class="cp-purchase-actions">
+              ${downloadUrl ? `<a class="cp-btn-download" href="${esc(downloadUrl)}" target="_blank" rel="noopener">Download</a>` : ''}
+            </div>
+          </div>
+          ${licenseBlockHTML(matched)}
+        </div>`;
+    }).join('');
+
+    // Any license that didn't match a purchase row still needs to be visible.
+    const leftover = licenses.filter(lic => !usedLicenseKeys.has(lic.license_key));
+    if (leftover.length) {
+      box.insertAdjacentHTML('beforeend', leftover.map(lic => `
+        <div class="cp-purchase-row">
+          <div class="cp-purchase-top">
+            <div class="cp-file-thumb"></div>
+            <div class="cp-purchase-info">
+              <h4>${esc(lic.product || 'Crispy product')}</h4>
+              <div class="cp-purchase-date">License issued directly — no purchase record yet</div>
+            </div>
+          </div>
+          ${licenseBlockHTML(lic)}
+        </div>`).join(''));
+    }
+
+    wireResetButtons(box, loadPurchases);
   }
 
   load();
