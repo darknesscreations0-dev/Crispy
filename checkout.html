@@ -82,12 +82,10 @@
     <div class="cp-co-eyebrow">Checkout</div>
     <h1 class="cp-co-title">Choose a payment method</h1>
 
-    <div class="cp-order-box">
-      <div>
-        <div class="cp-order-name" id="productName">Crispy Pizza — Lifetime License</div>
-        <div class="cp-order-sub">1 item</div>
-      </div>
-      <div class="cp-order-price" id="productPrice">$—</div>
+    <div id="orderItems"></div>
+    <div class="cp-order-box" id="orderTotalBox" style="display:none;">
+      <div class="cp-order-name">Total</div>
+      <div class="cp-order-price" id="orderTotal"></div>
     </div>
 
     <div class="cp-section-heading">Payment methods</div>
@@ -123,26 +121,45 @@
 </main>
 
 <script>
-  // Reads the product being purchased from the URL, e.g.
-  // checkout.html?product=Crispy%20Pizza%20%E2%80%94%20Lifetime%20License&price=49
-  // Link to this page from your catalog/product cards with those params set.
-  const params = new URLSearchParams(window.location.search);
-  const name = params.get('product');
-  const price = params.get('price');
+  // Same cart the rest of the site uses (see assets/js/store.js) —
+  // an array of {id, name, price, image, qty} under this localStorage key.
+  const CART_KEY = 'crispy_cart';
+  function getCart(){
+    try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function money(n){ return '$' + Number(n).toFixed(2); }
 
-  if (name) {
-    document.getElementById('productName').textContent = name;
-  }
-  if (price) {
-    document.getElementById('productPrice').textContent = '$' + price;
+  const cart = getCart();
+  const itemsEl = document.getElementById('orderItems');
+  const totalBox = document.getElementById('orderTotalBox');
+  const totalEl = document.getElementById('orderTotal');
+
+  if (!cart.length){
+    itemsEl.innerHTML = `
+      <div class="cp-order-box">
+        <div>
+          <div class="cp-order-name">Your cart is empty</div>
+          <div class="cp-order-sub"><a href="catalog.html" style="color:#e8762c;">Browse products →</a></div>
+        </div>
+      </div>`;
+  } else {
+    itemsEl.innerHTML = cart.map(i => `
+      <div class="cp-order-box">
+        <div>
+          <div class="cp-order-name">${i.name}</div>
+          <div class="cp-order-sub">${i.qty > 1 ? i.qty + ' × ' + money(i.price) : '1 item'}</div>
+        </div>
+        <div class="cp-order-price">${money(i.price * (i.qty || 1))}</div>
+      </div>`).join('');
+
+    const total = cart.reduce((s, i) => s + Number(i.price) * (i.qty || 1), 0);
+    totalEl.textContent = money(total);
+    totalBox.style.display = 'flex';
   }
 
-  // Carry the same product/price through to the buy-direct page so the
-  // WhatsApp message and order summary there stay in sync.
-  const continueBtn = document.getElementById('continueBtn');
-  if (name || price) {
-    continueBtn.href = 'buy-direct.html?' + params.toString();
-  }
+  // No URL params needed on buy-direct.html — it reads this same
+  // localStorage cart directly, since both pages share the same origin.
 </script>
 
 </body>
