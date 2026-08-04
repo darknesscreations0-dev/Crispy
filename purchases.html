@@ -226,30 +226,50 @@
 
     const user = await DCAuth.getUser();
 
-    const [purchasesRes, licRes] = await Promise.all([
+    const [purchasesRes, licRes, productsRes] = await Promise.all([
       client.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       callLicenseFn('get'),
+      client.from('products').select('id, name, image_url'),
     ]);
 
     const purchases = (purchasesRes && purchasesRes.data) || [];
     const licenses = (licRes && licRes.ok && licRes.data.licenses) || [];
+    const products = (productsRes && productsRes.data) || [];
     const usedLicenseKeys = new Set();
+
+    // Best-effort image lookup for rows with no purchase record (and thus
+    // no image_url of their own) — matches the license's product slug
+    // against the catalog product name, same fuzzy match as the license
+    // pairing below. Once purchases/licenses store a real product_id this
+    // whole thing becomes a simple join instead.
+    function findProductImage(productLabel) {
+      const target = slug(productLabel || '');
+      if (!target) return '';
+      const match = products.find(p => {
+        const pSlug = slug(p.name || '');
+        return pSlug && (pSlug.includes(target) || target.includes(pSlug));
+      });
+      return match ? (match.image_url || '') : '';
+    }
 
     if (!purchases.length) {
       // No purchase records yet — but a license might already exist
       // (e.g. issued manually before the purchases table had a row for it).
       if (licenses.length) {
-        box.innerHTML = licenses.map(lic => `
+        box.innerHTML = licenses.map(lic => {
+          const img = findProductImage(lic.product);
+          return `
           <div class="cp-purchase-row">
             <div class="cp-purchase-top">
-              <div class="cp-file-thumb"></div>
+              <div class="cp-file-thumb">${img ? `<img src="${esc(img)}" alt="">` : ''}</div>
               <div class="cp-purchase-info">
                 <h4>${esc(lic.product || 'Crispy product')}</h4>
                 <div class="cp-purchase-date">License issued directly — no purchase record yet</div>
               </div>
             </div>
             ${licenseBlockHTML(lic)}
-          </div>`).join('');
+          </div>`;
+        }).join('');
         wireResetButtons(box, loadPurchases);
       } else {
         box.innerHTML = `<p class="cp-empty-msg">Nothing here yet — once you buy something on Crispy, it'll show up here with your download and license key.</p>`;
@@ -259,7 +279,7 @@
 
     box.innerHTML = purchases.map(p => {
       const name = p.product_name || p.name || 'Untitled product';
-      const image = p.image_url || '';
+      const image = p.image_url || findProductImage(p.product_name || p.name);
       const date = fmtDate(p.created_at || p.purchased_at);
       const downloadUrl = p.download_url || p.file_url || '';
       const nameSlug = slug(name);
@@ -292,17 +312,20 @@
     // Any license that didn't match a purchase row still needs to be visible.
     const leftover = licenses.filter(lic => !usedLicenseKeys.has(lic.license_key));
     if (leftover.length) {
-      box.insertAdjacentHTML('beforeend', leftover.map(lic => `
+      box.insertAdjacentHTML('beforeend', leftover.map(lic => {
+        const img = findProductImage(lic.product);
+        return `
         <div class="cp-purchase-row">
           <div class="cp-purchase-top">
-            <div class="cp-file-thumb"></div>
+            <div class="cp-file-thumb">${img ? `<img src="${esc(img)}" alt="">` : ''}</div>
             <div class="cp-purchase-info">
               <h4>${esc(lic.product || 'Crispy product')}</h4>
               <div class="cp-purchase-date">License issued directly — no purchase record yet</div>
             </div>
           </div>
           ${licenseBlockHTML(lic)}
-        </div>`).join(''));
+        </div>`;
+      }).join(''));
     }
 
     wireResetButtons(box, loadPurchases);
