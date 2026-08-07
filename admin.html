@@ -241,6 +241,8 @@
         <div class="adm-form-grid">
           <div style="grid-column:1/-1;"><label>Title *</label><input type="text" id="tut_title" required placeholder="Rebuilding the Shakes panel from scratch"></div>
           <div><label>Tag / category (optional)</label><input type="text" id="tut_tag" placeholder="Workflow"></div>
+          <div><label>Creator name (optional — for tutorials made by others)</label><input type="text" id="tut_author_name" placeholder="Leave blank to credit Crispy"></div>
+          <div><label>Creator link (optional — their channel/profile)</label><input type="url" id="tut_author_url" placeholder="https://youtube.com/@..."></div>
           <div><label>Sort order</label><input type="number" step="1" id="tut_sort_order" placeholder="0"></div>
           <div style="grid-column:1/-1;"><label>Excerpt (optional)</label><textarea id="tut_excerpt" rows="2" placeholder="A walkthrough of the new preset system, live preview stage, and keyframeable wiggle controls."></textarea></div>
           <div style="grid-column:1/-1;"><label>YouTube video link *</label><input type="url" id="tut_youtube_url" required placeholder="https://www.youtube.com/watch?v=..."></div>
@@ -1153,6 +1155,8 @@
     document.getElementById('tut_id').value = item ? item.id : '';
     document.getElementById('tut_title').value = item ? item.title || '' : '';
     document.getElementById('tut_tag').value = item ? item.tag || '' : '';
+    document.getElementById('tut_author_name').value = item ? item.author_name || '' : '';
+    document.getElementById('tut_author_url').value = item ? item.author_url || '' : '';
     document.getElementById('tut_excerpt').value = item ? item.excerpt || '' : '';
     document.getElementById('tut_youtube_url').value = item ? item.youtube_url || '' : '';
     document.getElementById('tut_body').value = item ? item.body || '' : '';
@@ -1214,6 +1218,8 @@
     const payload = {
       title: document.getElementById('tut_title').value.trim(),
       tag: document.getElementById('tut_tag').value.trim() || null,
+      author_name: document.getElementById('tut_author_name').value.trim() || null,
+      author_url: document.getElementById('tut_author_url').value.trim() || null,
       excerpt: document.getElementById('tut_excerpt').value.trim() || null,
       youtube_url: youtubeUrl,
       body: document.getElementById('tut_body').value.trim() || null,
