@@ -35,8 +35,54 @@
 }
 
 .showcase-card__media{ position:relative; aspect-ratio:4/5; overflow:hidden; background:var(--c-surface-2); }
-.showcase-card__media img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .55s var(--ease); }
-.showcase-card:hover .showcase-card__media img{ transform:scale(1.09); }
+.showcase-card__media img,
+.showcase-card__media video{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .55s var(--ease); }
+.showcase-card:hover .showcase-card__media img,
+.showcase-card:hover .showcase-card__media video{ transform:scale(1.09); }
+
+.showcase-card__maximize{
+  position:absolute; top:.6rem; right:.6rem; z-index:2;
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(10,10,10,.55); backdrop-filter:blur(6px); color:#fff;
+  opacity:0; transform:translateY(-4px); transition:opacity .2s var(--ease), transform .2s var(--ease), background .2s var(--ease);
+}
+.showcase-card__maximize svg{ width:14px; height:14px; }
+.showcase-card:hover .showcase-card__maximize, .showcase-card__maximize:focus-visible{ opacity:1; transform:none; }
+.showcase-card__maximize:hover{ background:rgba(247,146,63,.9); color:#1a0800; }
+
+.showcase-lightbox{
+  position:fixed; inset:0; z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:2rem 1rem;
+}
+.showcase-lightbox__backdrop{ position:absolute; inset:0; background:rgba(6,6,8,.88); backdrop-filter:blur(4px); }
+.showcase-lightbox__inner{
+  position:relative; z-index:1; max-width:min(92vw,420px); width:100%;
+  display:flex; flex-direction:column; gap:.8rem; align-items:center;
+}
+.showcase-lightbox__inner video{
+  width:100%; max-height:80vh; border-radius:14px; background:#000;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.7);
+}
+.showcase-lightbox__close{
+  position:absolute; top:-.4rem; right:-.4rem; z-index:2; transform:translate(50%,-50%);
+  width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:#fff; color:#171717; box-shadow:0 8px 20px rgba(0,0,0,.4);
+  transition:transform .2s var(--ease);
+}
+.showcase-lightbox__close:hover{ transform:translate(50%,-50%) scale(1.08); }
+.showcase-lightbox__close svg{ width:16px; height:16px; }
+.showcase-lightbox__handle{
+  display:flex; align-items:center; gap:.55rem; align-self:flex-start;
+  background:#fff; border-radius:999px; padding:.35rem .9rem .35rem .35rem;
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+.showcase-lightbox__handle .showcase-card__avatar{ width:26px; height:26px; font-size:.72rem; }
+.showcase-lightbox__handle-text{ display:flex; flex-direction:column; line-height:1.2; }
+.showcase-lightbox__handle-text b{ font-size:.82rem; color:#171717; }
+.showcase-lightbox__handle-text span{ font-size:.72rem; color:#6b6b6b; }
+body.has-lightbox{ overflow:hidden; }
 
 .showcase-card__play{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;
@@ -72,7 +118,8 @@
   font-size:.72rem; font-weight:800; color:#1a0800;
 }
 .showcase-card__creator{ font-size:.85rem; font-weight:600; line-height:1.25; }
-.showcase-card__handle{ font-size:.76rem; color:var(--c-text-faint); line-height:1.25; }
+.showcase-card__handle{ font-size:.76rem; color:var(--c-text-faint); line-height:1.25; text-decoration:none; }
+.showcase-card__handle:hover{ color:var(--c-orange); text-decoration:underline; }
 
 .showcase-more{ text-align:center; margin-top:1.6rem; }
 
@@ -198,93 +245,129 @@
 <script src="assets/js/store.js"></script>
 <script>
 (function(){
-  // Placeholder showcase entries — swap image/creator/tool for real
-  // submissions as they come in. No backend needed for this page;
-  // it's just a static gallery you edit here.
-  const entries = [
-    { name: 'Reel edit — travel montage', creator: 'Maya R.', handle: '@mayaedits', tool: 'Smooth Bounce Rig Pack' },
-    { name: 'Podcast clip', creator: 'Devon K.', handle: '@devonclips', tool: 'Faceless Reels Kit' },
-    { name: 'Product ad', creator: 'Priya S.', handle: '@priya.cuts', tool: 'Glass Panel Kit' },
-    { name: 'Music video transition', creator: 'Jordan T.', handle: '@jordantedits', tool: 'AI Relight' },
-    { name: 'Brand intro', creator: 'Sam L.', handle: '@samleditz', tool: 'KeyFast' },
-    { name: 'Lyric video', creator: 'Ravi N.', handle: '@ravincuts', tool: 'Diffusae 2' },
-    { name: 'Fashion lookbook cut', creator: 'Nia F.', handle: '@nia.frames', tool: 'Glass Panel Kit' },
-    { name: 'Gaming highlight reel', creator: 'Theo B.', handle: '@theob.edits', tool: 'Smooth Bounce Rig Pack' },
-    { name: 'Vlog opener', creator: 'Ines M.', handle: '@inesmcuts', tool: 'KeyFast' },
-    { name: 'Product unboxing', creator: 'Kian D.', handle: '@kiand.edits', tool: 'AI Relight' },
-    { name: 'Wedding highlight', creator: 'Lucia P.', handle: '@luciapfilms', tool: 'Diffusae 2' },
-    { name: 'Sneaker ad', creator: 'Omar T.', handle: '@omart.cuts', tool: 'Faceless Reels Kit' }
-  ];
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function hueFor(s){ let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))>>>0; return h%360; }
 
   const INITIAL_COUNT = 8;
-
-  function hueFor(s){ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))>>>0; return h%360; }
-
-  // Richer placeholder art: layered gradient + soft color blobs so cards
-  // read as distinct thumbnails instead of flat rectangles.
-  function placeholder(seed,w,h){
-    const hue = hueFor(seed);
-    const hue2 = (hue+38)%360;
-    const hue3 = (hue+300)%360;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="hsl(${hue},68%,30%)"/>
-          <stop offset="1" stop-color="hsl(${hue2},58%,12%)"/>
-        </linearGradient>
-      </defs>
-      <rect width="${w}" height="${h}" fill="url(#g)"/>
-      <circle cx="${w*0.78}" cy="${h*0.22}" r="${w*0.42}" fill="hsl(${hue2},75%,55%)" opacity="0.28"/>
-      <circle cx="${w*0.15}" cy="${h*0.85}" r="${w*0.36}" fill="hsl(${hue3},70%,55%)" opacity="0.22"/>
-      <circle cx="${w*0.5}" cy="${h*0.5}" r="${w*0.55}" fill="hsl(${hue},60%,45%)" opacity="0.08"/>
-    </svg>`;
-    return 'data:image/svg+xml,' + encodeURIComponent(svg);
-  }
+  const grid = document.getElementById('showcaseGrid');
+  const moreBtn = document.getElementById('showcaseLoadMore');
+  let entries = [];
 
   function cardHTML(e, i){
-    const hue = hueFor(e.handle);
+    const hue = hueFor(e.handle || e.creator_name);
     const avatarBg = `hsl(${hue},70%,55%)`;
+    const initial = (e.creator_name || '?').charAt(0).toUpperCase();
     return `
-    <div class="showcase-card" style="--i:${i}">
+    <div class="showcase-card" style="--i:${i}" data-id="${esc(e.id)}">
       <div class="showcase-card__media">
-        <img src="${placeholder(e.name,500,625)}" alt="${e.name}" loading="lazy">
-        <div class="showcase-card__badge">
-          <span class="showcase-card__badge-icon" style="background:${avatarBg};">${e.creator.charAt(0)}</span>
-          ${e.handle}
-        </div>
-        <div class="showcase-card__play">
-          <span><svg viewBox="0 0 24 24" fill="#1a0800"><path d="M8 5v14l11-7z"/></svg></span>
-        </div>
+        <video src="${esc(e.video_url)}" muted loop autoplay playsinline preload="metadata"></video>
+        <button type="button" class="showcase-card__maximize" data-maximize="${esc(e.id)}" aria-label="Maximize video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
       </div>
       <div class="showcase-card__body">
-        <div class="showcase-card__tool">${e.tool}</div>
+        ${e.tool_used ? `<div class="showcase-card__tool">${esc(e.tool_used)}</div>` : ''}
         <div class="showcase-card__foot">
-          <span class="showcase-card__avatar" style="background:${avatarBg};">${e.creator.charAt(0)}</span>
+          <span class="showcase-card__avatar" style="background:${avatarBg};">${initial}</span>
           <div>
-            <div class="showcase-card__creator">${e.creator}</div>
-            <div class="showcase-card__handle">${e.handle}</div>
+            <div class="showcase-card__creator">${esc(e.creator_name)}</div>
+            <a class="showcase-card__handle" href="${esc(e.instagram_url)}" target="_blank" rel="noopener">${esc(e.handle)}</a>
           </div>
         </div>
       </div>
     </div>`;
   }
 
-  const grid = document.getElementById('showcaseGrid');
-  const moreBtn = document.getElementById('showcaseLoadMore');
-
   function render(count){
     grid.innerHTML = entries.slice(0, count).map(cardHTML).join('');
+    grid.querySelectorAll('[data-maximize]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = entries.find(x => String(x.id) === String(btn.dataset.maximize));
+        if (item) openLightbox(item);
+      });
+    });
+    setupAutoplayObserver();
   }
 
-  render(Math.min(INITIAL_COUNT, entries.length));
-  if (entries.length <= INITIAL_COUNT){
-    moreBtn.style.display = 'none';
-  } else {
-    moreBtn.addEventListener('click', () => {
-      render(entries.length);
-      moreBtn.style.display = 'none';
-    });
+  // Pause off-screen videos so we're not looping a dozen videos at once.
+  let observer;
+  function setupAutoplayObserver(){
+    if (observer) observer.disconnect();
+    observer = new IntersectionObserver((entriesObs) => {
+      entriesObs.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (!video) return;
+        if (entry.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      });
+    }, { threshold: 0.35 });
+    grid.querySelectorAll('.showcase-card').forEach(card => observer.observe(card));
   }
+
+  function openLightbox(item){
+    const hue = hueFor(item.handle || item.creator_name);
+    const avatarBg = `hsl(${hue},70%,55%)`;
+    const initial = (item.creator_name || '?').charAt(0).toUpperCase();
+    const overlay = document.createElement('div');
+    overlay.className = 'showcase-lightbox';
+    overlay.innerHTML = `
+      <div class="showcase-lightbox__backdrop"></div>
+      <div class="showcase-lightbox__inner">
+        <button type="button" class="showcase-lightbox__close" aria-label="Minimize">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <video src="${esc(item.video_url)}" autoplay loop playsinline controls></video>
+        <a class="showcase-lightbox__handle" href="${esc(item.instagram_url)}" target="_blank" rel="noopener">
+          <span class="showcase-card__avatar" style="background:${avatarBg};">${initial}</span>
+          <span class="showcase-lightbox__handle-text"><b>${esc(item.creator_name)}</b><span>${esc(item.handle)}</span></span>
+        </a>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.body.classList.add('has-lightbox');
+    function close(){
+      overlay.remove();
+      document.body.classList.remove('has-lightbox');
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(e){ if (e.key === 'Escape') close(); }
+    overlay.querySelector('.showcase-lightbox__backdrop').addEventListener('click', close);
+    overlay.querySelector('.showcase-lightbox__close').addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+  }
+
+  async function load(){
+    if (!window.supabaseClient){
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--c-text-faint);font-size:.85rem;">Couldn\\'t load the showcase right now.</p>';
+      moreBtn.style.display = 'none';
+      return;
+    }
+    const { data, error } = await window.supabaseClient
+      .from('showcase_items')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error || !data || !data.length){
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--c-text-faint);font-size:.85rem;">No submissions yet — be the first, tag @crispyv0 on Instagram.</p>';
+      moreBtn.style.display = 'none';
+      return;
+    }
+
+    entries = data;
+    render(Math.min(INITIAL_COUNT, entries.length));
+    if (entries.length <= INITIAL_COUNT){
+      moreBtn.style.display = 'none';
+    } else {
+      moreBtn.addEventListener('click', () => {
+        render(entries.length);
+        moreBtn.style.display = 'none';
+      });
+    }
+  }
+
+  load();
 })();
 </script>
 </body>
