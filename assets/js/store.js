@@ -572,7 +572,7 @@ const CrispyStore = (() => {
       if (e.key === 'Enter'){ e.preventDefault(); applyPromoCode(promoInputEl.value); }
     });
     const co = wrap.querySelector('[data-checkout]');
-    if (co) co.addEventListener('click', () => { window.location.href = 'buy-direct.html'; });
+    if (co) co.addEventListener('click', () => { window.location.href = 'checkout.html'; });
   }
   /* ---------- FAQ accordion ---------- */
   function wireFaq(){
