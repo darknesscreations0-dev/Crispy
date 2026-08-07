@@ -110,7 +110,8 @@ body.has-lightbox{ overflow:hidden; }
 }
 
 .showcase-card__body{ padding:.85rem 1rem 1rem; }
-.showcase-card__tool{ font-size:.66rem; letter-spacing:.07em; text-transform:uppercase; color:var(--c-orange); font-weight:700; margin-bottom:.5rem; }
+.showcase-card__tool{ font-size:.66rem; letter-spacing:.07em; text-transform:uppercase; color:var(--c-orange); font-weight:700; margin-bottom:.5rem; display:inline-block; text-decoration:none; }
+.showcase-card__tool:hover{ text-decoration:underline; }
 .showcase-card__foot{ display:flex; align-items:center; gap:.55rem; }
 .showcase-card__avatar{
   width:27px; height:27px; border-radius:50%; flex-shrink:0;
@@ -250,6 +251,15 @@ body.has-lightbox{ overflow:hidden; }
   }
   function hueFor(s){ let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))>>>0; return h%360; }
 
+  function platformIcon(platform){
+    const p = (platform || 'instagram').toLowerCase();
+    if (p === 'youtube') return '<svg width="60%" height="60%" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="none" stroke="#fff" stroke-width="2"/><path d="M10 9l6 3-6 3V9z" fill="#fff"/></svg>';
+    if (p === 'tiktok') return '<svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c0 3 2.5 5 5 5"/></svg>';
+    if (p === 'twitter') return '<svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
+    if (p === 'other') return '<svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>';
+    return '<svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>';
+  }
+
   const INITIAL_COUNT = 8;
   const grid = document.getElementById('showcaseGrid');
   const moreBtn = document.getElementById('showcaseLoadMore');
@@ -258,7 +268,10 @@ body.has-lightbox{ overflow:hidden; }
   function cardHTML(e, i){
     const hue = hueFor(e.handle || e.creator_name);
     const avatarBg = `hsl(${hue},70%,55%)`;
-    const initial = (e.creator_name || '?').charAt(0).toUpperCase();
+    const avatarInner = e.avatar_url
+      ? `<img src="${esc(e.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : `<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${platformIcon(e.platform)}</span>`;
+    const product = e.product && e.product.id ? e.product : null;
     return `
     <div class="showcase-card" style="--i:${i}" data-id="${esc(e.id)}">
       <div class="showcase-card__media">
@@ -268,9 +281,9 @@ body.has-lightbox{ overflow:hidden; }
         </button>
       </div>
       <div class="showcase-card__body">
-        ${e.tool_used ? `<div class="showcase-card__tool">${esc(e.tool_used)}</div>` : ''}
+        ${product ? `<a class="showcase-card__tool" href="product.html?id=${esc(product.id)}">${esc(product.name)}</a>` : ''}
         <div class="showcase-card__foot">
-          <span class="showcase-card__avatar" style="background:${avatarBg};">${initial}</span>
+          <span class="showcase-card__avatar" style="background:${avatarBg};overflow:hidden;">${avatarInner}</span>
           <div>
             <div class="showcase-card__creator">${esc(e.creator_name)}</div>
             <a class="showcase-card__handle" href="${esc(e.instagram_url)}" target="_blank" rel="noopener">${esc(e.handle)}</a>
@@ -310,6 +323,9 @@ body.has-lightbox{ overflow:hidden; }
     const hue = hueFor(item.handle || item.creator_name);
     const avatarBg = `hsl(${hue},70%,55%)`;
     const initial = (item.creator_name || '?').charAt(0).toUpperCase();
+    const avatarInner = item.avatar_url
+      ? `<img src="${esc(item.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : `<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${platformIcon(item.platform)}</span>`;
     const overlay = document.createElement('div');
     overlay.className = 'showcase-lightbox';
     overlay.innerHTML = `
@@ -320,7 +336,7 @@ body.has-lightbox{ overflow:hidden; }
         </button>
         <video src="${esc(item.video_url)}" autoplay loop playsinline controls></video>
         <a class="showcase-lightbox__handle" href="${esc(item.instagram_url)}" target="_blank" rel="noopener">
-          <span class="showcase-card__avatar" style="background:${avatarBg};">${initial}</span>
+          <span class="showcase-card__avatar" style="background:${avatarBg};overflow:hidden;">${avatarInner}</span>
           <span class="showcase-lightbox__handle-text"><b>${esc(item.creator_name)}</b><span>${esc(item.handle)}</span></span>
         </a>
       </div>`;
@@ -345,7 +361,7 @@ body.has-lightbox{ overflow:hidden; }
     }
     const { data, error } = await window.supabaseClient
       .from('showcase_items')
-      .select('*')
+      .select('*, product:products(id,name)')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
 
