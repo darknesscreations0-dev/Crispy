@@ -178,11 +178,34 @@
         <input type="hidden" id="sc_id">
         <div class="adm-form-grid">
           <div><label>Creator name *</label><input type="text" id="sc_creator" required placeholder="Maya R."></div>
-          <div><label>Instagram handle *</label><input type="text" id="sc_handle" required placeholder="@mayaedits"></div>
-          <div style="grid-column:1/-1;"><label>Instagram link (opens when someone clicks the username) *</label><input type="url" id="sc_instagram_url" required placeholder="https://www.instagram.com/mayaedits/"></div>
-          <div><label>Tool used (optional)</label><input type="text" id="sc_tool" placeholder="Smooth Bounce Rig Pack"></div>
+          <div><label>Handle / username *</label><input type="text" id="sc_handle" required placeholder="@mayaedits"></div>
+          <div><label>Platform</label>
+            <select id="sc_platform">
+              <option value="instagram">Instagram</option>
+              <option value="youtube">YouTube</option>
+              <option value="tiktok">TikTok</option>
+              <option value="twitter">X / Twitter</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1;"><label>Profile link (opens when someone clicks the username) *</label><input type="url" id="sc_instagram_url" required placeholder="https://www.instagram.com/mayaedits/"></div>
+          <div><label>Made with (pick a live product, optional)</label><select id="sc_product_id"><option value="">— None / custom —</option></select></div>
           <div><label>Sort order</label><input type="number" step="1" id="sc_sort_order" placeholder="0"></div>
           <div><label><input type="checkbox" id="sc_is_active" checked> Active (shown on the page)</label></div>
+          <div style="grid-column:1/-1;">
+            <label>Creator photo (optional — leave blank to just show the platform icon instead)</label>
+            <div class="adm-avatar-row">
+              <span class="adm-img-preview" id="scAvatarPreview" style="border-radius:50%;">No photo</span>
+              <div style="flex:1;min-width:200px;">
+                <div class="cp-avatar-drop-like" id="scAvatarDrop">
+                  <input type="file" id="scAvatarFile" accept="image/*" hidden>
+                  <span id="scAvatarDropText">Drag &amp; drop a profile photo, or click to choose one</span>
+                </div>
+                <p class="adm-msg" id="scAvatarMsg" style="margin-top:.4rem;"></p>
+              </div>
+            </div>
+            <input type="hidden" id="sc_avatar_url">
+          </div>
           <div style="grid-column:1/-1;">
             <label>Video file *</label>
             <div class="adm-avatar-row">
@@ -904,25 +927,69 @@
   const scVidFile = document.getElementById('scVidFile');
   const scVidDropText = document.getElementById('scVidDropText');
   const scVidMsg = document.getElementById('scVidMsg');
+  const scAvatarPreview = document.getElementById('scAvatarPreview');
+  const scAvatarDrop = document.getElementById('scAvatarDrop');
+  const scAvatarFile = document.getElementById('scAvatarFile');
+  const scAvatarDropText = document.getElementById('scAvatarDropText');
+  const scAvatarMsg = document.getElementById('scAvatarMsg');
+  const scProductSelect = document.getElementById('sc_product_id');
   let showcaseItems = [];
+
+  function populateProductDropdown(selectedId){
+    const current = selectedId != null ? String(selectedId) : '';
+    scProductSelect.innerHTML = '<option value="">— None / custom —</option>' +
+      products.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+    scProductSelect.value = current;
+  }
 
   function scOpenForm(item){
     document.getElementById('sc_id').value = item ? item.id : '';
     document.getElementById('sc_creator').value = item ? item.creator_name || '' : '';
     document.getElementById('sc_handle').value = item ? item.handle || '' : '';
+    document.getElementById('sc_platform').value = item ? item.platform || 'instagram' : 'instagram';
     document.getElementById('sc_instagram_url').value = item ? item.instagram_url || '' : '';
-    document.getElementById('sc_tool').value = item ? item.tool_used || '' : '';
+    populateProductDropdown(item ? item.product_id : '');
     document.getElementById('sc_sort_order').value = item ? (item.sort_order ?? 0) : (showcaseItems.length);
     document.getElementById('sc_is_active').checked = item ? !!item.is_active : true;
     document.getElementById('sc_video_url').value = item ? item.video_url || '' : '';
+    document.getElementById('sc_avatar_url').value = item ? item.avatar_url || '' : '';
     scVidPreview.innerHTML = item && item.video_url
       ? `<video src="${esc(item.video_url)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
       : 'No video';
+    scAvatarPreview.innerHTML = item && item.avatar_url
+      ? `<img src="${esc(item.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : 'No photo';
     scFormMsg.textContent = '';
     scForm.scrollIntoView({ behavior:'smooth', block:'center' });
   }
   function scResetForm(){ scOpenForm(null); }
   scCancelBtn.addEventListener('click', scResetForm);
+
+  async function uploadShowcaseAvatar(file){
+    if (!file || !file.type.startsWith('image/')){
+      scAvatarMsg.textContent = 'Please choose an image file.'; scAvatarMsg.style.color = '#ff6b6b';
+      return;
+    }
+    scAvatarDropText.textContent = 'Uploading…'; scAvatarMsg.textContent = '';
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `showcase-avatars/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    scAvatarDropText.textContent = 'Drag & drop a profile photo, or click to choose one';
+    if (upErr){ scAvatarMsg.textContent = upErr.message || 'Upload failed.'; scAvatarMsg.style.color = '#ff6b6b'; return; }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    const publicUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    document.getElementById('sc_avatar_url').value = publicUrl;
+    scAvatarPreview.innerHTML = `<img src="${esc(publicUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+    scAvatarMsg.textContent = 'Ready — click Save showcase item to keep it.'; scAvatarMsg.style.color = '#4ade80';
+  }
+  scAvatarDrop.addEventListener('click', () => scAvatarFile.click());
+  scAvatarFile.addEventListener('change', () => { if (scAvatarFile.files[0]) uploadShowcaseAvatar(scAvatarFile.files[0]); });
+  ['dragover','dragenter'].forEach(evt => scAvatarDrop.addEventListener(evt, (e) => { e.preventDefault(); scAvatarDrop.classList.add('is-dragover'); }));
+  ['dragleave','drop'].forEach(evt => scAvatarDrop.addEventListener(evt, (e) => { e.preventDefault(); scAvatarDrop.classList.remove('is-dragover'); }));
+  scAvatarDrop.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) uploadShowcaseAvatar(file);
+  });
 
   async function uploadShowcaseVideo(file){
     if (!file || !file.type.startsWith('video/')){
@@ -960,7 +1027,7 @@
         <span style="width:36px;height:44px;flex-shrink:0;background:var(--c-surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center;">
           ${s.video_url ? `<video src="${esc(s.video_url)}" muted style="width:100%;height:100%;object-fit:cover;"></video>` : ''}
         </span>
-        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${esc(s.creator_name)} <span style="color:var(--c-text-faint);">${esc(s.handle)}</span></div>
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${esc(s.creator_name)} <span style="color:var(--c-text-faint);">${esc(s.handle)}</span>${s.product_id ? ` <span style="color:var(--c-orange);">· ${esc((products.find(p => String(p.id) === String(s.product_id)) || {}).name || 'product')}</span>` : ''}</div>
         <span class="adm-pill ${s.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${s.is_active ? 'Active' : 'Hidden'}</span>
         <div class="adm-row-actions">
           <button type="button" class="btn btn--ghost" data-sc-edit="${s.id}">Edit</button>
@@ -993,8 +1060,10 @@
     const payload = {
       creator_name: document.getElementById('sc_creator').value.trim(),
       handle: document.getElementById('sc_handle').value.trim(),
+      platform: document.getElementById('sc_platform').value || 'instagram',
       instagram_url: document.getElementById('sc_instagram_url').value.trim(),
-      tool_used: document.getElementById('sc_tool').value.trim() || null,
+      product_id: document.getElementById('sc_product_id').value || null,
+      avatar_url: document.getElementById('sc_avatar_url').value.trim() || null,
       sort_order: document.getElementById('sc_sort_order').value ? Number(document.getElementById('sc_sort_order').value) : 0,
       is_active: document.getElementById('sc_is_active').checked,
       video_url: document.getElementById('sc_video_url').value.trim()
@@ -1036,4 +1105,4 @@
 })();
 </script>
 </body>
-</html>
+</html>s
