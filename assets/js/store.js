@@ -84,6 +84,42 @@ const CrispyStore = (() => {
   }
   function cartCount(){ return getCart().reduce((n,i)=> n + (i.qty||1), 0); }
   function cartTotal(){ return getCart().reduce((s,i)=> s + Number(i.price) * (i.qty||1), 0); }
+  /* ---------- promo codes ---------- */
+  let appliedPromo = null;
+  let promoMsg = '';
+  function calcDiscount(subtotal){
+    if (!appliedPromo) return 0;
+    if (appliedPromo.discount_type === 'fixed') return Math.min(Number(appliedPromo.discount_value), subtotal);
+    return subtotal * (Number(appliedPromo.discount_value) / 100);
+  }
+  async function applyPromoCode(codeRaw){
+    const code = String(codeRaw || '').trim().toUpperCase();
+    if (!code){ promoMsg = ''; appliedPromo = null; renderCart(); return; }
+    const c = client();
+    if (!c){ appliedPromo = null; promoMsg = 'Could not check that code right now.'; renderCart(); return; }
+    const { data, error } = await c.from('promo_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
+    if (error || !data){
+      appliedPromo = null;
+      promoMsg = 'Invalid or inactive code.';
+      renderCart();
+      return;
+    }
+    if (data.expires_at && new Date(data.expires_at) < new Date()){
+      appliedPromo = null;
+      promoMsg = 'This code has expired.';
+      renderCart();
+      return;
+    }
+    if (data.max_uses != null && (data.uses_count || 0) >= data.max_uses){
+      appliedPromo = null;
+      promoMsg = 'This code has reached its usage limit.';
+      renderCart();
+      return;
+    }
+    appliedPromo = data;
+    promoMsg = `"${data.code}" applied.`;
+    renderCart();
+  }
   function addToCart(product){
     if (product.is_free || Number(product.price) === 0){
       showToast('This one is free — grab it from the product page!');
@@ -481,16 +517,26 @@ const CrispyStore = (() => {
         </div>
         <button class="cart-item__remove" data-remove="${i.id}">Remove</button>
       </div>`).join('');
-    const total = cartTotal();
+    const subtotal = cartTotal();
+    const discount = calcDiscount(subtotal);
+    const total = Math.max(0, subtotal - discount);
     wrap.innerHTML = `
       ${rows}
       <div class="cart-summary">
-        <div class="cart-summary__row"><span>Subtotal</span><span>${money(total)}</span></div>
+        <div class="cart-summary__row"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+        ${appliedPromo ? `<div class="cart-summary__row"><span>Promo (${esc(appliedPromo.code)})</span><span>-${money(discount)}</span></div>` : ''}
         <div class="cart-summary__row"><span>Taxes</span><span>Calculated at checkout</span></div>
         <div class="cart-summary__row total"><span>Total</span><span>${money(total)}</span></div>
-        <button class="btn btn--block" style="margin-top:1.2rem;" data-checkout>Checkout</button>
-        <p style="text-align:center;color:var(--c-text-faint);font-size:.78rem;margin-top:.8rem;">Secure checkout — coming soon.</p>
-        <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="contact.html">Need another way to pay right now? Contact us →</a></p>
+
+        <div style="display:flex;gap:.5rem;margin-top:1rem;">
+          <input type="text" data-promo-input placeholder="Promo code" autocapitalize="characters" style="flex:1;padding:.55rem .7rem;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);font-size:.85rem;text-transform:uppercase;" value="${appliedPromo ? esc(appliedPromo.code) : ''}">
+          <button type="button" class="btn btn--ghost" data-apply-promo>Apply</button>
+        </div>
+        ${promoMsg ? `<p style="font-size:.78rem;margin-top:.4rem;color:${appliedPromo ? '#4ade80' : '#ff6b6b'};">${esc(promoMsg)}</p>` : ''}
+
+        <button class="btn btn--block" style="margin-top:1.2rem;" data-checkout>Checkout via WhatsApp</button>
+        <p style="text-align:center;color:var(--c-text-faint);font-size:.78rem;margin-top:.8rem;">We'll open WhatsApp with your order ready to send — reply there to pay and get your license.</p>
+        <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="contact.html">Need another way to reach us? Contact us →</a></p>
       </div>`;
     wrap.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
       const it = getCart().find(x => x.id === b.dataset.inc); setQty(b.dataset.inc, (it?.qty||1)+1); renderCart();
@@ -499,8 +545,27 @@ const CrispyStore = (() => {
       const it = getCart().find(x => x.id === b.dataset.dec); setQty(b.dataset.dec, (it?.qty||1)-1); renderCart();
     }));
     wrap.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => { removeFromCart(b.dataset.remove); renderCart(); }));
+    const applyBtn = wrap.querySelector('[data-apply-promo]');
+    if (applyBtn) applyBtn.addEventListener('click', () => {
+      const input = wrap.querySelector('[data-promo-input]');
+      applyPromoCode(input ? input.value : '');
+    });
+    const promoInputEl = wrap.querySelector('[data-promo-input]');
+    if (promoInputEl) promoInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){ e.preventDefault(); applyPromoCode(promoInputEl.value); }
+    });
     const co = wrap.querySelector('[data-checkout]');
-    if (co) co.addEventListener('click', () => showToast('Checkout isn\'t live yet — hang tight!'));
+    if (co) co.addEventListener('click', () => {
+      const items = getCart();
+      const sub = cartTotal();
+      const disc = calcDiscount(sub);
+      const grandTotal = Math.max(0, sub - disc);
+      const lines = items.map(i => `${i.qty}x ${i.name} — ${money(i.price)} each`);
+      let msg = `Hi! I'd like to order from Crispy:\n\n${lines.join('\n')}\n\nSubtotal: ${money(sub)}`;
+      if (appliedPromo) msg += `\nPromo (${appliedPromo.code}): -${money(disc)}`;
+      msg += `\nTotal: ${money(grandTotal)}\n\nPlease send payment details.`;
+      window.open(`https://wa.me/919759469047?text=${encodeURIComponent(msg)}`, '_blank');
+    });
   }
   /* ---------- FAQ accordion ---------- */
   function wireFaq(){
