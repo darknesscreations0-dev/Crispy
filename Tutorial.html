@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial — Crispy</title>
+<meta name="description" content="Guides and tutorials for getting the most out of Crispy tools.">
+<link rel="icon" type="image/png" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/store.css">
+<style>
+.tp-wrap{ max-width:880px; margin:0 auto; }
+.tp-crumb{ font-size:.78rem; color:var(--c-text-faint); margin-bottom:1.2rem; }
+.tp-crumb a{ color:var(--c-text-faint); }
+.tp-crumb a:hover{ color:var(--c-orange); }
+.tp-tag{
+  display:inline-block; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--c-orange); font-weight:700; border:1px solid var(--c-border); padding:.2rem .5rem; margin-bottom:.8rem;
+}
+.tp-title{ font-family:var(--font-display); font-size:clamp(1.6rem,4vw,2.3rem); font-weight:600; line-height:1.15; margin-bottom:.6rem; }
+.tp-meta{ display:flex; align-items:center; gap:.5rem; color:var(--c-text-faint); font-size:.85rem; margin-bottom:1.6rem; }
+
+.tp-video{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:10px; overflow:hidden; margin-bottom:1.4rem; }
+.tp-video iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+
+.tp-timestamps{ display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:2rem; }
+.tp-timestamp{
+  display:inline-flex; align-items:center; gap:.4rem; border:1px solid var(--c-border); background:var(--c-surface);
+  padding:.35rem .7rem; font-size:.8rem; color:var(--c-text-dim); cursor:pointer; transition:all .2s var(--ease);
+}
+.tp-timestamp:hover{ border-color:rgba(247,146,63,.5); color:var(--c-text); }
+.tp-timestamp b{ color:var(--c-orange); font-weight:700; }
+
+.tp-section{ margin-bottom:2rem; }
+.tp-section h2{ font-family:var(--font-display); font-size:1.15rem; margin-bottom:.8rem; }
+.tp-body p{ color:var(--c-text-dim); font-size:.92rem; line-height:1.7; margin-bottom:1rem; }
+
+.tp-product{
+  display:flex; align-items:center; gap:1rem; border:1px solid var(--c-border); background:var(--c-surface);
+  padding:.8rem; text-decoration:none; max-width:360px; transition:border-color .2s var(--ease);
+}
+.tp-product:hover{ border-color:rgba(247,146,63,.5); }
+.tp-product__media{ width:64px; height:64px; flex-shrink:0; background:var(--c-surface-2); overflow:hidden; }
+.tp-product__media img{ width:100%; height:100%; object-fit:cover; display:block; }
+.tp-product__name{ font-size:.92rem; font-weight:600; color:var(--c-text); }
+.tp-product__cta{ font-size:.78rem; color:var(--c-orange); margin-top:.2rem; }
+
+.tp-empty{ text-align:center; padding:3rem 1rem; color:var(--c-text-dim); }
+
+.submit-cta{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  border:1px solid var(--c-border); background:var(--c-surface); padding:1.6rem;
+  margin-top:1rem;
+}
+.submit-cta h3{ font-family:var(--font-display); font-size:1.15rem; margin-bottom:.3rem; }
+.submit-cta p{ color:var(--c-text-dim); font-size:.85rem; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="nav__pill">
+    <a href="index.html" class="nav__logo" aria-label="Crispy home"><img src="assets/logo.png" alt="Crispy"></a>
+    <button type="button" class="nav__burger" data-nav-burger aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="nav__links" aria-label="Primary" data-nav-links>
+      <a href="index.html">Home</a>
+      <a href="catalog.html">Catalog</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a href="cart.html" class="nav__cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="nav__cart-label">Cart</span>
+      <span class="nav__cart-count" data-cart-count style="display:none;">0</span>
+    </a>
+    <div class="nav__account"><span data-dc-account></span></div>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="container tp-wrap" id="tpContent">
+      <p class="state-msg">Loading…</p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer__grid">
+    <div class="footer__brand">
+      <h4 style="display:flex;align-items:center;gap:.5rem;"><img src="assets/icon.png" alt="" style="height:26px;width:auto;border-radius:0;"> Crispy</h4>
+      <p>Professional creator tools by Darkness. Built from real editing experience, sold directly.</p>
+    </div>
+    <div class="footer__col">
+      <h5>Shop</h5>
+      <a href="catalog.html">All products</a>
+      <a href="catalog.html">Plugins</a>
+      <a href="catalog.html">Free downloads</a>
+    </div>
+    <div class="footer__col">
+      <h5>Support</h5>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="account.html">My account</a>
+      <a href="terms.html">Terms &amp; Policies</a>
+      <a href="returns.html">Return Policy</a>
+    </div>
+    <div class="footer__col">
+      <h5>Explore</h5>
+      <a href="tutorials.html">Tutorials</a>
+      <a href="made-with-crispy.html">Made with Crispy</a>
+    </div>
+    <div class="footer__col">
+      <h5>Follow</h5>
+      <a href="https://www.instagram.com/crispyv0/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://youtube.com/@darknesssx0" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://www.linkedin.com/in/~abdullah-kazmi-111919369" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://discord.gg/ZJ36YfuST" target="_blank" rel="noopener">Discord</a>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>© 2026 Crispy, a Darkness venture.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/store.js"></script>
+<script>
+(function(){
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function youtubeId(url){
+    if (!url) return '';
+    const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+    return m ? m[1] : '';
+  }
+  // "1:23" -> 83, "1:02:03" -> 3723
+  function timeToSeconds(t){
+    const parts = String(t).trim().split(':').map(n => parseInt(n, 10) || 0);
+    let secs = 0;
+    for (const p of parts) secs = secs * 60 + p;
+    return secs;
+  }
+  function parseTimestamps(raw){
+    if (!raw) return [];
+    return raw.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+      const m = line.match(/^(\d{1,2}(?::\d{2}){1,2})\s*[-–—]\s*(.+)$/);
+      if (!m) return null;
+      return { time: m[1], seconds: timeToSeconds(m[1]), label: m[2] };
+    }).filter(Boolean);
+  }
+
+  const content = document.getElementById('tpContent');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  function notFound(msg){
+    content.innerHTML = `<div class="tp-empty">
+      <p>${esc(msg || "Couldn't find that tutorial.")}</p>
+      <p style="margin-top:1rem;"><a class="btn btn--ghost" href="tutorials.html">Back to tutorials</a></p>
+    </div>`;
+  }
+
+  async function load(){
+    if (!id) return notFound('No tutorial specified.');
+    if (!window.supabaseClient) return notFound('Could not load this tutorial right now.');
+
+    const { data: t, error } = await window.supabaseClient
+      .from('tutorials')
+      .select('*')
+      .eq('id', id)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error || !t) return notFound();
+
+    const vid = youtubeId(t.youtube_url);
+    const timestamps = parseTimestamps(t.timestamps);
+    const bodyParas = (t.body || '').split('\n').map(p => p.trim()).filter(Boolean);
+
+    let productHTML = '';
+    if (t.product_id){
+      const { data: p } = await window.supabaseClient
+        .from('products')
+        .select('id,name,image_url')
+        .eq('id', t.product_id)
+        .maybeSingle();
+      if (p){
+        productHTML = `
+          <div class="tp-section">
+            <h2>Products used</h2>
+            <a class="tp-product" href="product.html?id=${esc(p.id)}">
+              <span class="tp-product__media">${p.image_url ? `<img src="${esc(p.image_url)}" alt="">` : ''}</span>
+              <span>
+                <span class="tp-product__name">${esc(p.name)}</span>
+                <div class="tp-product__cta">View product →</div>
+              </span>
+            </a>
+          </div>`;
+      }
+    }
+
+    document.title = `${t.title} — Crispy`;
+
+    content.innerHTML = `
+      <p class="tp-crumb"><a href="index.html">Home</a> / <a href="tutorials.html">Tutorials</a> / ${esc(t.title)}</p>
+      ${t.tag ? `<span class="tp-tag">${esc(t.tag)}</span>` : ''}
+      <h1 class="tp-title">${esc(t.title)}</h1>
+      ${t.tag ? `<div class="tp-meta">Posted in <strong style="color:var(--c-text);">${esc(t.tag)}</strong></div>` : ''}
+
+      ${vid ? `<div class="tp-video"><iframe id="tpFrame" src="https://www.youtube.com/embed/${vid}?rel=0" title="${esc(t.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>` : ''}
+
+      ${timestamps.length ? `<div class="tp-timestamps">${timestamps.map(ts => `<span class="tp-timestamp" data-seconds="${ts.seconds}"><b>${esc(ts.time)}</b> ${esc(ts.label)}</span>`).join('')}</div>` : ''}
+
+      ${bodyParas.length ? `<div class="tp-section"><h2>Author notes</h2><div class="tp-body">${bodyParas.map(p => `<p>${esc(p)}</p>`).join('')}</div></div>` : (t.excerpt ? `<div class="tp-section"><div class="tp-body"><p>${esc(t.excerpt)}</p></div></div>` : '')}
+
+      ${productHTML}
+
+      <div class="submit-cta">
+        <div>
+          <h3>Made something with Crispy?</h3>
+          <p>Tag <strong>@crispyv0</strong> on Instagram or drop it in our Discord — we feature our favorites in Made with Crispy.</p>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+          <a class="btn" href="https://www.instagram.com/crispyv0/" target="_blank" rel="noopener">Tag us on Instagram</a>
+          <a class="btn btn--ghost" href="https://discord.gg/ZJ36YfuST" target="_blank" rel="noopener">Join Discord</a>
+        </div>
+      </div>
+    `;
+
+    if (vid && timestamps.length){
+      content.querySelectorAll('.tp-timestamp').forEach(el => {
+        el.addEventListener('click', () => {
+          const frame = document.getElementById('tpFrame');
+          if (!frame) return;
+          frame.src = `https://www.youtube.com/embed/${vid}?rel=0&autoplay=1&start=${el.dataset.seconds}`;
+        });
+      });
+    }
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
