@@ -19,7 +19,9 @@
 .tp-tag{
   display:inline-block; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase;
   color:var(--c-orange); font-weight:700; border:1px solid var(--c-border); padding:.2rem .5rem; margin-bottom:.8rem;
+  text-decoration:none; transition:border-color .2s var(--ease);
 }
+.tp-tag:hover{ border-color:rgba(247,146,63,.6); }
 .tp-title{ font-family:var(--font-display); font-size:clamp(1.6rem,4vw,2.3rem); font-weight:600; line-height:1.15; margin-bottom:.6rem; }
 .tp-meta{ display:flex; align-items:center; gap:.5rem; color:var(--c-text-faint); font-size:.85rem; margin-bottom:1.6rem; }
 
@@ -214,9 +216,12 @@
 
     content.innerHTML = `
       <p class="tp-crumb"><a href="index.html">Home</a> / <a href="tutorials.html">Tutorials</a> / ${esc(t.title)}</p>
-      ${t.tag ? `<span class="tp-tag">${esc(t.tag)}</span>` : ''}
+      ${t.tag ? `<a class="tp-tag" href="tutorials.html?tag=${encodeURIComponent(t.tag)}">${esc(t.tag)}</a>` : ''}
       <h1 class="tp-title">${esc(t.title)}</h1>
-      ${t.tag ? `<div class="tp-meta">Posted in <strong style="color:var(--c-text);">${esc(t.tag)}</strong></div>` : ''}
+      <div class="tp-meta">
+        ${t.tag ? `Posted in <a href="tutorials.html?tag=${encodeURIComponent(t.tag)}" style="color:var(--c-text);font-weight:600;">${esc(t.tag)}</a>` : ''}
+        ${t.author_name ? `${t.tag ? ' · ' : ''}by ${t.author_url ? `<a href="${esc(t.author_url)}" target="_blank" rel="noopener" style="color:var(--c-text);font-weight:600;">${esc(t.author_name)}</a>` : `<strong style="color:var(--c-text);">${esc(t.author_name)}</strong>`}` : ''}
+      </div>
 
       ${vid ? `<div class="tp-video"><iframe id="tpFrame" src="https://www.youtube.com/embed/${vid}?rel=0" title="${esc(t.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>` : ''}
 
@@ -228,12 +233,12 @@
 
       <div class="submit-cta">
         <div>
-          <h3>Made something with Crispy?</h3>
-          <p>Tag <strong>@crispyv0</strong> on Instagram or drop it in our Discord — we feature our favorites in Made with Crispy.</p>
+          <h3>Got a tutorial to share?</h3>
+          <p>Made a walkthrough using Crispy tools — or just something you think editors should see? Send it over and we'll feature it here, creator credit included.</p>
         </div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
-          <a class="btn" href="https://www.instagram.com/crispyv0/" target="_blank" rel="noopener">Tag us on Instagram</a>
-          <a class="btn btn--ghost" href="https://discord.gg/ZJ36YfuST" target="_blank" rel="noopener">Join Discord</a>
+          <a class="btn" href="https://discord.gg/ZJ36YfuST" target="_blank" rel="noopener">Submit on Discord</a>
+          <a class="btn btn--ghost" href="contact.html">Contact us</a>
         </div>
       </div>
     `;
