@@ -244,7 +244,16 @@
           <div><label>Sort order</label><input type="number" step="1" id="tut_sort_order" placeholder="0"></div>
           <div style="grid-column:1/-1;"><label>Excerpt (optional)</label><textarea id="tut_excerpt" rows="2" placeholder="A walkthrough of the new preset system, live preview stage, and keyframeable wiggle controls."></textarea></div>
           <div style="grid-column:1/-1;"><label>YouTube video link *</label><input type="url" id="tut_youtube_url" required placeholder="https://www.youtube.com/watch?v=..."></div>
+          <div><label>Product used (optional)</label><select id="tut_product_id"><option value="">— None —</option></select></div>
           <div><label><input type="checkbox" id="tut_is_active" checked> Active (shown on the site)</label></div>
+          <div style="grid-column:1/-1;">
+            <label>Author notes (optional — the full write-up shown on the tutorial page, one paragraph per line)</label>
+            <textarea id="tut_body" rows="5" placeholder="This tutorial walks through the new preset system in Crispy Pizza — how the live preview stage works, what each wiggle control does, and how to save your own presets for reuse."></textarea>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>Timestamps (optional — one per line, format: 0:58 - Foreground color reconstruction)</label>
+            <textarea id="tut_timestamps" rows="4" placeholder="0:00 - Intro&#10;0:58 - Foreground color reconstruction&#10;2:13 - Output modes"></textarea>
+          </div>
           <div style="grid-column:1/-1;">
             <label>Thumbnail preview</label>
             <span class="adm-img-preview" id="tutThumbPreview" style="width:120px;height:68px;">No video</span>
@@ -1122,7 +1131,15 @@
   const tutCancelBtn = document.getElementById('tutCancelBtn');
   const tutThumbPreview = document.getElementById('tutThumbPreview');
   const tutYoutubeUrl = document.getElementById('tut_youtube_url');
+  const tutProductSelect = document.getElementById('tut_product_id');
   let tutorials = [];
+
+  function populateTutProductDropdown(selectedId){
+    const current = selectedId != null ? String(selectedId) : '';
+    tutProductSelect.innerHTML = '<option value="">— None —</option>' +
+      products.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+    tutProductSelect.value = current;
+  }
 
   function updateTutThumb(){
     const id = youtubeId(tutYoutubeUrl.value.trim());
@@ -1138,6 +1155,9 @@
     document.getElementById('tut_tag').value = item ? item.tag || '' : '';
     document.getElementById('tut_excerpt').value = item ? item.excerpt || '' : '';
     document.getElementById('tut_youtube_url').value = item ? item.youtube_url || '' : '';
+    document.getElementById('tut_body').value = item ? item.body || '' : '';
+    document.getElementById('tut_timestamps').value = item ? item.timestamps || '' : '';
+    populateTutProductDropdown(item ? item.product_id : '');
     document.getElementById('tut_sort_order').value = item ? (item.sort_order ?? 0) : (tutorials.length);
     document.getElementById('tut_is_active').checked = item ? !!item.is_active : true;
     updateTutThumb();
@@ -1196,6 +1216,9 @@
       tag: document.getElementById('tut_tag').value.trim() || null,
       excerpt: document.getElementById('tut_excerpt').value.trim() || null,
       youtube_url: youtubeUrl,
+      body: document.getElementById('tut_body').value.trim() || null,
+      timestamps: document.getElementById('tut_timestamps').value.trim() || null,
+      product_id: document.getElementById('tut_product_id').value || null,
       sort_order: document.getElementById('tut_sort_order').value ? Number(document.getElementById('tut_sort_order').value) : 0,
       is_active: document.getElementById('tut_is_active').checked
     };
@@ -1236,4 +1259,4 @@
 })();
 </script>
 </body>
-</html>s
+</html>
