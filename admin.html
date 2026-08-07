@@ -167,6 +167,45 @@
       </form>
     </div>
 
+    <div class="adm-form is-open" style="margin-bottom:1.6rem;">
+      <h3>Made with Crispy showcase</h3>
+      <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
+        Upload the actual reel video file — the site plays it directly on loop with full control. The Instagram link is only used to redirect visitors when they click the creator's username.
+      </p>
+      <div id="scList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.2rem;"></div>
+
+      <form id="scForm" style="border-top:1px solid var(--c-border);padding-top:1rem;">
+        <input type="hidden" id="sc_id">
+        <div class="adm-form-grid">
+          <div><label>Creator name *</label><input type="text" id="sc_creator" required placeholder="Maya R."></div>
+          <div><label>Instagram handle *</label><input type="text" id="sc_handle" required placeholder="@mayaedits"></div>
+          <div style="grid-column:1/-1;"><label>Instagram link (opens when someone clicks the username) *</label><input type="url" id="sc_instagram_url" required placeholder="https://www.instagram.com/mayaedits/"></div>
+          <div><label>Tool used (optional)</label><input type="text" id="sc_tool" placeholder="Smooth Bounce Rig Pack"></div>
+          <div><label>Sort order</label><input type="number" step="1" id="sc_sort_order" placeholder="0"></div>
+          <div><label><input type="checkbox" id="sc_is_active" checked> Active (shown on the page)</label></div>
+          <div style="grid-column:1/-1;">
+            <label>Video file *</label>
+            <div class="adm-avatar-row">
+              <span class="adm-img-preview" id="scVidPreview" style="width:56px;height:70px;">No video</span>
+              <div style="flex:1;min-width:200px;">
+                <div class="cp-avatar-drop-like" id="scVidDrop">
+                  <input type="file" id="scVidFile" accept="video/*" hidden>
+                  <span id="scVidDropText">Drag &amp; drop the reel video, or click to choose one</span>
+                </div>
+                <p class="adm-msg" id="scVidMsg" style="margin-top:.4rem;"></p>
+              </div>
+            </div>
+            <input type="hidden" id="sc_video_url">
+          </div>
+          <div class="adm-form-actions">
+            <button type="submit" class="btn">Save showcase item</button>
+            <button type="button" class="btn btn--ghost" id="scCancelBtn">Clear form</button>
+          </div>
+          <p class="adm-msg" id="scFormMsg"></p>
+        </div>
+      </form>
+    </div>
+
     <form class="adm-form" id="admForm">
       <h3 id="admFormTitle">New product</h3>
       <input type="hidden" id="f_id">
@@ -855,6 +894,124 @@
     setTimeout(bnResetForm, 500);
   });
 
+  /* ---------- Made with Crispy showcase (showcase_items table, 'products' bucket) ---------- */
+  const scList = document.getElementById('scList');
+  const scForm = document.getElementById('scForm');
+  const scFormMsg = document.getElementById('scFormMsg');
+  const scCancelBtn = document.getElementById('scCancelBtn');
+  const scVidPreview = document.getElementById('scVidPreview');
+  const scVidDrop = document.getElementById('scVidDrop');
+  const scVidFile = document.getElementById('scVidFile');
+  const scVidDropText = document.getElementById('scVidDropText');
+  const scVidMsg = document.getElementById('scVidMsg');
+  let showcaseItems = [];
+
+  function scOpenForm(item){
+    document.getElementById('sc_id').value = item ? item.id : '';
+    document.getElementById('sc_creator').value = item ? item.creator_name || '' : '';
+    document.getElementById('sc_handle').value = item ? item.handle || '' : '';
+    document.getElementById('sc_instagram_url').value = item ? item.instagram_url || '' : '';
+    document.getElementById('sc_tool').value = item ? item.tool_used || '' : '';
+    document.getElementById('sc_sort_order').value = item ? (item.sort_order ?? 0) : (showcaseItems.length);
+    document.getElementById('sc_is_active').checked = item ? !!item.is_active : true;
+    document.getElementById('sc_video_url').value = item ? item.video_url || '' : '';
+    scVidPreview.innerHTML = item && item.video_url
+      ? `<video src="${esc(item.video_url)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
+      : 'No video';
+    scFormMsg.textContent = '';
+    scForm.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+  function scResetForm(){ scOpenForm(null); }
+  scCancelBtn.addEventListener('click', scResetForm);
+
+  async function uploadShowcaseVideo(file){
+    if (!file || !file.type.startsWith('video/')){
+      scVidMsg.textContent = 'Please choose a video file.'; scVidMsg.style.color = '#ff6b6b';
+      return;
+    }
+    scVidDropText.textContent = 'Uploading…'; scVidMsg.textContent = '';
+    const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+    const path = `showcase/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    scVidDropText.textContent = 'Drag & drop the reel video, or click to choose one';
+    if (upErr){ scVidMsg.textContent = upErr.message || 'Upload failed.'; scVidMsg.style.color = '#ff6b6b'; return; }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    const publicUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    document.getElementById('sc_video_url').value = publicUrl;
+    scVidPreview.innerHTML = `<video src="${esc(publicUrl)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
+    scVidMsg.textContent = 'Ready — click Save showcase item to keep it.'; scVidMsg.style.color = '#4ade80';
+  }
+  scVidDrop.addEventListener('click', () => scVidFile.click());
+  scVidFile.addEventListener('change', () => { if (scVidFile.files[0]) uploadShowcaseVideo(scVidFile.files[0]); });
+  ['dragover','dragenter'].forEach(evt => scVidDrop.addEventListener(evt, (e) => { e.preventDefault(); scVidDrop.classList.add('is-dragover'); }));
+  ['dragleave','drop'].forEach(evt => scVidDrop.addEventListener(evt, (e) => { e.preventDefault(); scVidDrop.classList.remove('is-dragover'); }));
+  scVidDrop.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) uploadShowcaseVideo(file);
+  });
+
+  function renderScList(){
+    if (!showcaseItems.length){
+      scList.innerHTML = '<p style="font-size:.8rem;color:var(--c-text-faint);">No showcase items yet — add one below.</p>';
+      return;
+    }
+    scList.innerHTML = showcaseItems.map(s => `
+      <div style="display:flex;gap:.7rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
+        <span style="width:36px;height:44px;flex-shrink:0;background:var(--c-surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          ${s.video_url ? `<video src="${esc(s.video_url)}" muted style="width:100%;height:100%;object-fit:cover;"></video>` : ''}
+        </span>
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${esc(s.creator_name)} <span style="color:var(--c-text-faint);">${esc(s.handle)}</span></div>
+        <span class="adm-pill ${s.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${s.is_active ? 'Active' : 'Hidden'}</span>
+        <div class="adm-row-actions">
+          <button type="button" class="btn btn--ghost" data-sc-edit="${s.id}">Edit</button>
+          <button type="button" class="btn btn--ghost" data-sc-delete="${s.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    scList.querySelectorAll('[data-sc-edit]').forEach(btn => btn.addEventListener('click', () => {
+      const s = showcaseItems.find(x => String(x.id) === String(btn.dataset.scEdit));
+      if (s) scOpenForm(s);
+    }));
+    scList.querySelectorAll('[data-sc-delete]').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this showcase item?')) return;
+      const { error } = await client.from('showcase_items').delete().eq('id', btn.dataset.scDelete);
+      if (error){ alert('Could not delete: ' + error.message); return; }
+      await loadShowcase();
+    }));
+  }
+
+  async function loadShowcase(){
+    const { data, error } = await client.from('showcase_items').select('*').order('sort_order', { ascending: true });
+    if (error){ scList.innerHTML = `<p class="state-msg">Couldn't load showcase items: ${esc(error.message)}</p>`; return; }
+    showcaseItems = data || [];
+    renderScList();
+  }
+
+  scForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('sc_id').value;
+    const payload = {
+      creator_name: document.getElementById('sc_creator').value.trim(),
+      handle: document.getElementById('sc_handle').value.trim(),
+      instagram_url: document.getElementById('sc_instagram_url').value.trim(),
+      tool_used: document.getElementById('sc_tool').value.trim() || null,
+      sort_order: document.getElementById('sc_sort_order').value ? Number(document.getElementById('sc_sort_order').value) : 0,
+      is_active: document.getElementById('sc_is_active').checked,
+      video_url: document.getElementById('sc_video_url').value.trim()
+    };
+    if (!payload.creator_name || !payload.handle || !payload.instagram_url){ scFormMsg.textContent = 'Creator name, handle and Instagram link are required.'; scFormMsg.style.color = '#ff6b6b'; return; }
+    if (!payload.video_url){ scFormMsg.textContent = 'Please upload a video first.'; scFormMsg.style.color = '#ff6b6b'; return; }
+    scFormMsg.textContent = 'Saving…'; scFormMsg.style.color = 'var(--c-text-faint)';
+    const query = id
+      ? client.from('showcase_items').update(payload).eq('id', id)
+      : client.from('showcase_items').insert(payload);
+    const { error } = await query;
+    if (error){ scFormMsg.textContent = error.message || 'Could not save.'; scFormMsg.style.color = '#ff6b6b'; return; }
+    scFormMsg.textContent = 'Saved!'; scFormMsg.style.color = '#4ade80';
+    await loadShowcase();
+    setTimeout(scResetForm, 500);
+  });
+
   async function init(){
     const user = await DCAuth.getUser();
     if (!user){ window.location.href = 'login.html'; return; }
@@ -872,6 +1029,7 @@
     await loadProducts();
     await loadBannerSettings();
     await loadBanners();
+    await loadShowcase();
   }
 
   init();
