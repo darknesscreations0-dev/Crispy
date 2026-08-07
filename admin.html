@@ -302,7 +302,8 @@
         <div style="grid-column:1/-1;"><label>Subject</label><input type="text" id="subSubject" placeholder="Crispy Captions is out now"></div>
         <div style="grid-column:1/-1;"><label>Message</label><textarea id="subBody" rows="6" placeholder="Hey — just shipped..."></textarea></div>
         <div class="adm-form-actions">
-          <button type="button" class="btn" id="subOpenMailBtn">Open in email app</button>
+          <button type="button" class="btn" id="subOpenGmailBtn">Open in Gmail</button>
+          <button type="button" class="btn btn--ghost" id="subOpenMailBtn">Use default mail app instead</button>
         </div>
         <p class="adm-msg" id="subMailMsg"></p>
       </div>
@@ -1384,19 +1385,33 @@
     URL.revokeObjectURL(url);
   });
 
-  document.getElementById('subOpenMailBtn').addEventListener('click', () => {
+  function checkSubscribersReady(){
     const msg = document.getElementById('subMailMsg');
-    if (!subscribers.length){ msg.textContent = 'No subscribers to message yet.'; msg.style.color = '#ff6b6b'; return; }
+    if (!subscribers.length){ msg.textContent = 'No subscribers to message yet.'; msg.style.color = '#ff6b6b'; return false; }
     if (subscribers.length > 60){
-      msg.textContent = `You have ${subscribers.length} subscribers — most email apps choke on that many BCC addresses through a mailto link. Export the CSV and use a real email tool (Mailchimp, Brevo, etc.) instead.`;
+      msg.textContent = `You have ${subscribers.length} subscribers — that's too many for a BCC link to handle reliably. Export the CSV and use a real email tool (Mailchimp, Brevo, etc.) instead.`;
       msg.style.color = '#ff6b6b';
-      return;
+      return false;
     }
+    msg.textContent = '';
+    return true;
+  }
+
+  document.getElementById('subOpenGmailBtn').addEventListener('click', () => {
+    if (!checkSubscribersReady()) return;
+    const subject = document.getElementById('subSubject').value.trim();
+    const body = document.getElementById('subBody').value.trim();
+    const bcc = subscribers.map(s => s.email).join(',');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
+  });
+
+  document.getElementById('subOpenMailBtn').addEventListener('click', () => {
+    if (!checkSubscribersReady()) return;
     const subject = document.getElementById('subSubject').value.trim();
     const body = document.getElementById('subBody').value.trim();
     const bcc = subscribers.map(s => s.email).join(',');
     const mailto = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    msg.textContent = '';
     window.location.href = mailto;
   });
 
