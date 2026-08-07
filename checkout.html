@@ -124,13 +124,19 @@
   // Same cart the rest of the site uses (see assets/js/store.js) —
   // an array of {id, name, price, image, qty} under this localStorage key.
   const CART_KEY = 'crispy_cart';
+  const PROMO_KEY = 'crispy_promo';
   function getCart(){
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
     catch(e){ return []; }
   }
+  function getPromo(){
+    try { return JSON.parse(localStorage.getItem(PROMO_KEY)) || null; }
+    catch(e){ return null; }
+  }
   function money(n){ return '$' + Number(n).toFixed(2); }
 
   const cart = getCart();
+  const promo = getPromo();
   const itemsEl = document.getElementById('orderItems');
   const totalBox = document.getElementById('orderTotalBox');
   const totalEl = document.getElementById('orderTotal');
@@ -151,15 +157,28 @@
           <div class="cp-order-sub">${i.qty > 1 ? i.qty + ' × ' + money(i.price) : '1 item'}</div>
         </div>
         <div class="cp-order-price">${money(i.price * (i.qty || 1))}</div>
-      </div>`).join('');
+      </div>`).join('') +
+      (promo ? `
+      <div class="cp-order-box">
+        <div class="cp-order-name">Promo (${promo.code})</div>
+        <div class="cp-order-price" style="font-size:.95rem;"></div>
+      </div>` : '');
 
-    const total = cart.reduce((s, i) => s + Number(i.price) * (i.qty || 1), 0);
+    const subtotal = cart.reduce((s, i) => s + Number(i.price) * (i.qty || 1), 0);
+    const discount = promo
+      ? (promo.discount_type === 'fixed' ? Math.min(Number(promo.discount_value), subtotal) : subtotal * (Number(promo.discount_value) / 100))
+      : 0;
+    const total = Math.max(0, subtotal - discount);
+    if (promo){
+      const promoPriceEl = itemsEl.querySelector('.cp-order-box:last-child .cp-order-price');
+      if (promoPriceEl) promoPriceEl.textContent = '-' + money(discount);
+    }
     totalEl.textContent = money(total);
     totalBox.style.display = 'flex';
   }
 
   // No URL params needed on buy-direct.html — it reads this same
-  // localStorage cart directly, since both pages share the same origin.
+  // localStorage cart (and promo) directly, since both pages share the same origin.
 </script>
 
 </body>
