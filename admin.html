@@ -54,6 +54,15 @@
 }
 .cp-avatar-drop-like:hover, .cp-avatar-drop-like.is-dragover{ border-color:var(--c-orange); color:var(--c-text); }
 .adm-banner-input{ width:64px; padding:.3rem .4rem; border:1px solid var(--c-border); background:var(--c-surface); color:var(--c-text); font-size:.8rem; }
+.adm-tabs{ display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.6rem; }
+.adm-tab{
+  padding:.5rem 1.1rem; border-radius:999px; border:1px solid var(--c-border);
+  background:var(--c-surface); color:var(--c-text-dim); font-size:.82rem; font-weight:600;
+  cursor:pointer; transition:all .2s var(--ease);
+}
+.adm-tab:hover{ border-color:rgba(247,146,63,.5); color:var(--c-text); }
+.adm-tab.is-active{ background:var(--c-orange); border-color:var(--c-orange); color:#1a0800; }
+@media (max-width:720px){ .adm-panel [style*="grid-template-columns:1fr 1fr"]{ grid-template-columns:1fr !important; } }
 </style>
 </head>
 <body>
@@ -78,11 +87,20 @@
     <div class="adm-head">
       <div>
         <div class="eyebrow">Admin</div>
-        <h1 class="section__title" style="font-size:1.5rem;">Manage products</h1>
+        <h1 class="section__title" style="font-size:1.5rem;">Darkness — Admin</h1>
       </div>
-      <button class="btn" id="admNewBtn">+ New product</button>
     </div>
 
+    <div class="adm-tabs" role="tablist">
+      <button type="button" class="adm-tab is-active" data-adm-tab="products">Products</button>
+      <button type="button" class="adm-tab" data-adm-tab="promo">Promo codes</button>
+      <button type="button" class="adm-tab" data-adm-tab="banners">Banners</button>
+      <button type="button" class="adm-tab" data-adm-tab="showcase">Showcase</button>
+      <button type="button" class="adm-tab" data-adm-tab="tutorials">Tutorials</button>
+      <button type="button" class="adm-tab" data-adm-tab="subscribers">Subscribers</button>
+    </div>
+
+    <div class="adm-panel" data-adm-panel="banners" style="display:none;">
     <div class="adm-form is-open" style="margin-bottom:1.6rem;">
       <h3>Homepage banner settings</h3>
       <div class="adm-form-grid">
@@ -166,7 +184,9 @@
         </div>
       </form>
     </div>
+    </div>
 
+    <div class="adm-panel" data-adm-panel="showcase" style="display:none;">
     <div class="adm-form is-open" style="margin-bottom:1.6rem;">
       <h3>Made with Crispy showcase</h3>
       <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
@@ -228,7 +248,9 @@
         </div>
       </form>
     </div>
+    </div>
 
+    <div class="adm-panel" data-adm-panel="tutorials" style="display:none;">
     <div class="adm-form is-open" style="margin-bottom:1.6rem;">
       <h3>Tutorials &amp; guides</h3>
       <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
@@ -268,7 +290,60 @@
         </div>
       </form>
     </div>
+    </div>
 
+    <div class="adm-panel" data-adm-panel="subscribers" style="display:none;">
+    <div class="adm-form is-open" style="margin-bottom:1.6rem;">
+      <h3>Subscribers</h3>
+      <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
+        People who dropped their email in the cookie banner. Export the list to send updates through an email tool — this just stores addresses, it doesn't send anything itself.
+      </p>
+      <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+        <button type="button" class="btn btn--ghost" id="subExportBtn">Export CSV</button>
+        <span id="subCount" style="font-size:.8rem;color:var(--c-text-faint);"></span>
+      </div>
+      <div id="subList" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+    </div>
+    </div>
+
+    <div class="adm-panel" data-adm-panel="promo" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;align-items:start;">
+        <div class="adm-form is-open">
+          <h3>Create promo code</h3>
+          <form id="promoForm">
+            <input type="hidden" id="promo_id">
+            <div class="adm-form-grid">
+              <div style="grid-column:1/-1;"><label>Code *</label><input type="text" id="promo_code" required placeholder="E.G. LAUNCH20" style="text-transform:uppercase;"></div>
+              <div><label>Discount type</label>
+                <select id="promo_discount_type">
+                  <option value="percent">Percent off (%)</option>
+                  <option value="fixed">Fixed amount ($)</option>
+                </select>
+              </div>
+              <div><label>Discount value *</label><input type="number" step="0.01" min="0" id="promo_discount_value" required></div>
+              <div><label>Max uses (optional)</label><input type="number" step="1" min="1" id="promo_max_uses" placeholder="Leave blank = unlimited"></div>
+              <div><label>Expires (optional)</label><input type="datetime-local" id="promo_expires_at"></div>
+              <div class="adm-checks"><label><input type="checkbox" id="promo_is_active"> Active</label></div>
+              <div class="adm-form-actions">
+                <button type="submit" class="btn">Create code</button>
+                <button type="button" class="btn btn--ghost" id="promoCancelBtn">Clear form</button>
+              </div>
+              <p class="adm-msg" id="promoFormMsg"></p>
+            </div>
+          </form>
+        </div>
+        <div class="adm-form is-open">
+          <h3>Existing codes</h3>
+          <div id="promoList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-panel" data-adm-panel="products">
+    <div class="adm-head" style="margin-bottom:1rem;">
+      <div></div>
+      <button class="btn" id="admNewBtn">+ New product</button>
+    </div>
     <form class="adm-form" id="admForm">
       <h3 id="admFormTitle">New product</h3>
       <input type="hidden" id="f_id">
@@ -388,6 +463,7 @@
           <tr><td colspan="7"><p class="state-msg">Loading products…</p></td></tr>
         </tbody>
       </table>
+    </div>
     </div>
   </div>
 </main>
@@ -1240,6 +1316,153 @@
     setTimeout(tutResetForm, 500);
   });
 
+  /* ---------- Subscribers (subscribers table, read-only newsletter list) ---------- */
+  const subList = document.getElementById('subList');
+  const subCount = document.getElementById('subCount');
+  const subExportBtn = document.getElementById('subExportBtn');
+  let subscribers = [];
+
+  function renderSubList(){
+    subCount.textContent = subscribers.length ? `${subscribers.length} subscriber${subscribers.length === 1 ? '' : 's'}` : '';
+    if (!subscribers.length){
+      subList.innerHTML = '<p style="font-size:.8rem;color:var(--c-text-faint);">No subscribers yet.</p>';
+      return;
+    }
+    subList.innerHTML = subscribers.map(s => `
+      <div style="display:flex;gap:.7rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${esc(s.email)}</div>
+        <span style="font-size:.76rem;color:var(--c-text-faint);">${s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}</span>
+        <div class="adm-row-actions">
+          <button type="button" class="btn btn--ghost" data-sub-delete="${s.id}">Remove</button>
+        </div>
+      </div>
+    `).join('');
+    subList.querySelectorAll('[data-sub-delete]').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Remove this subscriber?')) return;
+      const { error } = await client.from('subscribers').delete().eq('id', btn.dataset.subDelete);
+      if (error){ alert('Could not remove: ' + error.message); return; }
+      await loadSubscribers();
+    }));
+  }
+
+  async function loadSubscribers(){
+    const { data, error } = await client.from('subscribers').select('*').order('created_at', { ascending: false });
+    if (error){ subList.innerHTML = `<p class="state-msg">Couldn't load subscribers: ${esc(error.message)}</p>`; return; }
+    subscribers = data || [];
+    renderSubList();
+  }
+
+  subExportBtn.addEventListener('click', () => {
+    if (!subscribers.length){ alert('No subscribers to export yet.'); return; }
+    const rows = [['email', 'subscribed_at']].concat(
+      subscribers.map(s => [s.email, s.created_at || ''])
+    );
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crispy-subscribers-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  /* ---------- Tabs ---------- */
+  const admTabs = document.querySelectorAll('[data-adm-tab]');
+  const admPanels = document.querySelectorAll('[data-adm-panel]');
+  admTabs.forEach(tab => tab.addEventListener('click', () => {
+    admTabs.forEach(t => t.classList.remove('is-active'));
+    tab.classList.add('is-active');
+    admPanels.forEach(p => { p.style.display = (p.dataset.admPanel === tab.dataset.admTab) ? '' : 'none'; });
+  }));
+
+  /* ---------- Promo codes ---------- */
+  const promoForm = document.getElementById('promoForm');
+  const promoFormMsg = document.getElementById('promoFormMsg');
+  const promoCancelBtn = document.getElementById('promoCancelBtn');
+  const promoList = document.getElementById('promoList');
+  let promoCodes = [];
+
+  function promoOpenForm(code){
+    document.getElementById('promo_id').value = code ? code.id : '';
+    document.getElementById('promo_code').value = code ? code.code || '' : '';
+    document.getElementById('promo_discount_type').value = code ? code.discount_type || 'percent' : 'percent';
+    document.getElementById('promo_discount_value').value = code ? code.discount_value ?? '' : '';
+    document.getElementById('promo_max_uses').value = code && code.max_uses != null ? code.max_uses : '';
+    document.getElementById('promo_expires_at').value = code && code.expires_at ? code.expires_at.slice(0,16) : '';
+    document.getElementById('promo_is_active').checked = code ? !!code.is_active : false;
+    promoFormMsg.textContent = '';
+  }
+  function promoResetForm(){ promoOpenForm(null); }
+  promoCancelBtn.addEventListener('click', promoResetForm);
+
+  function renderPromoList(){
+    if (!promoCodes.length){
+      promoList.innerHTML = '<p style="font-size:.8rem;color:var(--c-text-faint);">No promo codes yet.</p>';
+      return;
+    }
+    promoList.innerHTML = promoCodes.map(c => {
+      const usesLabel = c.max_uses != null ? `${c.uses_count || 0}/${c.max_uses} uses` : `${c.uses_count || 0} uses`;
+      const discountLabel = c.discount_type === 'fixed' ? `$${Number(c.discount_value).toFixed(2)} off` : `${c.discount_value}% off`;
+      return `
+      <div style="display:flex;gap:.7rem;align-items:center;border:1px solid var(--c-border);padding:.6rem .7rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:120px;">
+          <div style="font-weight:700;font-size:.9rem;">${esc(c.code)}</div>
+          <div style="font-size:.76rem;color:var(--c-text-faint);">${discountLabel} · ${usesLabel}${c.expires_at ? ' · expires ' + new Date(c.expires_at).toLocaleDateString() : ''}</div>
+        </div>
+        <span class="adm-pill ${c.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${c.is_active ? 'Active' : 'Inactive'}</span>
+        <div class="adm-row-actions">
+          <button type="button" class="btn btn--ghost" data-promo-edit="${c.id}">Edit</button>
+          <button type="button" class="btn btn--ghost" data-promo-delete="${c.id}">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+    promoList.querySelectorAll('[data-promo-edit]').forEach(btn => btn.addEventListener('click', () => {
+      const c = promoCodes.find(x => String(x.id) === String(btn.dataset.promoEdit));
+      if (c) promoOpenForm(c);
+    }));
+    promoList.querySelectorAll('[data-promo-delete]').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this promo code?')) return;
+      const { error } = await client.from('promo_codes').delete().eq('id', btn.dataset.promoDelete);
+      if (error){ alert('Could not delete: ' + error.message); return; }
+      await loadPromoCodes();
+    }));
+  }
+
+  async function loadPromoCodes(){
+    const { data, error } = await client.from('promo_codes').select('*').order('created_at', { ascending: false });
+    if (error){ promoList.innerHTML = `<p class="state-msg">Couldn't load promo codes: ${esc(error.message)}</p>`; return; }
+    promoCodes = data || [];
+    renderPromoList();
+  }
+
+  promoForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('promo_id').value;
+    const expiresRaw = document.getElementById('promo_expires_at').value;
+    const maxUsesRaw = document.getElementById('promo_max_uses').value;
+    const payload = {
+      code: document.getElementById('promo_code').value.trim().toUpperCase(),
+      discount_type: document.getElementById('promo_discount_type').value,
+      discount_value: Number(document.getElementById('promo_discount_value').value) || 0,
+      max_uses: maxUsesRaw ? Number(maxUsesRaw) : null,
+      expires_at: expiresRaw ? new Date(expiresRaw).toISOString() : null,
+      is_active: document.getElementById('promo_is_active').checked
+    };
+    if (!payload.code){ promoFormMsg.textContent = 'Code is required.'; promoFormMsg.style.color = '#ff6b6b'; return; }
+    promoFormMsg.textContent = 'Saving…'; promoFormMsg.style.color = 'var(--c-text-faint)';
+    const query = id
+      ? client.from('promo_codes').update(payload).eq('id', id)
+      : client.from('promo_codes').insert(payload);
+    const { error } = await query;
+    if (error){ promoFormMsg.textContent = error.message || 'Could not save.'; promoFormMsg.style.color = '#ff6b6b'; return; }
+    promoFormMsg.textContent = 'Saved!'; promoFormMsg.style.color = '#4ade80';
+    await loadPromoCodes();
+    setTimeout(promoResetForm, 500);
+  });
+
   async function init(){
     const user = await DCAuth.getUser();
     if (!user){ window.location.href = 'login.html'; return; }
@@ -1259,6 +1482,8 @@
     await loadBanners();
     await loadShowcase();
     await loadTutorials();
+    await loadSubscribers();
+    await loadPromoCodes();
   }
 
   init();
