@@ -81,6 +81,7 @@ body.has-lightbox{ overflow:hidden; }
     </div>
 
     <div class="container">
+      <div id="tutFilterBar" style="display:none;align-items:center;gap:.6rem;margin-bottom:1.2rem;font-size:.85rem;color:var(--c-text-dim);"></div>
       <div class="tut-grid" id="tutGrid"></div>
     </div>
   </section>
@@ -140,6 +141,9 @@ body.has-lightbox{ overflow:hidden; }
   }
 
   const grid = document.getElementById('tutGrid');
+  const filterBar = document.getElementById('tutFilterBar');
+  const params = new URLSearchParams(window.location.search);
+  const activeTag = params.get('tag');
   let tutorials = [];
 
   function cardHTML(t){
@@ -163,7 +167,13 @@ body.has-lightbox{ overflow:hidden; }
   }
 
   function render(){
-    grid.innerHTML = tutorials.map(cardHTML).join('');
+    if (activeTag){
+      filterBar.style.display = 'flex';
+      filterBar.innerHTML = `Showing <strong style="color:var(--c-text);">${esc(activeTag)}</strong> <a href="tutorials.html" style="color:var(--c-orange);">Clear filter ✕</a>`;
+    }
+    grid.innerHTML = tutorials.length
+      ? tutorials.map(cardHTML).join('')
+      : `<div class="tut-empty" style="grid-column:1/-1;">No tutorials found in this category yet.</div>`;
   }
 
   async function load(){
@@ -171,13 +181,19 @@ body.has-lightbox{ overflow:hidden; }
       grid.innerHTML = `<div class="tut-empty" style="grid-column:1/-1;">Could not load tutorials right now.</div>`;
       return;
     }
-    const { data, error } = await window.supabaseClient
+    let query = window.supabaseClient
       .from('tutorials')
       .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+      .eq('is_active', true);
+    if (activeTag) query = query.eq('tag', activeTag);
+    const { data, error } = await query.order('sort_order', { ascending: true });
 
     if (error || !data || !data.length){
+      if (activeTag){
+        tutorials = [];
+        render();
+        return;
+      }
       grid.innerHTML = `<div class="tut-empty" style="grid-column:1/-1;">
         No tutorials published yet — check back soon, or follow
         <a href="https://youtube.com/@darknesssx0" target="_blank" rel="noopener" style="color:var(--c-orange);">the YouTube channel</a>
@@ -194,4 +210,4 @@ body.has-lightbox{ overflow:hidden; }
 })();
 </script>
 </body>
-</html>
+</html>s
