@@ -17,6 +17,39 @@
 .showcase-card__media video{ width:100%; height:100%; object-fit:cover; display:block; }
 .showcase-card__avatar{ overflow:hidden; }
 .showcase-card__avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+.learn-card{ cursor:pointer; }
+.learn-card__media{ position:relative; overflow:hidden; }
+.learn-card__media img{ width:100%; height:100%; object-fit:cover; display:block; }
+.learn-card__play{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0); transition:background .2s var(--ease);
+}
+.learn-card:hover .learn-card__play{ background:rgba(0,0,0,.15); }
+.learn-card__play span{
+  width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.94);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 10px 26px rgba(0,0,0,.4);
+  transition:transform .25s var(--ease);
+}
+.learn-card:hover .learn-card__play span{ transform:scale(1.1); }
+.learn-card__play svg{ width:16px; height:16px; margin-left:2px; fill:#1a0800; }
+
+.tut-lightbox{ position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+.tut-lightbox__backdrop{ position:absolute; inset:0; background:rgba(6,6,8,.9); backdrop-filter:blur(4px); }
+.tut-lightbox__inner{ position:relative; z-index:1; width:100%; max-width:900px; }
+.tut-lightbox__frame{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:10px; overflow:hidden; box-shadow:0 30px 70px -20px rgba(0,0,0,.7); }
+.tut-lightbox__frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.tut-lightbox__close{
+  position:absolute; top:-.4rem; right:-.4rem; z-index:2; transform:translate(50%,-50%);
+  width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:#fff; color:#171717; box-shadow:0 8px 20px rgba(0,0,0,.4);
+  transition:transform .2s var(--ease);
+}
+.tut-lightbox__close:hover{ transform:translate(50%,-50%) scale(1.08); }
+.tut-lightbox__close svg{ width:16px; height:16px; }
+body.has-lightbox{ overflow:hidden; }
 </style>
 </head>
 <body>
@@ -183,38 +216,7 @@
     </div>
     <div class="container">
       <div class="learn-grid" data-tutorials>
-        <a class="learn-card" href="tutorials.html">
-          <div class="learn-card__media learn-card__media--1"></div>
-          <div class="learn-card__body">
-            <span class="learn-card__tag">Crispy Pizza</span>
-            <h3 class="learn-card__title">Rebuilding the Shakes panel from scratch</h3>
-            <p class="learn-card__excerpt">A walkthrough of the new preset system, live preview stage, and keyframeable wiggle controls.</p>
-          </div>
-        </a>
-        <a class="learn-card" href="tutorials.html">
-          <div class="learn-card__media learn-card__media--2"></div>
-          <div class="learn-card__body">
-            <span class="learn-card__tag">Workflow</span>
-            <h3 class="learn-card__title">Getting clean easing curves in After Effects</h3>
-            <p class="learn-card__excerpt">Why default AE eases feel stiff, and how to fix it in three clicks with Crispy.</p>
-          </div>
-        </a>
-        <a class="learn-card" href="tutorials.html">
-          <div class="learn-card__media learn-card__media--3"></div>
-          <div class="learn-card__body">
-            <span class="learn-card__tag">Captions</span>
-            <h3 class="learn-card__title">Faster caption styling with Crispy Captions</h3>
-            <p class="learn-card__excerpt">Block subtitles, clean pop-ins, and marker-based sync — set up in under a minute.</p>
-          </div>
-        </a>
-        <a class="learn-card" href="tutorials.html">
-          <div class="learn-card__media learn-card__media--4"></div>
-          <div class="learn-card__body">
-            <span class="learn-card__tag">Tips</span>
-            <h3 class="learn-card__title">5 comp-info shortcuts most editors miss</h3>
-            <p class="learn-card__excerpt">Small panel features that save real time once they're part of your muscle memory.</p>
-          </div>
-        </a>
+        <p class="state-msg">Loading…</p>
       </div>
       <div style="text-align:center;margin-top:1.6rem;">
         <a href="tutorials.html" class="btn btn--ghost">See all tutorials</a>
@@ -329,6 +331,82 @@
     track.innerHTML = data.map(cardHTML).join('');
   }
   loadShowcase();
+
+  function youtubeId(url){
+    if (!url) return '';
+    const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+    return m ? m[1] : '';
+  }
+
+  function tutCardHTML(t){
+    const id = youtubeId(t.youtube_url);
+    const thumb = id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+    return `
+      <div class="learn-card" data-tut-id="${esc(t.id)}">
+        <div class="learn-card__media">
+          ${thumb ? `<img src="${thumb}" alt="${esc(t.title)}" loading="lazy">` : ''}
+          <div class="learn-card__play"><span><svg viewBox="0 0 24 24" fill="#1a0800"><path d="M8 5v14l11-7z"/></svg></span></div>
+        </div>
+        <div class="learn-card__body">
+          ${t.tag ? `<span class="learn-card__tag">${esc(t.tag)}</span>` : ''}
+          <h3 class="learn-card__title">${esc(t.title)}</h3>
+          ${t.excerpt ? `<p class="learn-card__excerpt">${esc(t.excerpt)}</p>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function openTutLightbox(t){
+    const id = youtubeId(t.youtube_url);
+    if (!id) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'tut-lightbox';
+    overlay.innerHTML = `
+      <div class="tut-lightbox__backdrop"></div>
+      <div class="tut-lightbox__inner">
+        <button type="button" class="tut-lightbox__close" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="tut-lightbox__frame">
+          <iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="${esc(t.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.body.classList.add('has-lightbox');
+    function close(){
+      overlay.remove();
+      document.body.classList.remove('has-lightbox');
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(e){ if (e.key === 'Escape') close(); }
+    overlay.querySelector('.tut-lightbox__backdrop').addEventListener('click', close);
+    overlay.querySelector('.tut-lightbox__close').addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+  }
+
+  async function loadTutorials(){
+    const tutGrid = document.querySelector('[data-tutorials]');
+    const tutSection = tutGrid ? tutGrid.closest('.section') : null;
+    if (!tutGrid) return;
+    if (!window.supabaseClient){ if (tutSection) tutSection.style.display = 'none'; return; }
+    const { data, error } = await window.supabaseClient
+      .from('tutorials')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .limit(4);
+    if (error || !data || !data.length){
+      if (tutSection) tutSection.style.display = 'none';
+      return;
+    }
+    tutGrid.innerHTML = data.map(tutCardHTML).join('');
+    tutGrid.querySelectorAll('[data-tut-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        const t = data.find(x => String(x.id) === String(card.dataset.tutId));
+        if (t) openTutLightbox(t);
+      });
+    });
+  }
+  loadTutorials();
 
   if (!track || !prev || !next) return;
   const amount = () => Math.max(240, track.clientWidth * 0.8);
