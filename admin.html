@@ -294,9 +294,24 @@
 
     <div class="adm-panel" data-adm-panel="subscribers" style="display:none;">
     <div class="adm-form is-open" style="margin-bottom:1.6rem;">
+      <h3>Message subscribers</h3>
+      <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
+        Write your update below and it opens in your own email app (Gmail, Outlook, whatever's default) with every subscriber quietly BCC'd — you review it and hit send yourself. Nothing sends automatically from here.
+      </p>
+      <div class="adm-form-grid">
+        <div style="grid-column:1/-1;"><label>Subject</label><input type="text" id="subSubject" placeholder="Crispy Captions is out now"></div>
+        <div style="grid-column:1/-1;"><label>Message</label><textarea id="subBody" rows="6" placeholder="Hey — just shipped..."></textarea></div>
+        <div class="adm-form-actions">
+          <button type="button" class="btn" id="subOpenMailBtn">Open in email app</button>
+        </div>
+        <p class="adm-msg" id="subMailMsg"></p>
+      </div>
+    </div>
+
+    <div class="adm-form is-open" style="margin-bottom:1.6rem;">
       <h3>Subscribers</h3>
       <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
-        People who dropped their email in the cookie banner. Export the list to send updates through an email tool — this just stores addresses, it doesn't send anything itself.
+        People who dropped their email in the cookie banner.
       </p>
       <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
         <button type="button" class="btn btn--ghost" id="subExportBtn">Export CSV</button>
@@ -1367,6 +1382,22 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('subOpenMailBtn').addEventListener('click', () => {
+    const msg = document.getElementById('subMailMsg');
+    if (!subscribers.length){ msg.textContent = 'No subscribers to message yet.'; msg.style.color = '#ff6b6b'; return; }
+    if (subscribers.length > 60){
+      msg.textContent = `You have ${subscribers.length} subscribers — most email apps choke on that many BCC addresses through a mailto link. Export the CSV and use a real email tool (Mailchimp, Brevo, etc.) instead.`;
+      msg.style.color = '#ff6b6b';
+      return;
+    }
+    const subject = document.getElementById('subSubject').value.trim();
+    const body = document.getElementById('subBody').value.trim();
+    const bcc = subscribers.map(s => s.email).join(',');
+    const mailto = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    msg.textContent = '';
+    window.location.href = mailto;
   });
 
   /* ---------- Tabs ---------- */
