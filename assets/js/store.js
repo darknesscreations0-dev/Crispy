@@ -5,6 +5,7 @@
    ============================================================ */
 const CrispyStore = (() => {
   const CART_KEY = 'crispy_cart';
+  const PROMO_KEY = 'crispy_promo';
   const CURRENCY = '$';
   /* ---------- helpers ---------- */
   function client(){ return window.supabaseClient || null; }
@@ -87,6 +88,18 @@ const CrispyStore = (() => {
   /* ---------- promo codes ---------- */
   let appliedPromo = null;
   let promoMsg = '';
+  function savePromo(){
+    try {
+      if (appliedPromo) localStorage.setItem(PROMO_KEY, JSON.stringify({ code: appliedPromo.code, discount_type: appliedPromo.discount_type, discount_value: appliedPromo.discount_value }));
+      else localStorage.removeItem(PROMO_KEY);
+    } catch(e){}
+  }
+  function loadPromo(){
+    try {
+      const raw = localStorage.getItem(PROMO_KEY);
+      if (raw) appliedPromo = JSON.parse(raw);
+    } catch(e){}
+  }
   function calcDiscount(subtotal){
     if (!appliedPromo) return 0;
     if (appliedPromo.discount_type === 'fixed') return Math.min(Number(appliedPromo.discount_value), subtotal);
@@ -94,30 +107,34 @@ const CrispyStore = (() => {
   }
   async function applyPromoCode(codeRaw){
     const code = String(codeRaw || '').trim().toUpperCase();
-    if (!code){ promoMsg = ''; appliedPromo = null; renderCart(); return; }
+    if (!code){ promoMsg = ''; appliedPromo = null; savePromo(); renderCart(); return; }
     const c = client();
-    if (!c){ appliedPromo = null; promoMsg = 'Could not check that code right now.'; renderCart(); return; }
+    if (!c){ appliedPromo = null; promoMsg = 'Could not check that code right now.'; savePromo(); renderCart(); return; }
     const { data, error } = await c.from('promo_codes').select('*').eq('code', code).eq('is_active', true).maybeSingle();
     if (error || !data){
       appliedPromo = null;
       promoMsg = 'Invalid or inactive code.';
+      savePromo();
       renderCart();
       return;
     }
     if (data.expires_at && new Date(data.expires_at) < new Date()){
       appliedPromo = null;
       promoMsg = 'This code has expired.';
+      savePromo();
       renderCart();
       return;
     }
     if (data.max_uses != null && (data.uses_count || 0) >= data.max_uses){
       appliedPromo = null;
       promoMsg = 'This code has reached its usage limit.';
+      savePromo();
       renderCart();
       return;
     }
     appliedPromo = data;
     promoMsg = `"${data.code}" applied.`;
+    savePromo();
     renderCart();
   }
   function addToCart(product){
@@ -534,8 +551,8 @@ const CrispyStore = (() => {
         </div>
         ${promoMsg ? `<p style="font-size:.78rem;margin-top:.4rem;color:${appliedPromo ? '#4ade80' : '#ff6b6b'};">${esc(promoMsg)}</p>` : ''}
 
-        <button class="btn btn--block" style="margin-top:1.2rem;" data-checkout>Checkout via WhatsApp</button>
-        <p style="text-align:center;color:var(--c-text-faint);font-size:.78rem;margin-top:.8rem;">We'll open WhatsApp with your order ready to send — reply there to pay and get your license.</p>
+        <button class="btn btn--block" style="margin-top:1.2rem;" data-checkout>Checkout</button>
+        <p style="text-align:center;color:var(--c-text-faint);font-size:.78rem;margin-top:.8rem;">Card checkout isn't live yet — you'll complete your purchase directly with us on the next page.</p>
         <p style="text-align:center;font-size:.82rem;margin-top:.4rem;"><a href="contact.html">Need another way to reach us? Contact us →</a></p>
       </div>`;
     wrap.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
@@ -555,17 +572,7 @@ const CrispyStore = (() => {
       if (e.key === 'Enter'){ e.preventDefault(); applyPromoCode(promoInputEl.value); }
     });
     const co = wrap.querySelector('[data-checkout]');
-    if (co) co.addEventListener('click', () => {
-      const items = getCart();
-      const sub = cartTotal();
-      const disc = calcDiscount(sub);
-      const grandTotal = Math.max(0, sub - disc);
-      const lines = items.map(i => `${i.qty}x ${i.name} — ${money(i.price)} each`);
-      let msg = `Hi! I'd like to order from Crispy:\n\n${lines.join('\n')}\n\nSubtotal: ${money(sub)}`;
-      if (appliedPromo) msg += `\nPromo (${appliedPromo.code}): -${money(disc)}`;
-      msg += `\nTotal: ${money(grandTotal)}\n\nPlease send payment details.`;
-      window.open(`https://wa.me/919759469047?text=${encodeURIComponent(msg)}`, '_blank');
-    });
+    if (co) co.addEventListener('click', () => { window.location.href = 'buy-direct.html'; });
   }
   /* ---------- FAQ accordion ---------- */
   function wireFaq(){
@@ -705,6 +712,7 @@ const CrispyStore = (() => {
     wireDemo();
     wireMobileNav();
     wireCookieBanner();
+    loadPromo();
     renderHome();
     renderCatalog();
     renderCart();
