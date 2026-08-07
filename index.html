@@ -12,6 +12,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/store.css">
+<style>
+.showcase-card__media{ display:flex; }
+.showcase-card__media video{ width:100%; height:100%; object-fit:cover; display:block; }
+.showcase-card__avatar{ overflow:hidden; }
+.showcase-card__avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+</style>
 </head>
 <body>
 
@@ -158,61 +164,7 @@
         </div>
 
         <div class="showcase-grid showcase-grid--carousel" data-made-with>
-          <a class="showcase-card" href="#" target="_blank" rel="noopener">
-            <div class="showcase-card__media showcase-card__media--1">
-              <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-              <span class="showcase-card__chip">
-                <span class="showcase-card__avatar">D</span>
-                <span class="showcase-card__chip-name">Dropletee</span>
-                <span class="showcase-card__chip-arrow">→</span>
-              </span>
-            </div>
-            <span class="showcase-card__handle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
-              @dropletee_
-            </span>
-          </a>
-          <a class="showcase-card" href="#" target="_blank" rel="noopener">
-            <div class="showcase-card__media showcase-card__media--2">
-              <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-              <span class="showcase-card__chip">
-                <span class="showcase-card__avatar">H</span>
-                <span class="showcase-card__chip-name">Hazrd Design</span>
-                <span class="showcase-card__chip-arrow">→</span>
-              </span>
-            </div>
-            <span class="showcase-card__handle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
-              @hazrd.design
-            </span>
-          </a>
-          <a class="showcase-card" href="#" target="_blank" rel="noopener">
-            <div class="showcase-card__media showcase-card__media--3">
-              <span class="showcase-card__chip">
-                <span class="showcase-card__avatar">M</span>
-                <span class="showcase-card__chip-name">Motion Mira</span>
-                <span class="showcase-card__chip-arrow">→</span>
-              </span>
-            </div>
-            <span class="showcase-card__handle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
-              @motion.mira
-            </span>
-          </a>
-          <a class="showcase-card" href="#" target="_blank" rel="noopener">
-            <div class="showcase-card__media showcase-card__media--4">
-              <span class="showcase-card__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-              <span class="showcase-card__chip">
-                <span class="showcase-card__avatar">K</span>
-                <span class="showcase-card__chip-name">Kesz Edits</span>
-                <span class="showcase-card__chip-arrow">→</span>
-              </span>
-            </div>
-            <span class="showcase-card__handle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
-              @kesz.edits
-            </span>
-          </a>
+          <p class="state-msg" style="padding:1rem;">Loading…</p>
         </div>
       </div>
 
@@ -318,9 +270,66 @@
 <script src="assets/js/store.js"></script>
 <script>
 (function(){
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function hueFor(s){ let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))>>>0; return h%360; }
+
+  function platformIcon(platform){
+    const p = (platform || 'instagram').toLowerCase();
+    if (p === 'youtube') return '<svg width="60%" height="60%" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="none" stroke="#fff" stroke-width="2"/><path d="M10 9l6 3-6 3V9z" fill="#fff"/></svg>';
+    if (p === 'tiktok') return '<svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c0 3 2.5 5 5 5"/></svg>';
+    if (p === 'twitter') return '<svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
+    if (p === 'other') return '<svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>';
+    return '<svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>';
+  }
+
   const track = document.querySelector('[data-made-with]');
   const prev = document.querySelector('[data-showcase-prev]');
   const next = document.querySelector('[data-showcase-next]');
+  const section = track ? track.closest('.section') : null;
+
+  function cardHTML(e){
+    const hue = hueFor(e.handle || e.creator_name);
+    const avatarBg = `hsl(${hue},70%,55%)`;
+    const initial = (e.creator_name || '?').charAt(0).toUpperCase();
+    const avatarInner = e.avatar_url
+      ? `<img src="${esc(e.avatar_url)}" alt="">`
+      : `<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${platformIcon(e.platform)}</span>`;
+    return `
+      <a class="showcase-card" href="${esc(e.instagram_url)}" target="_blank" rel="noopener">
+        <div class="showcase-card__media">
+          <video src="${esc(e.video_url)}" muted loop autoplay playsinline preload="metadata"></video>
+          <span class="showcase-card__chip">
+            <span class="showcase-card__avatar" style="background:${avatarBg};">${avatarInner}</span>
+            <span class="showcase-card__chip-name">${esc(e.creator_name)}</span>
+            <span class="showcase-card__chip-arrow">→</span>
+          </span>
+        </div>
+        <span class="showcase-card__handle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+          ${esc(e.handle)}
+        </span>
+      </a>`;
+  }
+
+  async function loadShowcase(){
+    if (!track) return;
+    if (!window.supabaseClient){ if (section) section.style.display = 'none'; return; }
+    const { data, error } = await window.supabaseClient
+      .from('showcase_items')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .limit(10);
+    if (error || !data || !data.length){
+      if (section) section.style.display = 'none';
+      return;
+    }
+    track.innerHTML = data.map(cardHTML).join('');
+  }
+  loadShowcase();
+
   if (!track || !prev || !next) return;
   const amount = () => Math.max(240, track.clientWidth * 0.8);
   prev.addEventListener('click', () => track.scrollBy({ left: -amount(), behavior: 'smooth' }));
