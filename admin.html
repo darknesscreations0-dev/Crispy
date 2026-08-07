@@ -229,6 +229,35 @@
       </form>
     </div>
 
+    <div class="adm-form is-open" style="margin-bottom:1.6rem;">
+      <h3>Tutorials &amp; guides</h3>
+      <p style="font-size:.78rem;color:var(--c-text-faint);margin:-.4rem 0 1rem;">
+        Paste a YouTube video link — the thumbnail is pulled automatically and the real YouTube player opens in a popup when someone clicks it. No file upload needed.
+      </p>
+      <div id="tutList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.2rem;"></div>
+
+      <form id="tutForm" style="border-top:1px solid var(--c-border);padding-top:1rem;">
+        <input type="hidden" id="tut_id">
+        <div class="adm-form-grid">
+          <div style="grid-column:1/-1;"><label>Title *</label><input type="text" id="tut_title" required placeholder="Rebuilding the Shakes panel from scratch"></div>
+          <div><label>Tag / category (optional)</label><input type="text" id="tut_tag" placeholder="Workflow"></div>
+          <div><label>Sort order</label><input type="number" step="1" id="tut_sort_order" placeholder="0"></div>
+          <div style="grid-column:1/-1;"><label>Excerpt (optional)</label><textarea id="tut_excerpt" rows="2" placeholder="A walkthrough of the new preset system, live preview stage, and keyframeable wiggle controls."></textarea></div>
+          <div style="grid-column:1/-1;"><label>YouTube video link *</label><input type="url" id="tut_youtube_url" required placeholder="https://www.youtube.com/watch?v=..."></div>
+          <div><label><input type="checkbox" id="tut_is_active" checked> Active (shown on the site)</label></div>
+          <div style="grid-column:1/-1;">
+            <label>Thumbnail preview</label>
+            <span class="adm-img-preview" id="tutThumbPreview" style="width:120px;height:68px;">No video</span>
+          </div>
+          <div class="adm-form-actions">
+            <button type="submit" class="btn">Save tutorial</button>
+            <button type="button" class="btn btn--ghost" id="tutCancelBtn">Clear form</button>
+          </div>
+          <p class="adm-msg" id="tutFormMsg"></p>
+        </div>
+      </form>
+    </div>
+
     <form class="adm-form" id="admForm">
       <h3 id="admFormTitle">New product</h3>
       <input type="hidden" id="f_id">
@@ -1081,6 +1110,107 @@
     setTimeout(scResetForm, 500);
   });
 
+  /* ---------- Tutorials & guides (tutorials table, YouTube links only) ---------- */
+  function youtubeId(url){
+    if (!url) return '';
+    const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+    return m ? m[1] : '';
+  }
+  const tutList = document.getElementById('tutList');
+  const tutForm = document.getElementById('tutForm');
+  const tutFormMsg = document.getElementById('tutFormMsg');
+  const tutCancelBtn = document.getElementById('tutCancelBtn');
+  const tutThumbPreview = document.getElementById('tutThumbPreview');
+  const tutYoutubeUrl = document.getElementById('tut_youtube_url');
+  let tutorials = [];
+
+  function updateTutThumb(){
+    const id = youtubeId(tutYoutubeUrl.value.trim());
+    tutThumbPreview.innerHTML = id
+      ? `<img src="https://img.youtube.com/vi/${id}/hqdefault.jpg" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : 'No video';
+  }
+  tutYoutubeUrl.addEventListener('input', updateTutThumb);
+
+  function tutOpenForm(item){
+    document.getElementById('tut_id').value = item ? item.id : '';
+    document.getElementById('tut_title').value = item ? item.title || '' : '';
+    document.getElementById('tut_tag').value = item ? item.tag || '' : '';
+    document.getElementById('tut_excerpt').value = item ? item.excerpt || '' : '';
+    document.getElementById('tut_youtube_url').value = item ? item.youtube_url || '' : '';
+    document.getElementById('tut_sort_order').value = item ? (item.sort_order ?? 0) : (tutorials.length);
+    document.getElementById('tut_is_active').checked = item ? !!item.is_active : true;
+    updateTutThumb();
+    tutFormMsg.textContent = '';
+    tutForm.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+  function tutResetForm(){ tutOpenForm(null); }
+  tutCancelBtn.addEventListener('click', tutResetForm);
+
+  function renderTutList(){
+    if (!tutorials.length){
+      tutList.innerHTML = '<p style="font-size:.8rem;color:var(--c-text-faint);">No tutorials yet — add one below.</p>';
+      return;
+    }
+    tutList.innerHTML = tutorials.map(t => {
+      const id = youtubeId(t.youtube_url);
+      return `
+      <div style="display:flex;gap:.7rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
+        <span style="width:60px;height:34px;flex-shrink:0;background:var(--c-surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          ${id ? `<img src="https://img.youtube.com/vi/${id}/default.jpg" alt="" style="width:100%;height:100%;object-fit:cover;">` : ''}
+        </span>
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${esc(t.title)}${t.tag ? ` <span style="color:var(--c-text-faint);">· ${esc(t.tag)}</span>` : ''}</div>
+        <span class="adm-pill ${t.is_active ? 'adm-pill--on' : 'adm-pill--off'}">${t.is_active ? 'Active' : 'Hidden'}</span>
+        <div class="adm-row-actions">
+          <button type="button" class="btn btn--ghost" data-tut-edit="${t.id}">Edit</button>
+          <button type="button" class="btn btn--ghost" data-tut-delete="${t.id}">Delete</button>
+        </div>
+      </div>
+    `; }).join('');
+    tutList.querySelectorAll('[data-tut-edit]').forEach(btn => btn.addEventListener('click', () => {
+      const t = tutorials.find(x => String(x.id) === String(btn.dataset.tutEdit));
+      if (t) tutOpenForm(t);
+    }));
+    tutList.querySelectorAll('[data-tut-delete]').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this tutorial?')) return;
+      const { error } = await client.from('tutorials').delete().eq('id', btn.dataset.tutDelete);
+      if (error){ alert('Could not delete: ' + error.message); return; }
+      await loadTutorials();
+    }));
+  }
+
+  async function loadTutorials(){
+    const { data, error } = await client.from('tutorials').select('*').order('sort_order', { ascending: true });
+    if (error){ tutList.innerHTML = `<p class="state-msg">Couldn't load tutorials: ${esc(error.message)}</p>`; return; }
+    tutorials = data || [];
+    renderTutList();
+  }
+
+  tutForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('tut_id').value;
+    const youtubeUrl = document.getElementById('tut_youtube_url').value.trim();
+    if (!youtubeId(youtubeUrl)){ tutFormMsg.textContent = 'That doesn\u2019t look like a valid YouTube link.'; tutFormMsg.style.color = '#ff6b6b'; return; }
+    const payload = {
+      title: document.getElementById('tut_title').value.trim(),
+      tag: document.getElementById('tut_tag').value.trim() || null,
+      excerpt: document.getElementById('tut_excerpt').value.trim() || null,
+      youtube_url: youtubeUrl,
+      sort_order: document.getElementById('tut_sort_order').value ? Number(document.getElementById('tut_sort_order').value) : 0,
+      is_active: document.getElementById('tut_is_active').checked
+    };
+    if (!payload.title){ tutFormMsg.textContent = 'Title is required.'; tutFormMsg.style.color = '#ff6b6b'; return; }
+    tutFormMsg.textContent = 'Saving…'; tutFormMsg.style.color = 'var(--c-text-faint)';
+    const query = id
+      ? client.from('tutorials').update(payload).eq('id', id)
+      : client.from('tutorials').insert(payload);
+    const { error } = await query;
+    if (error){ tutFormMsg.textContent = error.message || 'Could not save.'; tutFormMsg.style.color = '#ff6b6b'; return; }
+    tutFormMsg.textContent = 'Saved!'; tutFormMsg.style.color = '#4ade80';
+    await loadTutorials();
+    setTimeout(tutResetForm, 500);
+  });
+
   async function init(){
     const user = await DCAuth.getUser();
     if (!user){ window.location.href = 'login.html'; return; }
@@ -1099,6 +1229,7 @@
     await loadBannerSettings();
     await loadBanners();
     await loadShowcase();
+    await loadTutorials();
   }
 
   init();
