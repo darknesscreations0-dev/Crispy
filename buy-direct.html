@@ -120,22 +120,38 @@
   // Same cart the rest of the site uses (see assets/js/store.js) —
   // an array of {id, name, price, image, qty} under this localStorage key.
   const CART_KEY = 'crispy_cart';
+  const PROMO_KEY = 'crispy_promo';
   function getCart(){
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
     catch(e){ return []; }
   }
+  function getPromo(){
+    try { return JSON.parse(localStorage.getItem(PROMO_KEY)) || null; }
+    catch(e){ return null; }
+  }
   function money(n){ return '$' + Number(n).toFixed(2); }
 
   const cart = getCart();
+  const promo = getPromo();
   const itemsEl = document.getElementById('orderItems');
 
   if (cart.length){
-    const total = cart.reduce((s, i) => s + Number(i.price) * (i.qty || 1), 0);
+    const subtotal = cart.reduce((s, i) => s + Number(i.price) * (i.qty || 1), 0);
+    const discount = promo
+      ? (promo.discount_type === 'fixed' ? Math.min(Number(promo.discount_value), subtotal) : subtotal * (Number(promo.discount_value) / 100))
+      : 0;
+    const total = Math.max(0, subtotal - discount);
+
     itemsEl.innerHTML = cart.map(i => `
       <div class="cp-order-box">
         <div class="cp-order-name">${i.name}${i.qty > 1 ? ' × ' + i.qty : ''}</div>
         <div class="cp-order-price">${money(i.price * (i.qty || 1))}</div>
-      </div>`).join('') + `
+      </div>`).join('') +
+      (promo ? `
+      <div class="cp-order-box">
+        <div class="cp-order-name">Promo (${promo.code})</div>
+        <div class="cp-order-price">-${money(discount)}</div>
+      </div>` : '') + `
       <div class="cp-order-box" style="border-color:#e8762c;">
         <div class="cp-order-name">Total</div>
         <div class="cp-order-price">${money(total)}</div>
@@ -152,6 +168,7 @@
 Date: ${today}
 
 ${itemLines}
+${promo ? `\nPromo (${promo.code}): -${money(discount)}` : ''}
 
 Total: ${money(total)}
 
