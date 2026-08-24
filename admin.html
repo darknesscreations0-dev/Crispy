@@ -461,6 +461,49 @@
             </div>
           </div>
           <p class="adm-msg" id="admStoryMsg" style="margin-top:.4rem;"></p>
+
+          <div style="border-top:1px dashed var(--c-border);margin-top:1rem;padding-top:1rem;">
+            <label>Feature block (title + description next to an image — the "Automasking / Stable Mattes" style rows)</label>
+            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;">
+              <input type="text" id="admFeatTitle" placeholder="Feature title (e.g. Automasking)">
+              <textarea id="admFeatText" rows="2" placeholder="Short description of this feature"></textarea>
+              <label style="font-size:.78rem;font-weight:400;"><input type="checkbox" id="admFeatReverse"> Image on the left instead of the right</label>
+              <div style="display:flex;gap:.6rem;align-items:center;">
+                <button type="button" class="btn btn--ghost btn--sm" id="admFeatImageBtn">Choose image</button>
+                <input type="file" id="admFeatImageFile" accept="image/*" hidden>
+                <span id="admFeatImageStatus" style="font-size:.78rem;color:var(--c-text-faint);">No image chosen.</span>
+              </div>
+              <button type="button" class="btn btn--ghost btn--sm" id="admFeatAddBtn" style="align-self:flex-start;">+ Add feature block</button>
+            </div>
+          </div>
+
+          <div style="border-top:1px dashed var(--c-border);margin-top:1rem;padding-top:1rem;">
+            <label>Interactive UI demo (optional — a clickable replica of the extension's own panel; visitors click a tab and the screenshot swaps)</label>
+            <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
+              Add one tab per panel state — a label (e.g. "Animations", "Transcribe") plus a screenshot of the extension showing that tab. Add as many as you need, then save them as one block.
+            </p>
+            <div id="admTabsPending" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem;"></div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+              <input type="text" id="admTabLabel" placeholder="Tab label (e.g. Animations)" style="flex:1;min-width:160px;">
+              <button type="button" class="btn btn--ghost btn--sm" id="admTabImageBtn">Choose screenshot</button>
+              <input type="file" id="admTabImageFile" accept="image/*" hidden>
+              <button type="button" class="btn btn--ghost btn--sm" id="admTabAddBtn">+ Add tab</button>
+            </div>
+            <p class="adm-msg" id="admTabMsg" style="margin-top:.4rem;"></p>
+            <button type="button" class="btn btn--ghost btn--sm" id="admTabsBlockAddBtn" style="margin-top:.6rem;">+ Add UI demo block (uses the tabs above)</button>
+          </div>
+
+          <div style="border-top:1px dashed var(--c-border);margin-top:1rem;padding-top:1rem;">
+            <label>System requirements table (optional)</label>
+            <div id="admReqPending" style="display:flex;flex-direction:column;gap:.4rem;margin:.5rem 0;"></div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+              <input type="text" id="admReqLabel" placeholder="Label (e.g. Windows)" style="flex:1;min-width:140px;">
+              <input type="text" id="admReqValue" placeholder="Value (e.g. 10/11, 8GB VRAM)" style="flex:1;min-width:140px;">
+              <button type="button" class="btn btn--ghost btn--sm" id="admReqRowAddBtn">+ Add row</button>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" id="admReqBlockAddBtn" style="margin-top:.6rem;">+ Add requirements block (uses the rows above)</button>
+          </div>
+
           <input type="hidden" id="f_story_blocks" value="[]">
         </div>
 
@@ -532,6 +575,34 @@
   const admStoryMsg = document.getElementById('admStoryMsg');
   let storyBlocks = [];
 
+  // Feature block builder
+  const admFeatTitle = document.getElementById('admFeatTitle');
+  const admFeatText = document.getElementById('admFeatText');
+  const admFeatReverse = document.getElementById('admFeatReverse');
+  const admFeatImageBtn = document.getElementById('admFeatImageBtn');
+  const admFeatImageFile = document.getElementById('admFeatImageFile');
+  const admFeatImageStatus = document.getElementById('admFeatImageStatus');
+  let admFeatImageUrl = '';
+
+  // Interactive UI-demo tabs builder
+  const admTabsPending = document.getElementById('admTabsPending');
+  const admTabLabel = document.getElementById('admTabLabel');
+  const admTabImageBtn = document.getElementById('admTabImageBtn');
+  const admTabImageFile = document.getElementById('admTabImageFile');
+  const admTabMsg = document.getElementById('admTabMsg');
+  const admTabAddBtn = document.getElementById('admTabAddBtn');
+  const admTabsBlockAddBtn = document.getElementById('admTabsBlockAddBtn');
+  let admTabImageUrl = '';
+  let pendingTabs = [];
+
+  // Requirements table builder
+  const admReqPending = document.getElementById('admReqPending');
+  const admReqLabel = document.getElementById('admReqLabel');
+  const admReqValue = document.getElementById('admReqValue');
+  const admReqRowAddBtn = document.getElementById('admReqRowAddBtn');
+  const admReqBlockAddBtn = document.getElementById('admReqBlockAddBtn');
+  let pendingReqRows = [];
+
   let client = null;
   let products = [];
 
@@ -588,6 +659,12 @@
 
     storyBlocks = (product && Array.isArray(product.story_blocks)) ? product.story_blocks.slice() : [];
     renderStoryList();
+
+    // Clear any half-built feature/tabs/requirements blocks from a previous edit.
+    pendingTabs = []; renderPendingTabs();
+    pendingReqRows = []; renderPendingReqRows();
+    admFeatImageUrl = ''; admFeatTitle.value = ''; admFeatText.value = ''; admFeatReverse.checked = false;
+    admFeatImageStatus.textContent = 'No image chosen.'; admFeatImageStatus.style.color = 'var(--c-text-faint)';
 
     form.scrollIntoView({ behavior:'smooth', block:'start' });
   }
@@ -801,7 +878,11 @@
     admStoryList.innerHTML = storyBlocks.map((b, i) => `
       <div style="display:flex;gap:.6rem;align-items:center;border:1px solid var(--c-border);padding:.5rem .7rem;">
         <div style="flex:1;min-width:0;font-size:.8rem;color:var(--c-text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          ${b.type === 'text' ? esc(b.content) : `[${b.type}${b.width && b.width !== 100 ? ' · ' + b.width + '%' : ''}] ${esc(b.url)}`}
+          ${b.type === 'text' ? esc(b.content)
+            : b.type === 'feature' ? `[feature] ${esc(b.title || '')}`
+            : b.type === 'tabs' ? `[UI demo] ${(b.tabs || []).length} tab(s): ${(b.tabs || []).map(t => esc(t.label)).join(', ')}`
+            : b.type === 'requirements' ? `[requirements] ${(b.rows || []).length} row(s)`
+            : `[${b.type}${b.width && b.width !== 100 ? ' · ' + b.width + '%' : ''}] ${esc(b.url)}`}
         </div>
         <div style="display:flex;gap:.3rem;flex-shrink:0;">
           <button type="button" class="btn btn--ghost btn--sm" data-story-up="${i}" ${i===0?'disabled':''}>↑</button>
@@ -851,6 +932,119 @@
     admStoryMsg.textContent = 'Added — click Save product to keep it.'; admStoryMsg.style.color = '#4ade80';
     renderStoryList();
   });
+
+  /* ---------- Feature block ---------- */
+  admFeatImageBtn.addEventListener('click', () => admFeatImageFile.click());
+  admFeatImageFile.addEventListener('change', async () => {
+    const file = admFeatImageFile.files[0];
+    if (!file) return;
+    admFeatImageStatus.textContent = 'Uploading…';
+    const path = `story/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name}`;
+    const { error } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    if (error){ admFeatImageStatus.textContent = 'Upload failed: ' + error.message; return; }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    admFeatImageUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    admFeatImageStatus.textContent = 'Image ready: ' + file.name;
+  });
+  document.getElementById('admFeatAddBtn').addEventListener('click', () => {
+    const title = admFeatTitle.value.trim();
+    const text = admFeatText.value.trim();
+    if (!title || !text || !admFeatImageUrl){
+      admFeatImageStatus.textContent = 'Need a title, description, and image before adding.';
+      admFeatImageStatus.style.color = '#ff6b6b';
+      return;
+    }
+    storyBlocks.push({ type: 'feature', title, text, url: admFeatImageUrl, reverse: admFeatReverse.checked });
+    admFeatTitle.value = ''; admFeatText.value = ''; admFeatReverse.checked = false;
+    admFeatImageUrl = ''; admFeatImageFile.value = '';
+    admFeatImageStatus.textContent = 'No image chosen.'; admFeatImageStatus.style.color = 'var(--c-text-faint)';
+    renderStoryList();
+  });
+
+  /* ---------- Interactive UI-demo tabs block ---------- */
+  function renderPendingTabs(){
+    if (!pendingTabs.length){
+      admTabsPending.innerHTML = '<p style="font-size:.78rem;color:var(--c-text-faint);">No tabs added yet.</p>';
+      return;
+    }
+    admTabsPending.innerHTML = pendingTabs.map((t, i) => `
+      <div style="display:flex;gap:.6rem;align-items:center;border:1px solid var(--c-border);padding:.4rem .6rem;">
+        <span style="flex:1;font-size:.8rem;">${esc(t.label)}</span>
+        <button type="button" class="btn btn--ghost btn--sm" data-tab-remove="${i}">Remove</button>
+      </div>`).join('');
+    admTabsPending.querySelectorAll('[data-tab-remove]').forEach(btn => btn.addEventListener('click', () => {
+      pendingTabs.splice(Number(btn.dataset.tabRemove), 1);
+      renderPendingTabs();
+    }));
+  }
+  admTabImageBtn.addEventListener('click', () => admTabImageFile.click());
+  admTabImageFile.addEventListener('change', async () => {
+    const file = admTabImageFile.files[0];
+    if (!file) return;
+    admTabMsg.textContent = 'Uploading…'; admTabMsg.style.color = 'var(--c-text-faint)';
+    const path = `story/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name}`;
+    const { error } = await client.storage.from('products').upload(path, file, { upsert: true, cacheControl: '3600' });
+    if (error){ admTabMsg.textContent = 'Upload failed: ' + error.message; admTabMsg.style.color = '#ff6b6b'; return; }
+    const { data: pub } = client.storage.from('products').getPublicUrl(path);
+    admTabImageUrl = pub && pub.publicUrl ? pub.publicUrl : '';
+    admTabMsg.textContent = 'Screenshot ready — click "Add tab".'; admTabMsg.style.color = '#4ade80';
+  });
+  admTabAddBtn.addEventListener('click', () => {
+    const label = admTabLabel.value.trim();
+    if (!label || !admTabImageUrl){
+      admTabMsg.textContent = 'Need a label and a screenshot before adding a tab.'; admTabMsg.style.color = '#ff6b6b';
+      return;
+    }
+    pendingTabs.push({ label, url: admTabImageUrl });
+    admTabLabel.value = ''; admTabImageUrl = ''; admTabImageFile.value = '';
+    admTabMsg.textContent = 'Tab added.'; admTabMsg.style.color = '#4ade80';
+    renderPendingTabs();
+  });
+  admTabsBlockAddBtn.addEventListener('click', () => {
+    if (pendingTabs.length < 2){
+      admTabMsg.textContent = 'Add at least 2 tabs before saving the block.'; admTabMsg.style.color = '#ff6b6b';
+      return;
+    }
+    storyBlocks.push({ type: 'tabs', tabs: pendingTabs.slice() });
+    pendingTabs = [];
+    renderPendingTabs();
+    admTabMsg.textContent = 'UI demo block added — click Save product to keep it.'; admTabMsg.style.color = '#4ade80';
+    renderStoryList();
+  });
+  renderPendingTabs();
+
+  /* ---------- Requirements table block ---------- */
+  function renderPendingReqRows(){
+    if (!pendingReqRows.length){
+      admReqPending.innerHTML = '<p style="font-size:.78rem;color:var(--c-text-faint);">No rows added yet.</p>';
+      return;
+    }
+    admReqPending.innerHTML = pendingReqRows.map((r, i) => `
+      <div style="display:flex;gap:.6rem;align-items:center;border:1px solid var(--c-border);padding:.4rem .6rem;">
+        <span style="flex:1;font-size:.8rem;"><strong>${esc(r.label)}</strong> — ${esc(r.value)}</span>
+        <button type="button" class="btn btn--ghost btn--sm" data-req-remove="${i}">Remove</button>
+      </div>`).join('');
+    admReqPending.querySelectorAll('[data-req-remove]').forEach(btn => btn.addEventListener('click', () => {
+      pendingReqRows.splice(Number(btn.dataset.reqRemove), 1);
+      renderPendingReqRows();
+    }));
+  }
+  admReqRowAddBtn.addEventListener('click', () => {
+    const label = admReqLabel.value.trim();
+    const value = admReqValue.value.trim();
+    if (!label || !value) return;
+    pendingReqRows.push({ label, value });
+    admReqLabel.value = ''; admReqValue.value = '';
+    renderPendingReqRows();
+  });
+  admReqBlockAddBtn.addEventListener('click', () => {
+    if (!pendingReqRows.length) return;
+    storyBlocks.push({ type: 'requirements', rows: pendingReqRows.slice() });
+    pendingReqRows = [];
+    renderPendingReqRows();
+    renderStoryList();
+  });
+  renderPendingReqRows();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
