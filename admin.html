@@ -397,14 +397,16 @@
           <label>Product file (what the customer actually downloads after buying)</label>
           <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
             Upload the real deliverable — the .zip, .mogrt, .aep, whatever it is. This is completely separate from the preview image/video above; customers never see this until they've paid.
+            Uploads here go to Supabase Storage, which is capped at 50MB on the free plan. For bigger files, host it elsewhere (e.g. a GitHub Release) and paste the direct download link in the field below instead — either way this sets the same download link.
           </p>
           <div class="cp-avatar-drop-like" id="admFileDrop" style="text-align:left;">
             <input type="file" id="admFileInput" hidden>
-            <span id="admFileDropText">Click to choose the file (or drag & drop)</span>
+            <span id="admFileDropText">Click to choose the file (or drag & drop) — max 50MB</span>
           </div>
           <p class="adm-msg" id="admFileMsg" style="margin-top:.4rem;"></p>
           <p id="admFileCurrent" style="font-size:.8rem;margin-top:.4rem;">No file uploaded yet.</p>
-          <input type="hidden" id="f_download_url">
+          <label style="margin-top:.8rem;display:block;">Or paste a direct download URL (for files too big to upload above)</label>
+          <input type="url" id="f_download_url" placeholder="https://github.com/your-org/your-repo/releases/download/v1/file.zip">
         </div>
 
         <div class="adm-checks">
