@@ -45,6 +45,28 @@
 .pd-price .was{ font-size:1rem; color:var(--c-text-faint); text-decoration:line-through; }
 .pd-actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.5rem; }
 .pd-actions .btn{ flex:1; min-width:140px; }
+
+/* Feature block — title + description next to an image */
+.pd-feature{ display:flex; gap:1.6rem; align-items:center; flex-wrap:wrap; border:1px solid var(--c-border); background:var(--c-surface-2); padding:1.4rem; }
+.pd-feature--reverse{ flex-direction:row-reverse; }
+.pd-feature__img{ flex:1 1 300px; min-width:240px; }
+.pd-feature__img img{ width:100%; display:block; border:1px solid var(--c-border); }
+.pd-feature__text{ flex:1 1 240px; min-width:200px; }
+.pd-feature__text h3{ font-family:var(--font-display); font-size:1.1rem; font-weight:600; margin-bottom:.5rem; }
+.pd-feature__text p{ color:var(--c-text-dim); font-size:.92rem; line-height:1.65; }
+
+/* Interactive UI-demo tabs — clickable replica of the extension panel */
+.pd-tabs-demo{ border:1px solid var(--c-border); background:var(--c-surface-2); padding:1.4rem; }
+.pd-tabs-demo__nav{ display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+.pd-tabs-demo__nav button{ padding:.5rem 1.1rem; border:1px solid var(--c-border); background:transparent; color:var(--c-text-dim); font-size:.82rem; font-weight:600; cursor:pointer; }
+.pd-tabs-demo__nav button.is-active{ background:var(--c-orange); color:#1a0800; border-color:transparent; }
+.pd-tabs-demo__nav button:hover:not(.is-active){ border-color:var(--c-orange); color:var(--c-text); }
+.pd-tabs-demo__img img{ width:100%; display:block; border:1px solid var(--c-border); }
+
+/* System requirements table */
+.pd-req-table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+.pd-req-table td{ border:1px solid var(--c-border); padding:.65rem .9rem; color:var(--c-text-dim); }
+.pd-req-table td:first-child{ color:var(--c-text-faint); width:40%; font-weight:600; }
 </style>
 </head>
 <body>
@@ -243,7 +265,7 @@
     content.style.display = 'flex';
     content.style.flexWrap = 'wrap';
     content.style.gap = '1rem';
-    content.innerHTML = blocks.map(b => {
+    content.innerHTML = blocks.map((b, bi) => {
       if (b.type === 'text'){
         return `<p style="flex:1 1 100%;color:var(--c-text-dim);font-size:1rem;line-height:1.75;white-space:pre-wrap;">${esc(b.content)}</p>`;
       }
@@ -255,8 +277,54 @@
       if (b.type === 'image'){
         return `<img src="${esc(b.url)}" alt="" style="flex:1 1 ${basis};min-width:220px;display:block;border:1px solid var(--c-border);">`;
       }
+      if (b.type === 'feature'){
+        return `
+          <div class="pd-feature${b.reverse ? ' pd-feature--reverse' : ''}" style="flex:1 1 100%;">
+            <div class="pd-feature__img"><img src="${esc(b.url)}" alt="${esc(b.title || '')}"></div>
+            <div class="pd-feature__text">
+              <h3>${esc(b.title || '')}</h3>
+              <p>${esc(b.text || '')}</p>
+            </div>
+          </div>`;
+      }
+      if (b.type === 'tabs'){
+        const tabs = Array.isArray(b.tabs) ? b.tabs : [];
+        if (!tabs.length) return '';
+        return `
+          <div class="pd-tabs-demo" style="flex:1 1 100%;" data-tabs-demo="${bi}">
+            <div class="pd-tabs-demo__nav">
+              ${tabs.map((t, ti) => `<button type="button" data-tab-btn="${ti}" class="${ti === 0 ? 'is-active' : ''}">${esc(t.label)}</button>`).join('')}
+            </div>
+            <div class="pd-tabs-demo__img"><img data-tab-img src="${esc(tabs[0].url)}" alt="${esc(tabs[0].label)}"></div>
+          </div>`;
+      }
+      if (b.type === 'requirements'){
+        const rows = Array.isArray(b.rows) ? b.rows : [];
+        if (!rows.length) return '';
+        return `
+          <table class="pd-req-table" style="flex:1 1 100%;">
+            ${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.value)}</td></tr>`).join('')}
+          </table>`;
+      }
       return '';
     }).join('');
+
+    // Wire up click-to-swap for every interactive UI-demo block on the page.
+    content.querySelectorAll('[data-tabs-demo]').forEach(demoEl => {
+      const bi = Number(demoEl.dataset.tabsDemo);
+      const tabs = blocks[bi] && Array.isArray(blocks[bi].tabs) ? blocks[bi].tabs : [];
+      const img = demoEl.querySelector('[data-tab-img]');
+      demoEl.querySelectorAll('[data-tab-btn]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ti = Number(btn.dataset.tabBtn);
+          const tab = tabs[ti];
+          if (!tab) return;
+          img.src = tab.url;
+          img.alt = tab.label;
+          demoEl.querySelectorAll('[data-tab-btn]').forEach(b2 => b2.classList.toggle('is-active', b2 === btn));
+        });
+      });
+    });
   }
 
   /* ---------- per-product live preview (uploaded demo) ----------
