@@ -283,6 +283,7 @@
         actionsCell.appendChild(makeBtn("Revoke", "small danger", function () { revoke(lic.license_key); }));
       } else {
         actionsCell.appendChild(makeBtn("Reactivate", "small", function () { reactivate(lic.license_key); }));
+        actionsCell.appendChild(makeBtn("Delete", "small danger", function () { deleteLicense(lic.license_key); }));
       }
       if (lic.device_id) {
         actionsCell.appendChild(makeBtn("Unbind device", "small", function () { unbind(lic.license_key); }));
@@ -334,6 +335,20 @@
     api("reactivate", { license_key: key }).then(function (res) {
       if (!res.ok) return setStatus("Failed.", "err");
       setStatus("Reactivated " + key, "ok");
+      loadLicenses();
+    });
+  }
+
+  function deleteLicense(key) {
+    if (!confirm("Permanently delete " + key + "? This can't be undone — it'll disappear from the customer's Library too.")) return;
+    api("delete", { license_key: key }).then(function (res) {
+      if (!res.ok) {
+        var msg = res.data && res.data.error === "must_be_revoked_first"
+          ? "Only revoked licenses can be deleted."
+          : "Failed.";
+        return setStatus(msg, "err");
+      }
+      setStatus("Deleted " + key, "ok");
       loadLicenses();
     });
   }
