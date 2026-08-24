@@ -229,7 +229,7 @@
     const [purchasesRes, licRes, productsRes] = await Promise.all([
       client.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       callLicenseFn('get'),
-      client.from('products').select('id, name, image_url'),
+      client.from('products').select('id, name, image_url, download_url'),
     ]);
 
     const purchases = (purchasesRes && purchasesRes.data) || [];
@@ -252,12 +252,27 @@
       return match ? (match.image_url || '') : '';
     }
 
+    // Same fuzzy match, but for the actual deliverable file. Falls back to
+    // this whenever the purchase row itself has no download_url/file_url —
+    // covers purchases made before that column was populated, and licenses
+    // issued directly with no purchase row at all.
+    function findProductFile(productLabel) {
+      const target = slug(productLabel || '');
+      if (!target) return '';
+      const match = products.find(p => {
+        const pSlug = slug(p.name || '');
+        return pSlug && (pSlug.includes(target) || target.includes(pSlug));
+      });
+      return match ? (match.download_url || '') : '';
+    }
+
     if (!purchases.length) {
       // No purchase records yet — but a license might already exist
       // (e.g. issued manually before the purchases table had a row for it).
       if (licenses.length) {
         box.innerHTML = licenses.map(lic => {
           const img = findProductImage(lic.product);
+          const fileUrl = findProductFile(lic.product);
           return `
           <div class="cp-purchase-row">
             <div class="cp-purchase-top">
@@ -265,6 +280,9 @@
               <div class="cp-purchase-info">
                 <h4>${esc(lic.product || 'Crispy product')}</h4>
                 <div class="cp-purchase-date">License issued directly — no purchase record yet</div>
+              </div>
+              <div class="cp-purchase-actions">
+                ${fileUrl ? `<a class="cp-btn-download" href="${esc(fileUrl)}" target="_blank" rel="noopener">Download</a>` : ''}
               </div>
             </div>
             ${licenseBlockHTML(lic)}
@@ -281,7 +299,7 @@
       const name = p.product_name || p.name || 'Untitled product';
       const image = p.image_url || findProductImage(p.product_name || p.name);
       const date = fmtDate(p.created_at || p.purchased_at);
-      const downloadUrl = p.download_url || p.file_url || '';
+      const downloadUrl = p.download_url || p.file_url || findProductFile(p.product_name || p.name);
       const nameSlug = slug(name);
 
       // Best-effort match: an unused license whose product slug appears
@@ -314,6 +332,7 @@
     if (leftover.length) {
       box.insertAdjacentHTML('beforeend', leftover.map(lic => {
         const img = findProductImage(lic.product);
+        const fileUrl = findProductFile(lic.product);
         return `
         <div class="cp-purchase-row">
           <div class="cp-purchase-top">
@@ -321,6 +340,9 @@
             <div class="cp-purchase-info">
               <h4>${esc(lic.product || 'Crispy product')}</h4>
               <div class="cp-purchase-date">License issued directly — no purchase record yet</div>
+            </div>
+            <div class="cp-purchase-actions">
+              ${fileUrl ? `<a class="cp-btn-download" href="${esc(fileUrl)}" target="_blank" rel="noopener">Download</a>` : ''}
             </div>
           </div>
           ${licenseBlockHTML(lic)}
