@@ -38,6 +38,26 @@
 .adm-checks{ display:flex; gap:1.2rem; flex-wrap:wrap; grid-column:1/-1; }
 .adm-checks label{ display:flex; align-items:center; gap:.4rem; font-size:.82rem; color:var(--c-text); }
 .adm-form-actions{ display:flex; gap:.6rem; margin-top:1.2rem; grid-column:1/-1; }
+.adm-section{
+  grid-column:1/-1;
+  display:grid; grid-template-columns:1fr 1fr; gap:1rem;
+  border:1px solid var(--c-border); background:rgba(255,255,255,0.025);
+  border-left:3px solid var(--c-orange);
+  padding:1.2rem 1.4rem 1.4rem; margin-bottom:1.2rem;
+}
+@media (max-width:640px){ .adm-section{ grid-template-columns:1fr; } }
+.adm-section__title{
+  grid-column:1/-1;
+  font-family:var(--font-display); font-size:.85rem; font-weight:700;
+  color:var(--c-orange); text-transform:uppercase; letter-spacing:.05em;
+  margin-bottom:.6rem; padding-bottom:.6rem; border-bottom:1px solid var(--c-border);
+}
+.adm-subsection{
+  grid-column:1/-1;
+  border:1px solid var(--c-border); background:rgba(255,255,255,0.04);
+  padding:1rem 1.1rem; margin-top:.9rem;
+}
+.adm-subsection__title{ font-size:.82rem; font-weight:700; color:var(--c-text); margin-bottom:.6rem; display:block; }
 .adm-msg{ min-height:1.2em; font-size:.82rem; margin-top:.6rem; grid-column:1/-1; }
 .adm-gate{ text-align:center; padding:4rem 1rem; }
 .adm-avatar-row{ display:flex; align-items:center; gap:1rem; margin-top:.4rem; flex-wrap:wrap; }
@@ -364,147 +384,172 @@
       <h3 id="admFormTitle">New product</h3>
       <input type="hidden" id="f_id">
       <div class="adm-form-grid">
-        <div><label>Name *</label><input type="text" id="f_name" required></div>
-        <div><label>Author</label><input type="text" id="f_author" placeholder="Crispy"></div>
-        <div><label>Category</label><input type="text" id="f_category" placeholder="Plugins"></div>
-        <div><label>Compatible with</label><input type="text" id="f_compatible_with" placeholder="After Effects"></div>
-        <div><label>Price (USD)</label><input type="number" step="0.01" id="f_price" placeholder="29.99"></div>
-        <div><label>Compare-at price (optional, for sale %)</label><input type="number" step="0.01" id="f_compare_at"></div>
-        <div><label>Rating (1–5)</label><input type="number" step="0.1" min="1" max="5" id="f_rating" placeholder="5"></div>
-        <div><label>Badge (optional, e.g. "New")</label><input type="text" id="f_badge"></div>
-        <div style="grid-column:1/-1;">
-          <label>Product image</label>
-          <div class="adm-avatar-row">
-            <span class="adm-img-preview" id="admImgPreview"></span>
-            <div style="flex:1;min-width:200px;">
-              <div class="cp-avatar-drop-like" id="admImgDrop">
-                <input type="file" id="admImgFile" accept="image/*,video/*" hidden>
-                <span id="admImgDropText">Drag &amp; drop an image or video, or click to choose one</span>
+
+        <div class="adm-section">
+          <div class="adm-section__title">Basic info</div>
+          <div><label>Name *</label><input type="text" id="f_name" required></div>
+          <div><label>Author</label><input type="text" id="f_author" placeholder="Crispy"></div>
+          <div><label>Category</label><input type="text" id="f_category" placeholder="Plugins"></div>
+          <div><label>Compatible with</label><input type="text" id="f_compatible_with" placeholder="After Effects"></div>
+          <div><label>Price (USD)</label><input type="number" step="0.01" id="f_price" placeholder="29.99"></div>
+          <div><label>Compare-at price (optional, for sale %)</label><input type="number" step="0.01" id="f_compare_at"></div>
+          <div><label>Rating (1–5)</label><input type="number" step="0.1" min="1" max="5" id="f_rating" placeholder="5"></div>
+          <div><label>Badge (optional, e.g. "New")</label><input type="text" id="f_badge"></div>
+          <div class="adm-checks" style="grid-column:1/-1;">
+            <label><input type="checkbox" id="f_is_free"> Free product</label>
+            <label><input type="checkbox" id="f_is_featured"> Featured</label>
+            <label><input type="checkbox" id="f_is_active" checked> Active (visible on site)</label>
+          </div>
+        </div>
+
+        <div class="adm-section">
+          <div class="adm-section__title">Media</div>
+          <div style="grid-column:1/-1;">
+            <label>Product image</label>
+            <div class="adm-avatar-row">
+              <span class="adm-img-preview" id="admImgPreview"></span>
+              <div style="flex:1;min-width:200px;">
+                <div class="cp-avatar-drop-like" id="admImgDrop">
+                  <input type="file" id="admImgFile" accept="image/*,video/*" hidden>
+                  <span id="admImgDropText">Drag &amp; drop an image or video, or click to choose one</span>
+                </div>
+                <p class="adm-msg" id="admImgMsg" style="margin-top:.4rem;"></p>
               </div>
-              <p class="adm-msg" id="admImgMsg" style="margin-top:.4rem;"></p>
             </div>
+            <input type="hidden" id="f_image_url">
+            <input type="hidden" id="f_media_type" value="image">
           </div>
-          <input type="hidden" id="f_image_url">
-          <input type="hidden" id="f_media_type" value="image">
-        </div>
-        <div><label>Video URL (optional)</label><input type="url" id="f_video_url" placeholder="https://…"></div>
-        <div style="grid-column:1/-1;"><label>Description (no length limit — write as much as you need)</label><textarea id="f_description" rows="6"></textarea></div>
-        <div style="grid-column:1/-1;">
-          <label>Highlights (one per line — shown as a checkmark list on the product page, replaces the old fixed "License / Updates" text)</label>
-          <textarea id="f_highlights" rows="4" placeholder="Commercial use included&#10;Free lifetime updates&#10;Works in AE 2023+"></textarea>
-        </div>
-        <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
-          <label>Product file (what the customer actually downloads after buying)</label>
-          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
-            Upload the real deliverable — the .zip, .mogrt, .aep, whatever it is. This is completely separate from the preview image/video above; customers never see this until they've paid.
-            Uploads here go to Supabase Storage, which is capped at 50MB on the free plan. For bigger files, host it elsewhere (e.g. a GitHub Release) and paste the direct download link in the field below instead — either way this sets the same download link.
-          </p>
-          <div class="cp-avatar-drop-like" id="admFileDrop" style="text-align:left;">
-            <input type="file" id="admFileInput" hidden>
-            <span id="admFileDropText">Click to choose the file (or drag & drop) — max 50MB</span>
-          </div>
-          <p class="adm-msg" id="admFileMsg" style="margin-top:.4rem;"></p>
-          <p id="admFileCurrent" style="font-size:.8rem;margin-top:.4rem;">No file uploaded yet.</p>
-          <label style="margin-top:.8rem;display:block;">Or paste a direct download URL (for files too big to upload above)</label>
-          <input type="url" id="f_download_url" placeholder="https://github.com/your-org/your-repo/releases/download/v1/file.zip">
+          <div style="grid-column:1/-1;"><label>Video URL (optional)</label><input type="url" id="f_video_url" placeholder="https://…"></div>
         </div>
 
-        <div class="adm-checks">
-          <label><input type="checkbox" id="f_is_free"> Free product</label>
-          <label><input type="checkbox" id="f_is_featured"> Featured</label>
-          <label><input type="checkbox" id="f_is_active" checked> Active (visible on site)</label>
+        <div class="adm-section">
+          <div class="adm-section__title">Description &amp; highlights</div>
+          <div style="grid-column:1/-1;"><label>Description (no length limit — write as much as you need)</label><textarea id="f_description" rows="6"></textarea></div>
+          <div style="grid-column:1/-1;">
+            <label>Highlights (one per line — shown as a checkmark list on the product page, replaces the old fixed "License / Updates" text)</label>
+            <textarea id="f_highlights" rows="4" placeholder="Commercial use included&#10;Free lifetime updates&#10;Works in AE 2023+"></textarea>
+          </div>
         </div>
 
-        <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
-          <label>Live preview demo (optional)</label>
-          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
-            Upload the whole exported demo folder (it needs an <code>index.html</code> inside — CSS/JS/images in the same folder are uploaded and linked automatically). Leave empty and the product page just won't show a preview section.
-          </p>
-          <div class="cp-avatar-drop-like" id="admPreviewDrop" style="text-align:left;">
-            <input type="file" id="admPreviewFolder" webkitdirectory directory multiple hidden>
-            <span id="admPreviewDropText">Click to choose the demo folder</span>
-          </div>
-          <p class="adm-msg" id="admPreviewMsg" style="margin-top:.4rem;"></p>
-          <p id="admPreviewCurrent" style="font-size:.8rem;margin-top:.4rem;"></p>
-          <input type="hidden" id="f_preview_url">
-        </div>
-
-        <div style="grid-column:1/-1;">
-          <label>Gallery (optional — extra images/videos shown on the product page)</label>
-          <div class="cp-avatar-drop-like" id="admGalleryDrop">
-            <input type="file" id="admGalleryFile" accept="image/*,video/*" multiple hidden>
-            <span>Click to add one or more images/videos to the gallery</span>
-          </div>
-          <p class="adm-msg" id="admGalleryMsg" style="margin-top:.4rem;"></p>
-          <div id="admGalleryList" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem;"></div>
-          <input type="hidden" id="f_gallery" value="[]">
-        </div>
-
-        <div style="grid-column:1/-1;border-top:1px solid var(--c-border);padding-top:1rem;margin-top:.4rem;">
-          <label>Full-width story section (optional — a mini landing page for this product, shown below the main info)</label>
-          <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
-            Build it as a stack of blocks in whatever order you want — text, then an image, then more text, then a video, etc. Leave it empty and the product page just won't show this section.
-          </p>
-          <div id="admStoryList" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.8rem;"></div>
-          <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-start;">
-            <textarea id="admStoryTextInput" rows="3" placeholder="Write a paragraph…" style="flex:1;min-width:220px;"></textarea>
-            <div style="display:flex;flex-direction:column;gap:.4rem;">
-              <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddText">+ Add text block</button>
-              <label style="font-size:.72rem;color:var(--c-text-faint);">Width for the next image/video:</label>
-              <select id="admStoryWidth" style="padding:.4rem .5rem;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);font-size:.78rem;">
-                <option value="100">Full width</option>
-                <option value="50">Half (sits side by side with another half)</option>
-                <option value="33">Third (sits 3-across)</option>
-              </select>
-              <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddMediaBtn">+ Add image/video block</button>
-              <input type="file" id="admStoryMediaFile" accept="image/*,video/*" hidden>
-            </div>
-          </div>
-          <p class="adm-msg" id="admStoryMsg" style="margin-top:.4rem;"></p>
-
-          <div style="border-top:1px dashed var(--c-border);margin-top:1rem;padding-top:1rem;">
-            <label>Feature block (title + description next to an image — the "Automasking / Stable Mattes" style rows)</label>
-            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;">
-              <input type="text" id="admFeatTitle" placeholder="Feature title (e.g. Automasking)">
-              <textarea id="admFeatText" rows="2" placeholder="Short description of this feature"></textarea>
-              <label style="font-size:.78rem;font-weight:400;"><input type="checkbox" id="admFeatReverse"> Image on the left instead of the right</label>
-              <div style="display:flex;gap:.6rem;align-items:center;">
-                <button type="button" class="btn btn--ghost btn--sm" id="admFeatImageBtn">Choose image</button>
-                <input type="file" id="admFeatImageFile" accept="image/*" hidden>
-                <span id="admFeatImageStatus" style="font-size:.78rem;color:var(--c-text-faint);">No image chosen.</span>
-              </div>
-              <button type="button" class="btn btn--ghost btn--sm" id="admFeatAddBtn" style="align-self:flex-start;">+ Add feature block</button>
-            </div>
-          </div>
-
-          <div style="border-top:1px dashed var(--c-border);margin-top:1rem;padding-top:1rem;">
-            <label>Interactive UI demo (optional — a clickable replica of the extension's own panel; visitors click a tab and the screenshot swaps)</label>
-            <p style="font-size:.78rem;color:var(--c-text-faint);margin:.3rem 0 .6rem;">
-              Add one tab per panel state — a label (e.g. "Animations", "Transcribe") plus a screenshot of the extension showing that tab. Add as many as you need, then save them as one block.
+        <div class="adm-section">
+          <div class="adm-section__title">Product file</div>
+          <div style="grid-column:1/-1;">
+            <p style="font-size:.78rem;color:var(--c-text-faint);margin:0 0 .6rem;">
+              Upload the real deliverable — the .zip, .mogrt, .aep, whatever it is. This is completely separate from the preview image/video above; customers never see this until they've paid.
+              Uploads here go to Supabase Storage, which is capped at 50MB on the free plan. For bigger files, host it elsewhere (e.g. a GitHub Release) and paste the direct download link in the field below instead — either way this sets the same download link.
             </p>
-            <div id="admTabsPending" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem;"></div>
-            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
-              <input type="text" id="admTabLabel" placeholder="Tab label (e.g. Animations)" style="flex:1;min-width:160px;">
-              <button type="button" class="btn btn--ghost btn--sm" id="admTabImageBtn">Choose screenshot</button>
-              <input type="file" id="admTabImageFile" accept="image/*" hidden>
-              <button type="button" class="btn btn--ghost btn--sm" id="admTabAddBtn">+ Add tab</button>
+            <div class="cp-avatar-drop-like" id="admFileDrop" style="text-align:left;">
+              <input type="file" id="admFileInput" hidden>
+              <span id="admFileDropText">Click to choose the file (or drag & drop) — max 50MB</span>
             </div>
-            <p class="adm-msg" id="admTabMsg" style="margin-top:.4rem;"></p>
-            <button type="button" class="btn btn--ghost btn--sm" id="admTabsBlockAddBtn" style="margin-top:.6rem;">+ Add UI demo block (uses the tabs above)</button>
+            <p class="adm-msg" id="admFileMsg" style="margin-top:.4rem;"></p>
+            <p id="admFileCurrent" style="font-size:.8rem;margin-top:.4rem;">No file uploaded yet.</p>
+            <label style="margin-top:.8rem;display:block;">Or paste a direct download URL (for files too big to upload above)</label>
+            <input type="url" id="f_download_url" placeholder="https://github.com/your-org/your-repo/releases/download/v1/file.zip">
           </div>
+        </div>
 
-          <div style="border-top:1px dashed var(--c-border);margin-top:1rem;padding-top:1rem;">
-            <label>System requirements table (optional)</label>
-            <div id="admReqPending" style="display:flex;flex-direction:column;gap:.4rem;margin:.5rem 0;"></div>
-            <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
-              <input type="text" id="admReqLabel" placeholder="Label (e.g. Windows)" style="flex:1;min-width:140px;">
-              <input type="text" id="admReqValue" placeholder="Value (e.g. 10/11, 8GB VRAM)" style="flex:1;min-width:140px;">
-              <button type="button" class="btn btn--ghost btn--sm" id="admReqRowAddBtn">+ Add row</button>
+        <div class="adm-section">
+          <div class="adm-section__title">Live preview demo</div>
+          <div style="grid-column:1/-1;">
+            <p style="font-size:.78rem;color:var(--c-text-faint);margin:0 0 .6rem;">
+              Upload the whole exported demo folder (it needs an <code>index.html</code> inside — CSS/JS/images in the same folder are uploaded and linked automatically). Leave empty and the product page just won't show a preview section.
+            </p>
+            <div class="cp-avatar-drop-like" id="admPreviewDrop" style="text-align:left;">
+              <input type="file" id="admPreviewFolder" webkitdirectory directory multiple hidden>
+              <span id="admPreviewDropText">Click to choose the demo folder</span>
             </div>
-            <button type="button" class="btn btn--ghost btn--sm" id="admReqBlockAddBtn" style="margin-top:.6rem;">+ Add requirements block (uses the rows above)</button>
+            <p class="adm-msg" id="admPreviewMsg" style="margin-top:.4rem;"></p>
+            <p id="admPreviewCurrent" style="font-size:.8rem;margin-top:.4rem;"></p>
+            <input type="hidden" id="f_preview_url">
           </div>
+        </div>
 
-          <input type="hidden" id="f_story_blocks" value="[]">
+        <div class="adm-section">
+          <div class="adm-section__title">Gallery</div>
+          <div style="grid-column:1/-1;">
+            <label>Extra images/videos shown on the product page (optional)</label>
+            <div class="cp-avatar-drop-like" id="admGalleryDrop">
+              <input type="file" id="admGalleryFile" accept="image/*,video/*" multiple hidden>
+              <span>Click to add one or more images/videos to the gallery</span>
+            </div>
+            <p class="adm-msg" id="admGalleryMsg" style="margin-top:.4rem;"></p>
+            <div id="admGalleryList" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem;"></div>
+            <input type="hidden" id="f_gallery" value="[]">
+          </div>
+        </div>
+
+        <div class="adm-section">
+          <div class="adm-section__title">Page builder — full-width story section</div>
+          <div style="grid-column:1/-1;">
+            <p style="font-size:.78rem;color:var(--c-text-faint);margin:0 0 .8rem;">
+              Optional mini landing page shown below the main product info. Build it as a stack of blocks in whatever order you want. Leave it empty and the product page just won't show this section.
+            </p>
+
+            <div class="adm-subsection">
+              <span class="adm-subsection__title">Text / image / video blocks</span>
+              <div id="admStoryList" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.8rem;"></div>
+              <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-start;">
+                <textarea id="admStoryTextInput" rows="3" placeholder="Write a paragraph…" style="flex:1;min-width:220px;"></textarea>
+                <div style="display:flex;flex-direction:column;gap:.4rem;">
+                  <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddText">+ Add text block</button>
+                  <label style="font-size:.72rem;color:var(--c-text-faint);">Width for the next image/video:</label>
+                  <select id="admStoryWidth" style="padding:.4rem .5rem;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);font-size:.78rem;">
+                    <option value="100">Full width</option>
+                    <option value="50">Half (sits side by side with another half)</option>
+                    <option value="33">Third (sits 3-across)</option>
+                  </select>
+                  <button type="button" class="btn btn--ghost btn--sm" id="admStoryAddMediaBtn">+ Add image/video block</button>
+                  <input type="file" id="admStoryMediaFile" accept="image/*,video/*" hidden>
+                </div>
+              </div>
+              <p class="adm-msg" id="admStoryMsg" style="margin-top:.4rem;"></p>
+            </div>
+
+            <div class="adm-subsection">
+              <span class="adm-subsection__title">Feature block — title + description next to an image</span>
+              <div style="display:flex;flex-direction:column;gap:.5rem;">
+                <input type="text" id="admFeatTitle" placeholder="Feature title (e.g. Automasking)">
+                <textarea id="admFeatText" rows="2" placeholder="Short description of this feature"></textarea>
+                <label style="font-size:.78rem;font-weight:400;"><input type="checkbox" id="admFeatReverse"> Image on the left instead of the right</label>
+                <div style="display:flex;gap:.6rem;align-items:center;">
+                  <button type="button" class="btn btn--ghost btn--sm" id="admFeatImageBtn">Choose image</button>
+                  <input type="file" id="admFeatImageFile" accept="image/*" hidden>
+                  <span id="admFeatImageStatus" style="font-size:.78rem;color:var(--c-text-faint);">No image chosen.</span>
+                </div>
+                <button type="button" class="btn btn--ghost btn--sm" id="admFeatAddBtn" style="align-self:flex-start;">+ Add feature block</button>
+              </div>
+            </div>
+
+            <div class="adm-subsection">
+              <span class="adm-subsection__title">Interactive UI demo — clickable replica of the extension's own panel</span>
+              <p style="font-size:.78rem;color:var(--c-text-faint);margin:0 0 .6rem;">
+                Add one tab per panel state — a label (e.g. "Animations", "Transcribe") plus a screenshot of the extension showing that tab. Add as many as you need, then save them as one block.
+              </p>
+              <div id="admTabsPending" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem;"></div>
+              <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="admTabLabel" placeholder="Tab label (e.g. Animations)" style="flex:1;min-width:160px;">
+                <button type="button" class="btn btn--ghost btn--sm" id="admTabImageBtn">Choose screenshot</button>
+                <input type="file" id="admTabImageFile" accept="image/*" hidden>
+                <button type="button" class="btn btn--ghost btn--sm" id="admTabAddBtn">+ Add tab</button>
+              </div>
+              <p class="adm-msg" id="admTabMsg" style="margin-top:.4rem;"></p>
+              <button type="button" class="btn btn--ghost btn--sm" id="admTabsBlockAddBtn" style="margin-top:.6rem;">+ Add UI demo block (uses the tabs above)</button>
+            </div>
+
+            <div class="adm-subsection">
+              <span class="adm-subsection__title">System requirements table</span>
+              <div id="admReqPending" style="display:flex;flex-direction:column;gap:.4rem;margin:.5rem 0;"></div>
+              <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+                <input type="text" id="admReqLabel" placeholder="Label (e.g. Windows)" style="flex:1;min-width:140px;">
+                <input type="text" id="admReqValue" placeholder="Value (e.g. 10/11, 8GB VRAM)" style="flex:1;min-width:140px;">
+                <button type="button" class="btn btn--ghost btn--sm" id="admReqRowAddBtn">+ Add row</button>
+              </div>
+              <button type="button" class="btn btn--ghost btn--sm" id="admReqBlockAddBtn" style="margin-top:.6rem;">+ Add requirements block (uses the rows above)</button>
+            </div>
+
+            <input type="hidden" id="f_story_blocks" value="[]">
+          </div>
         </div>
 
         <div class="adm-form-actions">
