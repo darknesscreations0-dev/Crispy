@@ -72,6 +72,8 @@
 .pd-tabs-demo__img img{ width:100%; display:block; border:1px solid var(--c-border); box-shadow:0 8px 30px rgba(0,0,0,.35); }
 
 /* System requirements table */
+.pd-req-section{ border-top:1px solid var(--c-border); margin-top:1.4rem; padding-top:2rem; }
+.pd-req-heading{ font-family:var(--font-display); font-size:1.3rem; font-weight:700; margin-bottom:1rem; }
 .pd-req-table{ width:100%; border-collapse:collapse; font-size:.85rem; }
 .pd-req-table td{ border:1px solid var(--c-border); padding:.65rem .9rem; color:var(--c-text-dim); }
 .pd-req-table td:first-child{ color:var(--c-text-faint); width:40%; font-weight:600; }
@@ -316,9 +318,12 @@
         const rows = Array.isArray(b.rows) ? b.rows : [];
         if (!rows.length) return '';
         return `
-          <table class="pd-req-table" style="flex:1 1 100%;">
-            ${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.value)}</td></tr>`).join('')}
-          </table>`;
+          <div class="pd-req-section" style="flex:1 1 100%;">
+            <h3 class="pd-req-heading">System Requirements</h3>
+            <table class="pd-req-table" style="max-width:640px;">
+              ${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.value)}</td></tr>`).join('')}
+            </table>
+          </div>`;
       }
       return '';
     }).join('');
