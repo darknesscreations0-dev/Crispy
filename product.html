@@ -46,11 +46,19 @@
 .pd-actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.5rem; }
 .pd-actions .btn{ flex:1; min-width:140px; }
 
+/* Story section — full-width block stack, given breathing room + a shared card look */
+#pdStoryContent{ gap:1.4rem !important; }
+.pd-hl{ color:var(--c-orange); font-weight:700; }
+
+/* Plain text block — styled as a card like everything else in the stack */
+.pd-story-text{ border:1px solid var(--c-border); background:var(--c-surface-2); padding:1.4rem 1.6rem; }
+.pd-story-text p{ color:var(--c-text-dim); font-size:1rem; line-height:1.75; white-space:pre-wrap; margin:0; }
+
 /* Feature block — title + description next to an image */
 .pd-feature{ display:flex; gap:1.6rem; align-items:center; flex-wrap:wrap; border:1px solid var(--c-border); background:var(--c-surface-2); padding:1.4rem; }
 .pd-feature--reverse{ flex-direction:row-reverse; }
 .pd-feature__img{ flex:1 1 300px; min-width:240px; }
-.pd-feature__img img{ width:100%; display:block; border:1px solid var(--c-border); }
+.pd-feature__img img{ width:100%; display:block; border:1px solid var(--c-border); box-shadow:0 8px 30px rgba(0,0,0,.35); }
 .pd-feature__text{ flex:1 1 240px; min-width:200px; }
 .pd-feature__text h3{ font-family:var(--font-display); font-size:1.1rem; font-weight:600; margin-bottom:.5rem; }
 .pd-feature__text p{ color:var(--c-text-dim); font-size:.92rem; line-height:1.65; }
@@ -61,7 +69,7 @@
 .pd-tabs-demo__nav button{ padding:.5rem 1.1rem; border:1px solid var(--c-border); background:transparent; color:var(--c-text-dim); font-size:.82rem; font-weight:600; cursor:pointer; }
 .pd-tabs-demo__nav button.is-active{ background:var(--c-orange); color:#1a0800; border-color:transparent; }
 .pd-tabs-demo__nav button:hover:not(.is-active){ border-color:var(--c-orange); color:var(--c-text); }
-.pd-tabs-demo__img img{ width:100%; display:block; border:1px solid var(--c-border); }
+.pd-tabs-demo__img img{ width:100%; display:block; border:1px solid var(--c-border); box-shadow:0 8px 30px rgba(0,0,0,.35); }
 
 /* System requirements table */
 .pd-req-table{ width:100%; border-collapse:collapse; font-size:.85rem; }
@@ -171,6 +179,12 @@
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
+  // Escapes first (safe), then turns **text** into highlighted bold — lets
+  // the admin call out a word/phrase in story text or feature descriptions
+  // without any separate rich-text UI.
+  function formatText(s){
+    return esc(s).replace(/\*\*(.+?)\*\*/g, '<strong class="pd-hl">$1</strong>');
+  }
   function money(n){ return '$' + Number(n || 0).toFixed(2); }
   function stars(r){ const n = Math.round(Number(r) || 5); return '★★★★★☆☆☆☆☆'.slice(5-n, 10-n); }
 
@@ -267,7 +281,7 @@
     content.style.gap = '1rem';
     content.innerHTML = blocks.map((b, bi) => {
       if (b.type === 'text'){
-        return `<p style="flex:1 1 100%;color:var(--c-text-dim);font-size:1rem;line-height:1.75;white-space:pre-wrap;">${esc(b.content)}</p>`;
+        return `<div class="pd-story-text" style="flex:1 1 100%;"><p>${formatText(b.content)}</p></div>`;
       }
       const width = b.width && b.width < 100 ? b.width : 100;
       const basis = `${width}%`;
@@ -282,8 +296,8 @@
           <div class="pd-feature${b.reverse ? ' pd-feature--reverse' : ''}" style="flex:1 1 100%;">
             <div class="pd-feature__img"><img src="${esc(b.url)}" alt="${esc(b.title || '')}"></div>
             <div class="pd-feature__text">
-              <h3>${esc(b.title || '')}</h3>
-              <p>${esc(b.text || '')}</p>
+              <h3>${formatText(b.title || '')}</h3>
+              <p>${formatText(b.text || '')}</p>
             </div>
           </div>`;
       }
